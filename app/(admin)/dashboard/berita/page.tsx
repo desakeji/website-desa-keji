@@ -35,7 +35,7 @@ export default function KelolaBeritaPage() {
         <h1 className="text-2xl font-bold text-gray-800">Kelola Berita & Pengumuman</h1>
         <Link 
           href="/dashboard/berita/tambah" 
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition"
         >
           + Tambah Berita
         </Link>
@@ -70,7 +70,7 @@ export default function KelolaBeritaPage() {
                       </span>
                     </td>
                     <td className="p-4 flex justify-center space-x-2">
-                      <button className="text-blue-600 hover:underline text-sm">Edit</button>
+                      <button className="text-emerald-600 hover:underline text-sm">Edit</button>
                       <button className="text-red-600 hover:underline text-sm">Hapus</button>
                     </td>
                   </tr>

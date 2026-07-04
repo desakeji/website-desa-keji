@@ -65,7 +65,7 @@ export default function TambahBeritaPage() {
             type="text"
             value={judul}
             onChange={(e) => setJudul(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-emerald-500"
             required
             placeholder="Contoh: Kegiatan KKN Bersih Desa"
           />
@@ -76,7 +76,7 @@ export default function TambahBeritaPage() {
           <select
             value={kategori}
             onChange={(e) => setKategori(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-emerald-500"
           >
             <option value="berita">Berita</option>
             <option value="pengumuman">Pengumuman</option>
@@ -88,7 +88,7 @@ export default function TambahBeritaPage() {
           <textarea
             value={konten}
             onChange={(e) => setKonten(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 min-h-[200px]"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-emerald-500 min-h-[200px]"
             required
             placeholder="Tulis isi berita di sini..."
           />
@@ -97,7 +97,7 @@ export default function TambahBeritaPage() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700 transition disabled:opacity-50"
+          className="bg-emerald-600 text-white font-bold py-2 px-6 rounded hover:bg-emerald-700 transition disabled:opacity-50"
         >
           {loading ? 'Menyimpan...' : 'Simpan Berita'}
         </button>
