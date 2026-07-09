@@ -1,14 +1,52 @@
 // app/(public)/profil/visi-misi/page.tsx
-import { Calendar, User, Eye, Info, Send, Target, ListChecks, CheckCircle2 } from 'lucide-react';
+import { Calendar, User, Eye, Target, ListChecks, CheckCircle2, ChevronRight } from 'lucide-react';
+import SidebarLayanan from '@/components/SidebarLayanan'; // Panggil komponen layanan
 
 export default function VisiMisiPage() {
-  const misiList = [
-    "Mewujudkan tata kelola Pemerintahan Desa yang transparan, akuntabel, dan bebas dari korupsi (KEJI BERANI).",
-    "Meningkatkan kualitas pelayanan publik yang cepat, mudah, dan 100% gratis bagi seluruh warga.",
-    "Mengoptimalkan potensi pariwisata Kampoeng Seni dan kebudayaan lokal untuk meningkatkan perekonomian masyarakat.",
-    "Mendorong pemberdayaan UMKM dan Badan Usaha Milik Desa (BUMDes) sebagai motor penggerak ekonomi desa.",
-    "Meningkatkan kualitas infrastruktur desa yang merata, ramah lingkungan, dan tepat sasaran.",
-    "Membangun kerukunan antarwarga berlandaskan nilai-nilai kejujuran dan semangat gotong royong (Makarti Nyawiji Mbangun Desa Keji)."
+  
+  // Data Misi dan Tujuan yang sudah di-struktur-kan
+  const misiDanTujuan = [
+    {
+      id: 1,
+      bidang: "PEMBERDAYAAN",
+      tujuan: "Memperdayakan Semua Potensi yang ada di masyarakat yang meliputi:",
+      poin: [
+        "Pemberdayaan sumber daya manusia (SDM)",
+        "Pemberdayaan sumber daya alam (SDA)",
+        "Pemberdayaan ekonomi masyarakat",
+        "Pemberdayaan pemuda, Agama, seni budaya, dan olahraga"
+      ]
+    },
+    {
+      id: 2,
+      bidang: "PEMBINAAN",
+      tujuan: "Menciptakan kondisi masyarakat Desa Keji yang Aman, Tertib, Guyup, dan Rukun dalam kehidupan bermasyarakat, yang meliputi:",
+      poin: [
+        "Pembinaan Pendidikan dan keagamaan",
+        "Pembinaan kelembagaan masyarakat desa",
+        "Pembinaan kewilayahan (tilik dusun)"
+      ]
+    },
+    {
+      id: 3,
+      bidang: "PEMERINTAHAN",
+      tujuan: "Optimalisasi penyelenggaraan pemerintah Desa Keji, yang meliputi:",
+      poin: [
+        "Penyelenggaraan pemerintahan yang transparan dan akuntabel",
+        "Pelayanan kepada masyarakat yang prima. Yaitu Cepat, Tepat, dan Benar",
+        "Pelaksanaan pembangunan yang berkesinambungan dan mengedepankan partisipasi dan gotong royong masyarakat"
+      ]
+    },
+    {
+      id: 4,
+      bidang: "PEMBANGUNAN",
+      tujuan: "Bekerja sama dengan Pemerintah Daerah Kabupaten, Provinsi, dan Pusat dalam mewujudkan Pembangunan Infrastruktur di Desa Keji yang meliputi:",
+      poin: [
+        "Bankeu Kabupaten (Aspirasi APBD Kabupaten Semarang)",
+        "Bankeu Provinsi (Aspirasi APBD Provinsi Jawa Tengah)",
+        "Bankeu Pusat (Aspirasi APBN)"
+      ]
+    }
   ];
 
   return (
@@ -26,7 +64,7 @@ export default function VisiMisiPage() {
           `}} />
           <div className="overflow-hidden w-full flex-1">
             <div className="animate-scrolling-info">
-              Untuk Permohonan Informasi Silahkan Masuk Ke Menu PPID Website ini. *** Visi & Misi Desa Keji Kecamatan Ungaran Barat Kabupaten Semarang ***
+              Untuk Permohonan Informasi Silahkan Masuk Ke Menu PPID Website ini. *** Visi & Misi Pemerintah Desa Keji Kecamatan Ungaran Barat Kabupaten Semarang ***
             </div>
           </div>
         </div>
@@ -36,108 +74,86 @@ export default function VisiMisiPage() {
           {/* KOLOM KIRI: Konten Utama Visi Misi */}
           <div className="lg:w-2/3 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-200">
             <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-4 leading-tight">
-              Visi dan Misi Pemerintah Desa Keji
+              Visi dan Misi Pemerintah Desa
             </h1>
             
             {/* Meta Data */}
             <div className="flex flex-wrap gap-4 text-xs font-semibold text-gray-500 mb-8 border-b border-gray-100 pb-4">
-              <span className="flex items-center gap-1.5"><Calendar size={14} className="text-emerald-500" /> 05 Juli 2026</span>
+              <span className="flex items-center gap-1.5"><Calendar size={14} className="text-emerald-500" /> 10 Juli 2026</span>
               <span className="flex items-center gap-1.5"><User size={14} className="text-emerald-500" /> Admin Desa</span>
               <span className="flex items-center gap-1.5"><Eye size={14} className="text-emerald-500" /> Dibaca 3.102 Kali</span>
             </div>
 
             {/* VISI SECTION */}
-            <div className="mb-10">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-5">
                 <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
                   <Target size={28} strokeWidth={2.5} />
                 </div>
                 <h2 className="text-2xl font-black text-gray-800">Visi</h2>
               </div>
               
-              <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-2xl p-6 md:p-8 shadow-lg text-center relative overflow-hidden border border-emerald-500">
-                {/* Aksen Background Visi */}
+              <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-2xl p-8 shadow-lg text-center relative overflow-hidden border border-emerald-500">
                 <div className="absolute -top-10 -right-10 text-white/10">
                   <Target size={150} strokeWidth={1} />
                 </div>
-                <p className="text-white text-lg md:text-xl font-extrabold leading-relaxed relative z-10 drop-shadow-md">
-                  "Terwujudnya Desa Keji yang Mandiri, Sejahtera, Berbudaya, serta Terciptanya Tata Kelola Pemerintahan yang Bersih dan Berani Anti Korupsi."
+                <p className="text-white text-lg md:text-xl font-extrabold leading-relaxed relative z-10 drop-shadow-md tracking-wide uppercase">
+                  "BERSAMA MEMBANGUN DESA MELALUI TATA KELOLA PEMERINTAHAN YANG BERSIH, TRANSPARAN, AKUNTABEL, DAN PARTISIPATIF MENUJU DESA YANG MAJU, MANDIRI DAN BERBUDAYA BERLANDASKAN PERILAKU TERPUJI"
                 </p>
               </div>
             </div>
 
             {/* MISI SECTION */}
             <div>
-              <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
                   <ListChecks size={28} strokeWidth={2.5} />
                 </div>
-                <h2 className="text-2xl font-black text-gray-800">Misi</h2>
+                <h2 className="text-2xl font-black text-gray-800">Misi dan Tujuan</h2>
               </div>
               
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-inner">
-                <ul className="space-y-4">
-                  {misiList.map((misi, index) => (
-                    <li key={index} className="flex items-start gap-4 p-3 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-emerald-100 hover:shadow-sm">
-                      <div className="mt-0.5 bg-white rounded-full p-1 shadow-sm border border-emerald-200 shrink-0">
-                        <CheckCircle2 size={20} className="text-emerald-500" />
+              <div className="space-y-6">
+                {misiDanTujuan.map((misi) => (
+                  <div key={misi.id} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    
+                    {/* Header Misi */}
+                    <div className="bg-white border-b border-gray-200 p-4 md:px-6 flex items-start gap-4">
+                      <div className="bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black text-lg shrink-0 shadow-sm mt-1">
+                        {misi.id}
                       </div>
-                      <p className="text-gray-700 font-medium leading-relaxed">
-                        {misi}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                      <div>
+                        <h3 className="text-emerald-800 font-extrabold text-lg tracking-wide uppercase">
+                          MISI BIDANG {misi.bidang}
+                        </h3>
+                        <p className="text-gray-700 font-medium text-sm mt-1 leading-relaxed">
+                          {misi.tujuan}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Poin-poin Misi */}
+                    <div className="p-4 md:px-6 bg-emerald-50/30">
+                      <ul className="space-y-3">
+                        {misi.poin.map((poinItem, index) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <ChevronRight size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-gray-700 font-medium text-sm leading-relaxed">
+                              {poinItem}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
           </div>
 
-          {/* KOLOM KANAN: Form Layanan Cepat */}
+          {/* KOLOM KANAN: Panggil Komponen Layanan */}
           <div className="lg:w-1/3">
-            <div className="bg-emerald-800 rounded-2xl overflow-hidden shadow-lg sticky top-24 border border-emerald-700">
-              
-              <div className="bg-emerald-600 p-5 text-center relative overflow-hidden">
-                <h3 className="text-white font-extrabold text-xl relative z-10">Layanan Cepat</h3>
-                <div className="absolute -bottom-8 -left-4 w-[120%] h-12 bg-emerald-800 rounded-t-[50%] rotate-3"></div>
-              </div>
-              
-              <div className="p-6 relative z-20">
-                <div className="bg-emerald-50 text-emerald-800 text-[11px] font-bold p-3 rounded-lg flex items-start gap-2 mb-6 shadow-inner border border-emerald-100">
-                  <Info size={16} className="shrink-0 text-emerald-600 mt-0.5" />
-                  <p>Isi form di bawah ini. Admin desa akan menghubungi Anda via WhatsApp untuk konfirmasi.</p>
-                </div>
-
-                <form className="space-y-4">
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1.5 block">Nama Lengkap</label>
-                    <input type="text" className="w-full p-2.5 rounded-lg border-none focus:ring-2 focus:ring-amber-400 bg-white shadow-inner text-gray-800 font-medium text-sm outline-none" placeholder="Nama sesuai KTP" />
-                  </div>
-                  
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1.5 block">No. WhatsApp</label>
-                    <input type="tel" className="w-full p-2.5 rounded-lg border-none focus:ring-2 focus:ring-amber-400 bg-white shadow-inner text-gray-800 font-medium text-sm outline-none" placeholder="Contoh: 08123456789" />
-                  </div>
-
-                  <div>
-                    <label className="text-white text-sm font-semibold mb-1.5 block">Pilih Layanan</label>
-                    <select className="w-full p-2.5 rounded-lg border-none focus:ring-2 focus:ring-amber-400 bg-white shadow-inner text-gray-800 font-medium text-sm outline-none">
-                      <option value="" disabled selected>-- Pilih Keperluan --</option>
-                      <option value="ktp">Surat Pengantar KTP / KK</option>
-                      <option value="skck">Surat Pengantar SKCK</option>
-                      <option value="domisili">Surat Keterangan Domisili</option>
-                      <option value="usaha">Surat Keterangan Usaha (SKU)</option>
-                      <option value="tidak-mampu">SKTM (Tidak Mampu)</option>
-                      <option value="lainnya">Lainnya...</option>
-                    </select>
-                  </div>
-
-                  <button type="button" className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 rounded-lg transition-colors mt-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <Send size={16} /> Kirim Permohonan
-                  </button>
-                </form>
-              </div>
-            </div>
+            <SidebarLayanan />
           </div>
 
         </div>
