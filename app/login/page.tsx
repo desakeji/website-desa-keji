@@ -1,115 +1,305 @@
-// app/login/page.tsx (Sesuaikan dengan lokasi file login Anda)
+// app/login/page.tsx
+
 'use client';
 
-import { useState } from 'react';
+import {
+  useState,
+  type FormEvent,
+} from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, LogIn, ArrowLeft, ShieldCheck } from 'lucide-react';
+
+import {
+  Mail,
+  Lock,
+  LogIn,
+  ArrowLeft,
+  ShieldCheck,
+  CircleAlert,
+  LoaderCircle,
+} from 'lucide-react';
+
+import { createClient } from '@/lib/client';
+
+const supabase = createClient();
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // TODO: Nanti kita hubungkan logika ini dengan Supabase Auth
-    // Sementara kita buat simulasi jika diklik langsung pindah ke Dashboard
-    console.log('Login dengan:', email, password);
-    router.push('/admin'); 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] =
+    useState('');
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [errorMessage, setErrorMessage] =
+    useState('');
+
+  const handleLogin = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const {
+        data,
+        error,
+      } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (error) {
+        console.error(
+          'Supabase Auth Error:',
+          error.code,
+          error.message
+        );
+
+        if (
+          error.code === 'invalid_credentials'
+        ) {
+          throw new Error(
+            'Email atau kata sandi yang dimasukkan tidak benar.'
+          );
+        }
+
+        if (
+          error.code === 'email_not_confirmed'
+        ) {
+          throw new Error(
+            'Email admin belum dikonfirmasi di Supabase.'
+          );
+        }
+
+        if (
+          error.code === 'over_request_rate_limit'
+        ) {
+          throw new Error(
+            'Terlalu banyak percobaan login. Tunggu beberapa saat lalu coba kembali.'
+          );
+        }
+
+        throw new Error(error.message);
+      }
+
+      if (!data.user || !data.session) {
+        throw new Error(
+          'Akun berhasil diperiksa, tetapi sesi login tidak berhasil dibuat.'
+        );
+      }
+
+      /*
+       * replace digunakan agar pengguna tidak kembali
+       * ke halaman login ketika menekan tombol Back.
+       */
+      router.replace('/admin');
+
+      /*
+       * Memuat ulang Server Component agar layout admin
+       * membaca cookie sesi Supabase yang baru.
+       */
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Terjadi kesalahan saat proses login.';
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center relative overflow-hidden">
-      
+    <div className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-slate-50">
       {/* Background Aksen Hijau */}
-      <div className="absolute top-0 left-0 w-full h-64 bg-emerald-800 rounded-b-[20%] md:rounded-b-[50%] shadow-lg"></div>
+      <div className="absolute left-0 top-0 h-64 w-full rounded-b-[20%] bg-emerald-800 shadow-lg md:rounded-b-[50%]" />
 
-      <div className="relative z-10 max-w-md w-full mx-auto px-4 sm:px-6">
-        
+      {/* Dekorasi Background */}
+      <div className="pointer-events-none absolute -right-24 top-16 h-64 w-64 rounded-full border-[45px] border-emerald-700/40" />
+
+      <div className="pointer-events-none absolute -left-24 bottom-10 h-64 w-64 rounded-full bg-emerald-100/60 blur-3xl" />
+
+      <div className="relative z-10 mx-auto w-full max-w-md px-4 sm:px-6">
         {/* Tombol Kembali */}
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-emerald-100 hover:text-white font-semibold text-sm mb-6 transition-colors drop-shadow-md"
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-emerald-100 drop-shadow-md transition-colors hover:text-white"
         >
-          <ArrowLeft size={16} /> Kembali ke Beranda
+          <ArrowLeft size={16} />
+          Kembali ke Beranda
         </Link>
 
         {/* Kartu Login */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-emerald-950/10">
           {/* Header Kartu */}
-          <div className="bg-emerald-50/50 p-6 md:p-8 text-center border-b border-gray-100">
-            <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-emerald-100">
-              <ShieldCheck size={32} className="text-emerald-600" />
+          <div className="border-b border-gray-100 bg-emerald-50/50 p-6 text-center md:p-8">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-100 bg-white shadow-sm">
+              <ShieldCheck
+                size={32}
+                className="text-emerald-600"
+              />
             </div>
-            <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">
+
+            <h1 className="text-2xl font-extrabold tracking-tight text-gray-800">
               Portal Admin
             </h1>
-            <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-1">
-              Desa Keji - Kab. Semarang
+
+            <p className="mt-1 text-xs font-bold uppercase tracking-widest text-emerald-600">
+              Desa Keji – Kab. Semarang
             </p>
           </div>
 
           {/* Form Login */}
           <div className="p-6 md:p-8">
-            <form onSubmit={handleLogin} className="space-y-5">
-              
-              <div>
-                <label className="text-sm font-bold text-gray-700 block mb-2">Email Administrator</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-gray-400" />
-                  </div>
-                  <input 
-                    type="email" 
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 p-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-slate-50 focus:bg-white transition-all text-sm font-medium outline-none text-gray-800"
-                    placeholder="admin@desakeji.id"
-                  />
-                </div>
-              </div>
+            {errorMessage && (
+              <div
+                role="alert"
+                className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+              >
+                <CircleAlert
+                  size={18}
+                  className="mt-0.5 shrink-0"
+                />
 
-              <div>
-                <label className="text-sm font-bold text-gray-700 block mb-2">Kata Sandi</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-gray-400" />
-                  </div>
-                  <input 
-                    type="password" 
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 p-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-slate-50 focus:bg-white transition-all text-sm font-medium outline-none text-gray-800"
-                    placeholder="••••••••"
-                  />
-                </div>
+                <p>{errorMessage}</p>
               </div>
+            )}
 
-              <div className="pt-2">
-                <button 
-                  type="submit" 
-                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-wide transform hover:-translate-y-0.5"
+            <form
+              onSubmit={handleLogin}
+              className="space-y-5"
+            >
+              {/* Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-bold text-gray-700"
                 >
-                  <LogIn size={18} /> Masuk ke Dashboard
+                  Email Administrator
+                </label>
+
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                    <Mail
+                      size={18}
+                      className="text-gray-400"
+                    />
+                  </div>
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    disabled={isLoading}
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(
+                        event.target.value
+                      );
+
+                      if (errorMessage) {
+                        setErrorMessage('');
+                      }
+                    }}
+                    className="w-full rounded-xl border border-gray-200 bg-slate-50 p-3 pl-10 text-sm font-medium text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-gray-100"
+                    placeholder="Masukkan email admin"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-bold text-gray-700"
+                >
+                  Kata Sandi
+                </label>
+
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                    <Lock
+                      size={18}
+                      className="text-gray-400"
+                    />
+                  </div>
+
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    disabled={isLoading}
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(
+                        event.target.value
+                      );
+
+                      if (errorMessage) {
+                        setErrorMessage('');
+                      }
+                    }}
+                    className="w-full rounded-xl border border-gray-200 bg-slate-50 p-3 pl-10 text-sm font-medium text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-gray-100"
+                    placeholder="Masukkan kata sandi"
+                  />
+                </div>
+              </div>
+
+              {/* Tombol Login */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={
+                    isLoading ||
+                    !email.trim() ||
+                    !password
+                  }
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3.5 text-sm font-extrabold uppercase tracking-wide text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-gray-400 disabled:shadow-none disabled:hover:translate-y-0"
+                >
+                  {isLoading ? (
+                    <>
+                      <LoaderCircle
+                        size={18}
+                        className="animate-spin"
+                      />
+                      Memverifikasi Akun...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn size={18} />
+                      Masuk ke Dashboard
+                    </>
+                  )}
                 </button>
               </div>
-
             </form>
           </div>
 
           {/* Footer Kartu */}
-          <div className="bg-gray-50 p-4 text-center border-t border-gray-100">
+          <div className="border-t border-gray-100 bg-gray-50 p-4 text-center">
             <p className="text-[11px] font-semibold text-gray-500">
-              Sistem Informasi Desa Keji &copy; 2026<br/>
+              Sistem Informasi Desa Keji
+              &copy; 2026
+              <br />
               Hanya untuk pengelola yang sah.
             </p>
           </div>
-
         </div>
       </div>
     </div>
