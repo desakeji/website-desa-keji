@@ -20,7 +20,15 @@ export default function Navbar() {
         { name: 'Peta Desa', href: '/peta' },
       ]
     },
-    { name: 'Pemerintah Desa', href: '/pemerintahan', subItems: [] },
+    {
+      name: 'Pemerintah Desa',
+      href: '#',
+      subItems: [
+        { name: 'SOTK Pemerintah Desa', href: '/pemerintahan'},
+        { name: 'RPJMDes 2020–2028', href: 'https://drive.google.com/file/d/144eXukbqxtmsCkPqBc7TxskQIQXhBw5E/view?usp=sharing'},
+        { name: 'Absensi', href: '#' },
+      ],
+    },
     { name: 'Data Desa', href: '/data-desa', subItems: [] },
     { name: 'Informasi Publik', href: '/informasi', subItems: [] },
     { name: 'PPID', href: '/ppid', subItems: [] },
@@ -107,13 +115,23 @@ export default function Navbar() {
                     <div className="absolute top-full left-0 bg-emerald-800 min-w-[200px] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top border-t-2 border-emerald-500">
                       <div className="py-1 flex flex-col">
                         {item.subItems.map((sub) => (
-                          <Link 
-                            key={sub.name} 
+                          <Link
+                            key={sub.name}
                             href={sub.href}
+                            target={sub.href.startsWith('http') ? '_blank' : undefined}
+                            rel={
+                              sub.href.startsWith('http')
+                                ? 'noopener noreferrer'
+                                : undefined
+                            }
                             className="px-5 py-2.5 hover:bg-emerald-700 text-[13px] font-medium transition-colors flex items-center justify-between group/sub"
                           >
                             {sub.name}
-                            <ChevronRight size={14} className="opacity-0 group-hover/sub:opacity-100 transition-opacity transform -translate-x-2 group-hover/sub:translate-x-0" />
+
+                            <ChevronRight
+                              size={14}
+                              className="opacity-0 group-hover/sub:opacity-100 transition-opacity transform -translate-x-2 group-hover/sub:translate-x-0"
+                            />
                           </Link>
                         ))}
                       </div>
@@ -158,8 +176,20 @@ export default function Navbar() {
                 {item.subItems && item.subItems.length > 0 && openDropdown === item.name && (
                   <div className="bg-emerald-900/40 rounded-lg mb-2 flex flex-col">
                     {item.subItems.map((sub) => (
-                      <Link key={sub.name} href={sub.href} onClick={() => setIsOpen(false)} className="py-2.5 px-4 text-xs font-medium flex items-center gap-2">
-                        <ChevronRight size={12} className="opacity-50" /> {sub.name}
+                      <Link
+                        key={sub.name}
+                        href={sub.href}
+                        target={sub.href.startsWith('http') ? '_blank' : undefined}
+                        rel={
+                          sub.href.startsWith('http')
+                            ? 'noopener noreferrer'
+                            : undefined
+                        }
+                        onClick={() => setIsOpen(false)}
+                        className="py-2.5 px-4 text-xs font-medium flex items-center gap-2"
+                      >
+                        <ChevronRight size={12} className="opacity-50" />
+                        {sub.name}
                       </Link>
                     ))}
                   </div>
