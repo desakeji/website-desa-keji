@@ -31,7 +31,16 @@ export default function Navbar() {
     },
     { name: 'Data Desa', href: '/data-desa', subItems: [] },
     { name: 'Informasi Publik', href: '/informasi', subItems: [] },
-    { name: 'PPID', href: '/ppid', subItems: [] },
+    { name: 'PPID', 
+      href: '#',
+      subItems: [
+        { name: 'Apa itu PPID', href: '/ppid/apa-itu-ppid' },
+        { name: 'Profil PPID', href: '/ppid/profil' },
+        { name: 'Klasifikasi Informasi', href: '/ppid/klasifikasi-informasi'},
+        { name: 'Permohonan Informasi Publik', href: '/ppid/permohonan-informasi' },
+        { name: 'Pengajuan Keberatan Informasi', href: '/ppid/pengajuan-keberatan' },
+      ],
+    },
     { name: 'Layanan', href: '/layanan', subItems: [] },
     { name: 'Lapak', href: '/umkm' },
     { name: 'Kontak', href: '/kontak', subItems: [] },
@@ -112,7 +121,10 @@ export default function Navbar() {
                   </Link>
 
                   {item.subItems && item.subItems.length > 0 && (
-                    <div className="absolute top-full left-0 bg-emerald-800 min-w-[200px] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top border-t-2 border-emerald-500">
+                    <div className={`absolute top-full left-0 z-50 bg-emerald-800 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top border-t-2 border-emerald-500 ${
+                        item.name === 'PPID'
+                          ? 'min-w-[290px]'
+                          : 'min-w-[200px]'}`}>
                       <div className="py-1 flex flex-col">
                         {item.subItems.map((sub) => (
                           <Link
