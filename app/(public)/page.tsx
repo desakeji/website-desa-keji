@@ -1,70 +1,159 @@
 // app/(public)/page.tsx
+
 'use client';
 
 import Link from 'next/link';
 import { TypeAnimation } from 'react-type-animation';
-import { 
-  Map, Scale, Info, ShoppingCart, Archive, Image as ImageIcon, 
-  Megaphone, Hammer, PieChart, Users, User, UserPlus,
-  Clock, MapPin, Calendar, Sun, Moon, Sunrise, Sunset,
-  FileText, ChevronRight
+
+import {
+  Map,
+  Scale,
+  Info,
+  ShoppingCart,
+  Archive,
+  Image as ImageIcon,
+  Megaphone,
+  Hammer,
+  PieChart,
+  Clock,
+  MapPin,
+  Calendar,
+  Sun,
+  Moon,
+  Sunrise,
+  Sunset,
+  Quote,
+  ExternalLink,
+  Navigation,
+  Building2,
+  BadgeCheck,
+  ArrowUpRight,
 } from 'lucide-react';
+
+import BeritaTerbaru from '@/components/public/BeritaTerbaru';
+import StatistikPenduduk from '@/components/public/StatistikPenduduk';
 
 export default function HomePage() {
   const quickLinks = [
-    { name: 'Peta Desa', icon: Map, href: '/peta' },
-    { name: 'Produk Hukum', icon: Scale, href: '/peraturan' },
-    { name: 'Informasi Publik', icon: Info, href: '/informasi' },
-    { name: 'Lapak UMKM', icon: ShoppingCart, href: '/umkm' },
-    { name: 'Arsip Berita', icon: Archive, href: '/berita' },
-    { name: 'Album Galeri', icon: ImageIcon, href: '/galeri' },
-    { name: 'Pengaduan', icon: Megaphone, href: '/pengaduan' },
-    { name: 'Pembangunan', icon: Hammer, href: '/pembangunan' },
-    { name: 'Status IDM', icon: PieChart, href: '/idm' },
+    {
+      name: 'Peta Desa',
+      icon: Map,
+      href: '/peta',
+    },
+    {
+      name: 'Produk Hukum',
+      icon: Scale,
+      href: '/peraturan',
+    },
+    {
+      name: 'Informasi Publik',
+      icon: Info,
+      href: '/informasi',
+    },
+    {
+      name: 'Lapak UMKM',
+      icon: ShoppingCart,
+      href: '/umkm',
+    },
+    {
+      name: 'Arsip Berita',
+      icon: Archive,
+      href: '/berita',
+    },
+    {
+      name: 'Album Galeri',
+      icon: ImageIcon,
+      href: '/galeri',
+    },
+    {
+      name: 'Pengaduan',
+      icon: Megaphone,
+      href: '/pengaduan',
+    },
+    {
+      name: 'Pembangunan',
+      icon: Hammer,
+      href: '/pembangunan',
+    },
+    {
+      name: 'Status IDM',
+      icon: PieChart,
+      href: '/idm',
+    },
   ];
 
-  const beritaTerbaru = [
+  const jadwalSholat = [
     {
-      id: 1,
-      judul: 'Desa Keji Siapkan Budidaya Lele Bioflok Bersama BUMDes',
-      tanggal: '13 Mei 2026',
-      penulis: 'Admin Desa',
-      kutipan: 'Pemerintah Desa Keji bersama Badan Usaha Milik Desa (BUMDes) menerima kunjungan survei lokasi dari Dinas Pertanian dan Perikanan Kabupaten Semarang...',
-      gambar: 'https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?q=80&w=600&auto=format&fit=crop'
+      name: 'Subuh',
+      time: '04:30',
+      icon: Moon,
     },
     {
-      id: 2,
-      judul: 'Pengumuman Calon Tetap Anggota BPD Keji Tahun 2026-2034',
-      tanggal: '30 April 2026',
-      penulis: 'Admin Desa',
-      kutipan: 'Pemerintah Desa Keji menginformasikan pelaksanaan pengisian anggota Badan Permusyawaratan Desa (BPD) untuk masa bakti 2026-2034 seiring berakhirnya...',
-      gambar: 'https://images.unsplash.com/photo-1577563908411-50cb98976fea?q=80&w=600&auto=format&fit=crop'
+      name: 'Dzuhur',
+      time: '11:46',
+      icon: Sun,
     },
     {
-      id: 3,
-      judul: 'Pemerintah Desa Keji Mengucapkan Selamat Hari Raya Idul Fitri 1447 H',
-      tanggal: '22 Maret 2026',
-      penulis: 'Admin Desa',
-      kutipan: 'Dalam suasana yang penuh berkah, segenap aparatur Pemerintah Desa Keji mengucapkan Selamat Hari Raya Idul Fitri 1447 H. Minal Aidin Wal Faizin...',
-      gambar: 'https://images.unsplash.com/photo-1564121211835-e88c852648ab?q=80&w=600&auto=format&fit=crop'
-    }
+      name: 'Ashar',
+      time: '15:07',
+      icon: Sunrise,
+    },
+    {
+      name: 'Maghrib',
+      time: '17:38',
+      icon: Sunset,
+    },
+    {
+      name: 'Isya',
+      time: '18:52',
+      icon: Moon,
+    },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pb-12">
-      
-      {/* 1. HERO SECTION & PENCARIAN */}
-      <section className="relative flex flex-col items-center justify-center bg-emerald-950 min-h-[65vh] pt-20 pb-32">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-black/50 z-10"></div>
-          <img src="/background.png" alt="Pemandangan Desa Keji" className="w-full h-full object-cover opacity-90" />
-        </div>
-        <div className="relative z-20 text-center px-4 w-full max-w-3xl">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-md mx-auto p-3 rounded-xl border border-white/20 flex items-center justify-center mb-6 shadow-xl">
-             <img src="/logodesakeji.png" alt="Logo Desa Keji" className="w-full h-full object-contain drop-shadow-md" />
+    <div className="flex min-h-screen flex-col bg-slate-50 pb-12">
+      {/* 1. HERO SECTION */}
+      <section
+        className="
+          relative
+          flex
+          min-h-[calc(100svh-108px)]
+          flex-col
+          items-center
+          justify-center
+          overflow-hidden
+          bg-cover
+          bg-center
+          bg-no-repeat
+          bg-scroll
+          pb-28
+          pt-20
+          md:bg-fixed
+        "
+        style={{
+          backgroundImage:
+            "url('/background.png')",
+        }}
+      >
+        {/* Lapisan gelap */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-emerald-950/75" />
+
+        {/* Aksen cahaya */}
+        <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-emerald-400/10 blur-[100px]" />
+
+        {/* Konten hero */}
+        <div className="relative z-10 w-full max-w-4xl px-4 text-center">
+          {/* Logo Desa */}
+          <div className="mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-2xl border border-white/20 bg-white/10 p-3 shadow-2xl backdrop-blur-md">
+            <img
+              src="/logodesakeji.png"
+              alt="Logo Desa Keji"
+              className="h-full w-full object-contain drop-shadow-lg"
+            />
           </div>
-          
-          <div className="min-h-[80px] md:min-h-[60px] flex items-center justify-center mb-2">
+
+          {/* Judul berjalan */}
+          <div className="mb-3 flex min-h-[90px] items-center justify-center md:min-h-[70px]">
             <TypeAnimation
               sequence={[
                 'Sistem Informasi Desa Keji',
@@ -72,162 +161,560 @@ export default function HomePage() {
                 'Portal Resmi Pemerintahan',
                 2000,
                 'Keji Berani, Anti Korupsi',
-                2000
+                2000,
               ]}
               wrapper="h1"
               speed={50}
               deletionSpeed={50}
-              className="text-3xl md:text-5xl font-extrabold text-white drop-shadow-lg"
+              className="text-3xl font-black leading-tight tracking-tight text-white drop-shadow-xl sm:text-4xl md:text-5xl lg:text-6xl"
               repeat={Infinity}
             />
           </div>
 
-          <p className="text-emerald-50 text-lg md:text-xl font-medium tracking-wide drop-shadow mb-8 mt-2">Kec. Ungaran Barat, Kab. Semarang</p>
-          <div className="bg-white p-1.5 rounded-full flex shadow-2xl max-w-xl mx-auto transform transition-transform hover:scale-[1.02]">
-            <input type="text" placeholder="Cari informasi layanan atau berita desa..." className="flex-1 px-6 py-3 rounded-l-full focus:outline-none text-gray-700 bg-transparent" />
-            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full transition-colors font-semibold shadow-md">Cari</button>
+          {/* Lokasi */}
+          <p className="mb-9 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-50/90 drop-shadow-md sm:text-base md:text-lg">
+            Kecamatan Ungaran Barat · Kabupaten
+            Semarang
+          </p>
+
+          {/* Pencarian */}
+          <div className="mx-auto flex w-full max-w-2xl items-center rounded-2xl border border-white/20 bg-white/95 p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl transition duration-300 focus-within:ring-4 focus-within:ring-emerald-300/25">
+            <input
+              type="search"
+              placeholder="Cari informasi layanan atau berita desa..."
+              className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 sm:px-5"
+            />
+
+            <button
+              type="button"
+              className="shrink-0 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800 sm:px-8"
+            >
+              Cari
+            </button>
+          </div>
+        </div>
+
+        {/* Indikator scroll */}
+        <div className="absolute bottom-7 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/70 sm:flex">
+          <span className="text-[9px] font-bold uppercase tracking-[0.25em]">
+            Jelajahi
+          </span>
+
+          <div className="flex h-8 w-5 justify-center rounded-full border border-white/40 pt-1.5">
+            <span className="h-1.5 w-1 animate-bounce rounded-full bg-white/80" />
           </div>
         </div>
       </section>
 
       {/* 2. MENU PINTASAN */}
-      <section className="relative z-30 -mt-16 max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <style dangerouslySetInnerHTML={{__html: `.hide-scroll-bar { -ms-overflow-style: none; scrollbar-width: none; } .hide-scroll-bar::-webkit-scrollbar { display: none; }`}} />
-        <div className="flex overflow-x-auto pb-8 pt-2 hide-scroll-bar gap-4 snap-x xl:justify-center">
-          {quickLinks.map((link, index) => (
-            <Link key={index} href={link.href} className="snap-start shrink-0 w-32 h-32 bg-white rounded-2xl shadow-lg border border-gray-100 flex flex-col items-center justify-center gap-3 hover:-translate-y-2 hover:shadow-emerald-200/50 transition-all duration-300 group">
-              <div className="p-3 rounded-full bg-emerald-50 group-hover:bg-emerald-100 transition-colors"><link.icon size={28} className="text-emerald-600" /></div>
-              <span className="text-xs font-bold text-gray-700 text-center px-2 group-hover:text-emerald-700">{link.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <section className="relative z-30 mx-auto -mt-16 w-full max-w-[95rem] px-4 sm:px-6 lg:px-8">
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              .hide-scroll-bar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
 
-      {/* 3. SAMBUTAN & STATISTIK PENDUDUK (Foto Pak Kades Sudah Update) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2 w-full">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-8/12 bg-emerald-600 rounded-2xl shadow-lg p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 text-white border border-emerald-500">
-            <div className="shrink-0 w-32 h-40 bg-emerald-800 rounded-xl border-4 border-emerald-300 overflow-hidden shadow-xl">
-               {/* Menggunakan foto asli pakkades.png dari folder public */}
-               <img src="/pakkades.png" alt="Kepala Desa Keji - Siswanto" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="italic leading-relaxed text-emerald-50 mb-5 text-sm lg:text-base">
-                "Assalamu'alaikum Warahmatullahi Wabarakatuh. Selamat datang di website resmi Desa Keji. Melalui semangat <strong className="text-white">KEJI BERANI</strong> and <strong className="text-white">KEJI ANTI KORUPSI</strong>, kami berkomitmen penuh menghadirkan informasi desa yang transparan dan mudah diakses."
-              </p>
-              <p className="font-extrabold text-lg tracking-wide">-- SISWANTO</p>
-              <p className="text-emerald-200 text-sm font-medium">Kepala Desa Keji</p>
-            </div>
-          </div>
+              .hide-scroll-bar::-webkit-scrollbar {
+                display: none;
+              }
+            `,
+          }}
+        />
 
-          <div className="lg:w-4/12 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-50 rounded-full opacity-50"></div>
-            <h3 className="text-center font-extrabold text-gray-800 mb-6 pb-3 border-b-2 border-emerald-100 relative z-10">Statistik Penduduk</h3>
-            <div className="flex justify-between items-center text-center relative z-10">
-              <div className="space-y-2"><div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto shadow-sm"><User size={20} strokeWidth={2.5} /></div><p className="text-2xl font-black text-gray-800">1.250</p><p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Laki-laki</p></div>
-              <div className="space-y-2"><div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-full flex items-center justify-center mx-auto shadow-sm"><UserPlus size={20} strokeWidth={2.5} /></div><p className="text-2xl font-black text-gray-800">1.320</p><p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Perempuan</p></div>
-              <div className="space-y-2"><div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm"><Users size={20} strokeWidth={2.5} /></div><p className="text-2xl font-black text-emerald-600">2.570</p><p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Total</p></div>
-            </div>
-          </div>
-        </div>
-      </section>
+        <div className="hide-scroll-bar flex snap-x gap-4 overflow-x-auto pb-8 pt-2 xl:justify-center">
+          {quickLinks.map((link) => {
+            const Icon = link.icon;
 
-      {/* 4. SEKILAS INFO */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
-        <div className="bg-white border border-emerald-100 rounded-xl flex items-center overflow-hidden shadow-sm relative">
-          <div className="bg-emerald-600 text-white px-5 py-3.5 text-sm font-bold shrink-0 flex items-center gap-2 z-10 shadow-lg"><Megaphone size={18} className="animate-pulse" /> Sekilas Info</div>
-          <style dangerouslySetInnerHTML={{__html: `@keyframes scrolling-text { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } } .animate-scrolling { display: inline-block; animation: scrolling-text 25s linear infinite; }`}} />
-          <div className="overflow-hidden whitespace-nowrap w-full">
-            <div className="animate-scrolling text-sm font-bold text-gray-700 py-3.5 px-4 tracking-wide">
-              Sugeng Rawuh Wonten Website Resmi Pemerintah Desa Keji Kec. Ungaran Barat Kab. Semarang <span className="text-emerald-500 mx-2">•••</span> <span className="text-red-600">KEJI BERANI (Keji Anti Korupsi)</span> <span className="text-emerald-500 mx-2">•••</span> Keji Menjunjung Kejujuran Tinggi <span className="text-emerald-500 mx-2">•••</span> Makarti Nyawiji Mbangun Desa Keji <span className="text-emerald-500 mx-2">•••</span> <span className="text-blue-600">Pelayanan Masyarakat 100% GRATIS (Estimasi 10 Menit).</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. TIGA WIDGET */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col overflow-hidden">
-            <div className="bg-emerald-600 text-white px-4 py-3 font-bold flex items-center gap-2"><Clock size={20} /> Jadwal Sholat</div>
-            <div className="p-4 flex-1">
-              <div className="flex justify-between items-center text-xs text-gray-500 font-medium mb-4 pb-2 border-b border-gray-100"><span className="flex items-center gap-1"><Calendar size={14} /> Waktu Setempat</span><span className="flex items-center gap-1"><MapPin size={14} /> Kab. Semarang</span></div>
-              <ul className="space-y-3">
-                <li className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"><span className="flex items-center gap-2 text-gray-700 text-sm font-semibold"><Moon size={16} className="text-indigo-500"/> Subuh</span><span className="font-bold text-gray-800">04:30</span></li>
-                <li className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"><span className="flex items-center gap-2 text-gray-700 text-sm font-semibold"><Sun size={16} className="text-yellow-500"/> Dzuhur</span><span className="font-bold text-gray-800">11:46</span></li>
-                <li className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"><span className="flex items-center gap-2 text-gray-700 text-sm font-semibold"><Sunrise size={16} className="text-orange-400"/> Ashar</span><span className="font-bold text-gray-800">15:07</span></li>
-                <li className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"><span className="flex items-center gap-2 text-gray-700 text-sm font-semibold"><Sunset size={16} className="text-red-500"/> Maghrib</span><span className="font-bold text-gray-800">17:38</span></li>
-                <li className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"><span className="flex items-center gap-2 text-gray-700 text-sm font-semibold"><Moon size={16} className="text-slate-700"/> Isya</span><span className="font-bold text-gray-800">18:52</span></li>
-              </ul>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col overflow-hidden">
-            <div className="bg-emerald-600 text-white px-4 py-3 font-bold flex items-center gap-2"><MapPin size={20} /> Lokasi Kantor Desa</div>
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="flex-1 w-full bg-gray-200 rounded-lg overflow-hidden mb-4 min-h-[250px]">
-                <iframe src="https://www.google.com/maps/embed?pb=!3m2!1sid!2sid!4v1783169741086!5m2!1sid!2sid!6m8!1m7!1sHXngLM2u7IHVcobjOka3-g!2m2!1d-7.117264937135624!2d110.3876973148899!3f281.70226021323737!4f7.440792834337273!5f0.7820865974627469" className="w-full h-full" style={{ border: 0 }} allowFullScreen={true} loading="lazy" referrerPolicy="strict-origin-when-cross-origin"></iframe>
-              </div>
-              <div className="flex gap-2">
-                <a href="https://www.google.com/maps/place/-7.117264937135624,110.3876973148899" target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center text-sm font-semibold py-2 rounded-lg transition-colors shadow-sm">Buka Peta</a>
-                <button className="flex-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-sm font-semibold py-2 rounded-lg transition-colors shadow-sm">Detail</button>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 flex flex-col overflow-hidden">
-            <div className="bg-emerald-600 text-white px-4 py-3 font-bold flex items-center gap-2"><Clock size={20} /> Jam Kerja</div>
-            <div className="p-0 flex-1 overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-emerald-50 text-emerald-800 border-b border-emerald-100">
-                  <tr><th className="px-4 py-3 font-bold">Hari</th><th className="px-4 py-3 font-bold">Mulai</th><th className="px-4 py-3 font-bold">Selesai</th></tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  <tr className="hover:bg-gray-50"><td className="px-4 py-3 font-medium text-gray-700">Senin - Kamis</td><td className="px-4 py-3 text-gray-600">08:00</td><td className="px-4 py-3 text-gray-600">15:00</td></tr>
-                  <tr className="hover:bg-gray-50"><td className="px-4 py-3 font-medium text-gray-700">Istirahat</td><td className="px-4 py-3 text-gray-600">12:00</td><td className="px-4 py-3 text-gray-600">13:00</td></tr>
-                  <tr className="hover:bg-gray-50"><td className="px-4 py-3 font-medium text-gray-700">Jumat</td><td className="px-4 py-3 text-gray-600">08:00</td><td className="px-4 py-3 text-gray-600">11:30</td></tr>
-                  <tr className="bg-red-50/50"><td className="px-4 py-3 font-medium text-gray-700">Sabtu</td><td colSpan={2} className="px-4 py-3"><span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-md">Libur</span></td></tr>
-                  <tr className="bg-red-50/50"><td className="px-4 py-3 font-medium text-gray-700">Minggu</td><td colSpan={2} className="px-4 py-3"><span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-md">Libur</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. BERITA DESA TERBARU */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 w-full">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-800 flex items-center gap-2"><FileText className="text-emerald-600" size={28} /> Berita Desa</h2>
-          <div className="flex overflow-x-auto hide-scroll-bar gap-2 pb-1">
-            <button className="shrink-0 bg-emerald-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md flex items-center gap-1">Terbaru <ChevronRight size={16} /></button>
-            <button className="shrink-0 bg-white text-gray-600 hover:text-emerald-600 hover:border-emerald-300 border border-gray-200 px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">Berita Desa</button>
-            <button className="shrink-0 bg-white text-gray-600 hover:text-emerald-600 hover:border-emerald-300 border border-gray-200 px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">PPID</button>
-            <button className="shrink-0 bg-white text-gray-600 hover:text-emerald-600 hover:border-emerald-300 border border-gray-200 px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">Laporan Anggaran</button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {beritaTerbaru.map((berita) => (
-            <article key={berita.id} className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col group hover:shadow-xl transition-shadow duration-300">
-              <div className="h-52 overflow-hidden relative">
-                <img src={berita.gambar} alt={berita.judul} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-emerald-700 shadow-sm">Desa Keji</div>
-              </div>
-              <div className="p-5 flex flex-col flex-1">
-                <h3 className="text-[17px] font-extrabold text-gray-800 group-hover:text-emerald-600 transition-colors mb-3 line-clamp-2 leading-snug"><Link href={`/berita/${berita.id}`}>{berita.judul}</Link></h3>
-                <div className="flex items-center gap-4 text-xs font-semibold text-gray-500 mb-4 pb-4 border-b border-gray-100">
-                  <span className="flex items-center gap-1.5"><Calendar size={14} className="text-emerald-500" /> {berita.tanggal}</span>
-                  <span className="flex items-center gap-1.5"><User size={14} className="text-emerald-500" /> {berita.penulis}</span>
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group flex h-32 w-32 shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-emerald-200/50"
+              >
+                <div className="rounded-full bg-emerald-50 p-3 transition-colors group-hover:bg-emerald-100">
+                  <Icon
+                    size={28}
+                    className="text-emerald-600"
+                  />
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-3 mb-5 flex-1 leading-relaxed">{berita.kutipan}</p>
-                <Link href={`/berita/${berita.id}`} className="text-emerald-600 hover:text-emerald-800 text-sm font-bold flex items-center gap-1 transition-colors">Selengkapnya <ChevronRight size={16} /></Link>
+
+                <span className="px-2 text-center text-xs font-bold text-gray-700 group-hover:text-emerald-700">
+                  {link.name}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 3. SAMBUTAN KEPALA DESA DAN STATISTIK */}
+      <section className="mx-auto mt-3 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Sambutan Kepala Desa */}
+          <article className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#064e3b] via-[#047857] to-[#065f46] shadow-[0_24px_60px_rgba(6,78,59,0.18)] lg:col-span-8">
+            {/* Ornamen batik */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-[0.13]"
+              style={{
+                backgroundImage: `
+                  radial-gradient(
+                    ellipse 18px 28px at 50% 0%,
+                    transparent 0 13px,
+                    rgba(255,255,255,0.7) 14px 15px,
+                    transparent 16px
+                  ),
+                  radial-gradient(
+                    ellipse 18px 28px at 50% 100%,
+                    transparent 0 13px,
+                    rgba(255,255,255,0.7) 14px 15px,
+                    transparent 16px
+                  ),
+                  radial-gradient(
+                    ellipse 28px 18px at 0% 50%,
+                    transparent 0 13px,
+                    rgba(255,255,255,0.7) 14px 15px,
+                    transparent 16px
+                  ),
+                  radial-gradient(
+                    ellipse 28px 18px at 100% 50%,
+                    transparent 0 13px,
+                    rgba(255,255,255,0.7) 14px 15px,
+                    transparent 16px
+                  )
+                `,
+                backgroundSize: '62px 62px',
+              }}
+            />
+
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[48px] border-white/[0.05]"
+            />
+
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-emerald-300/10 blur-3xl"
+            />
+
+            <div className="relative grid min-h-full gap-8 p-6 sm:p-8 md:grid-cols-[180px_minmax(0,1fr)] lg:p-10">
+              {/* Foto Kepala Desa */}
+              <div className="mx-auto w-full max-w-[180px] md:mx-0">
+                <div className="relative overflow-hidden rounded-[24px] border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-md">
+                  <div className="aspect-[4/5] overflow-hidden rounded-[18px] bg-emerald-950">
+                    <img
+                      src="/pakkades.png"
+                      alt="Siswanto, Kepala Desa Keji"
+                      className="h-full w-full object-cover object-top"
+                    />
+                  </div>
+
+                  <div className="absolute inset-x-4 bottom-4 rounded-xl border border-white/20 bg-emerald-950/75 px-3 py-2 text-center backdrop-blur-md">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-white">
+                      Siswanto
+                    </p>
+
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-200">
+                      Kepala Desa Keji
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Isi sambutan */}
+              <div className="flex flex-col justify-center">
+                <div className="mb-5 flex flex-wrap items-center gap-3">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.15em] text-emerald-50 backdrop-blur-md">
+                    <Building2 size={14} />
+                    Sambutan Kepala Desa
+                  </span>
+
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-bold text-emerald-100">
+                    <BadgeCheck size={14} />
+                    Pemerintah Desa Keji
+                  </span>
+                </div>
+
+                <Quote
+                  size={42}
+                  strokeWidth={1.6}
+                  className="mb-4 text-emerald-200/70"
+                />
+
+                <blockquote className="max-w-2xl text-base font-medium leading-8 text-white/90 sm:text-lg">
+                  Assalamu&apos;alaikum Warahmatullahi
+                  Wabarakatuh. Selamat datang di website
+                  resmi Desa Keji. Melalui semangat{' '}
+                  <strong className="font-black text-white">
+                    KEJI BERANI
+                  </strong>{' '}
+                  dan{' '}
+                  <strong className="font-black text-white">
+                    KEJI ANTI KORUPSI
+                  </strong>
+                  , kami berkomitmen menghadirkan
+                  informasi desa yang transparan,
+                  akurat, dan mudah diakses oleh
+                  seluruh masyarakat.
+                </blockquote>
+
+                <div className="mt-7 flex items-center gap-4 border-t border-white/10 pt-5">
+                  <div className="h-px w-10 bg-emerald-300" />
+
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.16em] text-white">
+                      Siswanto
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium text-emerald-200">
+                      Kepala Desa Keji, Ungaran Barat
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* Statistik Penduduk dari Supabase */}
+          <StatistikPenduduk />
+        </div>
+      </section>
+
+      {/* 4. SEKILAS INFORMASI */}
+      <section className="mx-auto mt-7 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <style>{`
+          @keyframes public-info-marquee {
+            from {
+              transform: translateX(0);
+            }
+
+            to {
+              transform: translateX(-50%);
+            }
+          }
+
+          .public-info-marquee-track {
+            width: max-content;
+            animation: public-info-marquee 34s linear infinite;
+          }
+
+          .public-info-marquee-wrapper:hover
+          .public-info-marquee-track {
+            animation-play-state: paused;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .public-info-marquee-track {
+              animation: none;
+            }
+          }
+        `}</style>
+
+        <div className="relative flex min-h-[58px] items-stretch overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-[0_12px_35px_rgba(15,23,42,0.06)]">
+          <div className="relative z-20 flex shrink-0 items-center gap-3 bg-gradient-to-r from-emerald-800 to-emerald-700 px-5 text-white sm:px-6">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/15 bg-white/10">
+              <Megaphone size={16} />
+            </div>
+
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-200">
+                Informasi
+              </p>
+
+              <p className="text-xs font-black uppercase tracking-[0.12em]">
+                Sekilas Desa
+              </p>
+            </div>
+          </div>
+
+          <div className="public-info-marquee-wrapper relative flex min-w-0 flex-1 items-center overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
+
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
+
+            <div className="public-info-marquee-track flex items-center">
+              <div className="flex shrink-0 items-center gap-6 px-8">
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Sugeng Rawuh Wonten Website Resmi
+                  Pemerintah Desa Keji
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Keji Berani dan Anti Korupsi
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Makarti Nyawiji Mbangun Desa Keji
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Pelayanan Masyarakat 100% Gratis
+                </span>
+              </div>
+
+              <div
+                aria-hidden="true"
+                className="flex shrink-0 items-center gap-6 px-8"
+              >
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Sugeng Rawuh Wonten Website Resmi
+                  Pemerintah Desa Keji
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Keji Berani dan Anti Korupsi
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Makarti Nyawiji Mbangun Desa Keji
+                </span>
+
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-600">
+                  Pelayanan Masyarakat 100% Gratis
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. INFORMASI HARIAN */}
+      <section className="mx-auto mt-10 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-emerald-600">
+              Informasi Harian
+            </p>
+
+            <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">
+              Akses Informasi Desa
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-slate-500">
+              Informasi lokasi kantor, waktu ibadah,
+              dan jadwal pelayanan Pemerintah Desa
+              Keji.
+            </p>
+          </div>
+
+          <Link
+            href="/layanan"
+            className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-emerald-700 hover:text-emerald-900"
+          >
+            Lihat layanan desa
+            <ArrowUpRight size={15} />
+          </Link>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Lokasi Kantor Desa */}
+          <article className="group relative min-h-[560px] overflow-hidden rounded-[28px] border border-emerald-100 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)] lg:col-span-7">
+            <div className="absolute inset-0">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!3m2!1sid!2sid!4v1783169741086!5m2!1sid!2sid!6m8!1m7!1sHXngLM2u7IHVcobjOka3-g!2m2!1d-7.117264937135624!2d110.3876973148899!3f281.70226021323737!4f7.440792834337273!5f0.7820865974627469"
+                title="Lokasi Kantor Desa Keji"
+                className="h-full w-full grayscale-[15%] transition duration-500 group-hover:grayscale-0"
+                style={{
+                  border: 0,
+                }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-emerald-950/80 via-emerald-950/30 to-transparent" />
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-emerald-950 via-emerald-950/80 to-transparent" />
+
+            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
+
+            <div className="pointer-events-none absolute left-6 top-6 rounded-2xl border border-white/15 bg-emerald-950/70 p-3 text-white shadow-xl backdrop-blur-md">
+              <MapPin size={22} />
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+              <div className="max-w-xl">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-300">
+                  Kantor Pemerintah Desa
+                </p>
+
+                <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                  Kantor Desa Keji
+                </h3>
+
+                <p className="mt-3 max-w-lg text-sm font-medium leading-6 text-emerald-50/80">
+                  Desa Keji, Kecamatan Ungaran Barat,
+                  Kabupaten Semarang, Jawa Tengah.
+                </p>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <a
+                    href="https://www.google.com/maps/place/-7.117264937135624,110.3876973148899"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-emerald-800 shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-50"
+                  >
+                    <Navigation size={17} />
+                    Buka Google Maps
+                    <ExternalLink size={14} />
+                  </a>
+
+                  <Link
+                    href="/peta"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white backdrop-blur-md transition hover:bg-white/20"
+                  >
+                    <Map size={17} />
+                    Peta Desa
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          {/* Sisi kanan */}
+          <div className="grid gap-6 lg:col-span-5">
+            {/* Jadwal Sholat */}
+            <article className="overflow-hidden rounded-[28px] border border-emerald-100 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.07)]">
+              <div className="flex items-start justify-between gap-4 border-b border-emerald-50 p-6">
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-600">
+                    Waktu Setempat
+                  </p>
+
+                  <h3 className="mt-1.5 text-xl font-black text-slate-900">
+                    Jadwal Sholat
+                  </h3>
+
+                  <p className="mt-1 text-xs font-medium text-slate-400">
+                    Kabupaten Semarang
+                  </p>
+                </div>
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-lg shadow-emerald-900/20">
+                  <Clock size={20} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-5 lg:grid-cols-2 xl:grid-cols-5">
+                {jadwalSholat.map((item) => {
+                  const PrayerIcon = item.icon;
+
+                  return (
+                    <div
+                      key={item.name}
+                      className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3 text-center transition hover:-translate-y-0.5 hover:bg-emerald-50"
+                    >
+                      <PrayerIcon
+                        size={17}
+                        className="mx-auto text-emerald-600"
+                      />
+
+                      <p className="mt-2 text-[9px] font-extrabold uppercase tracking-[0.13em] text-slate-500">
+                        {item.name}
+                      </p>
+
+                      <p className="mt-1 text-sm font-black text-slate-900">
+                        {item.time}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </article>
-          ))}
-        </div>
-        <div className="mt-10 text-center">
-          <Link href="/berita" className="inline-block bg-white border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white px-8 py-3 rounded-full font-bold transition-colors shadow-sm hover:shadow-md">Lihat Semua Berita</Link>
+
+            {/* Jam Pelayanan */}
+            <article className="overflow-hidden rounded-[28px] border border-emerald-100 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.07)]">
+              <div className="flex items-start justify-between gap-4 border-b border-emerald-50 p-6">
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-600">
+                    Pelayanan Publik
+                  </p>
+
+                  <h3 className="mt-1.5 text-xl font-black text-slate-900">
+                    Jam Kerja Kantor
+                  </h3>
+
+                  <p className="mt-1 text-xs font-medium text-slate-400">
+                    Pemerintah Desa Keji
+                  </p>
+                </div>
+
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-lg shadow-emerald-900/20">
+                  <Calendar size={20} />
+                </div>
+              </div>
+
+              <div className="space-y-3 p-5">
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-800">
+                      Senin – Kamis
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium text-slate-400">
+                      Pelayanan administrasi
+                    </p>
+                  </div>
+
+                  <span className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-black text-emerald-700 shadow-sm">
+                    08.00 – 15.00
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-800">
+                      Jumat
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium text-slate-400">
+                      Pelayanan administrasi
+                    </p>
+                  </div>
+
+                  <span className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-black text-emerald-700 shadow-sm">
+                    08.00 – 11.30
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-700">
+                      Sabtu – Minggu
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium text-slate-400">
+                      Kantor tidak beroperasi
+                    </p>
+                  </div>
+
+                  <span className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-wider text-slate-500">
+                    Libur
+                  </span>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
+      {/* 6. BERITA DESA TERBARU DARI SUPABASE */}
+      <BeritaTerbaru />
     </div>
   );
 }
