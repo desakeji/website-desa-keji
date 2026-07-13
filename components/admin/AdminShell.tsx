@@ -11,20 +11,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import {
-  LayoutDashboard,
-  Newspaper,
+  ChevronRight,
   FileText,
-  Settings,
+  Landmark,
+  LayoutDashboard,
   LogOut,
   Menu,
-  X,
-  Landmark,
-  ChevronRight,
-  UserRound,
+  Newspaper,
+  Settings,
   Sparkles,
+  UserRound,
+  Users,
+  X,
 } from 'lucide-react';
 
-import { signOutAction } from '@/app/admin/actions';
+import {
+  signOutAction,
+} from '@/app/admin/actions';
 
 interface AdminShellProps {
   children: ReactNode;
@@ -32,21 +35,32 @@ interface AdminShellProps {
   displayName: string;
 }
 
-const menuItems = [
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+}
+
+const menuItems: MenuItem[] = [
   {
     label: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
   },
   {
-    label: 'Kelola Berita',
-    href: '/admin/berita',
-    icon: Newspaper,
+    label: 'Data Warga',
+    href: '/admin/warga',
+    icon: Users,
   },
   {
     label: 'Permohonan Layanan',
     href: '/admin/permohonan',
     icon: FileText,
+  },
+  {
+    label: 'Kelola Berita',
+    href: '/admin/berita',
+    icon: Newspaper,
   },
   {
     label: 'Pengaturan',
@@ -62,16 +76,29 @@ export default function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname();
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const [
+    sidebarOpen,
+    setSidebarOpen,
+  ] = useState(false);
 
-  const isMenuActive = (href: string) => {
+  function isMenuActive(
+    href: string
+  ) {
     if (href === '/admin') {
       return pathname === '/admin';
     }
 
-    return pathname.startsWith(href);
-  };
+    return (
+      pathname === href ||
+      pathname.startsWith(
+        `${href}/`
+      )
+    );
+  }
+
+  function closeSidebar() {
+    setSidebarOpen(false);
+  }
 
   return (
     <div className="min-h-screen bg-[#f2f7f5]">
@@ -108,9 +135,7 @@ export default function AdminShell({
         <button
           type="button"
           aria-label="Tutup menu"
-          onClick={() =>
-            setSidebarOpen(false)
-          }
+          onClick={closeSidebar}
           className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
         />
       )}
@@ -123,7 +148,7 @@ export default function AdminShell({
             : '-translate-x-full'
         }`}
       >
-        {/* Dasar lembut */}
+        {/* Dasar Lembut */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.025] via-transparent to-black/[0.08]" />
 
         {/* Motif Batik Kawung */}
@@ -163,13 +188,14 @@ export default function AdminShell({
                 transparent 12px
               )
             `,
-            backgroundSize: '58px 58px',
+            backgroundSize:
+              '58px 58px',
             backgroundPosition:
               '0 0, 0 0, 0 0, 0 0, 0 0',
           }}
         />
 
-        {/* Motif lapisan kedua */}
+        {/* Motif Lapisan Kedua */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.10]"
           style={{
@@ -199,13 +225,14 @@ export default function AdminShell({
                 transparent 14px
               )
             `,
-            backgroundSize: '58px 58px',
+            backgroundSize:
+              '58px 58px',
             backgroundPosition:
               '29px 29px, 29px 29px, 29px 29px, 29px 29px',
           }}
         />
 
-        {/* Isen-isen diagonal */}
+        {/* Isen-Isen Diagonal */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.06]"
           style={{
@@ -230,24 +257,24 @@ export default function AdminShell({
           }}
         />
 
-        {/* Ornamen sudut */}
+        {/* Ornamen Sudut */}
         <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rotate-12 rounded-[42%] border-[48px] border-emerald-200/[0.045]" />
+
         <div className="pointer-events-none absolute -bottom-40 -left-36 h-96 w-96 -rotate-12 rounded-[42%] border-[64px] border-white/[0.035]" />
 
-        {/* Overlay gradasi */}
+        {/* Overlay Gradasi */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-[#033f32]/80 to-transparent" />
+
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#022c22]/90 to-transparent" />
 
-        {/* Garis dekoratif */}
+        {/* Garis Dekoratif */}
         <div className="pointer-events-none absolute bottom-28 right-0 top-40 w-px bg-gradient-to-b from-transparent via-emerald-200/25 to-transparent" />
 
         {/* Header Sidebar */}
         <div className="relative flex h-[84px] items-center justify-between border-b border-white/10 bg-[#033f32]/25 px-5 backdrop-blur-[2px]">
           <Link
             href="/admin"
-            onClick={() =>
-              setSidebarOpen(false)
-            }
+            onClick={closeSidebar}
             className="flex min-w-0 items-center gap-3"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur-md">
@@ -272,18 +299,16 @@ export default function AdminShell({
           <button
             type="button"
             aria-label="Tutup sidebar"
-            onClick={() =>
-              setSidebarOpen(false)
-            }
+            onClick={closeSidebar}
             className="rounded-xl p-2 text-emerald-100 transition hover:bg-white/10 lg:hidden"
           >
             <X size={21} />
           </button>
         </div>
 
-        {/* Profil */}
+        {/* Profil Admin */}
         <div className="relative px-4 pt-5">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#064e3b]/70 p-3.5 shadow-lg shadow-black/10 backdrop-blur-md">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#064e3b]/70 p-3.5 shadow-lg shadow-black/10 backdrop-blur-md">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent" />
 
             <div className="relative flex items-center gap-3">
@@ -323,62 +348,69 @@ export default function AdminShell({
             </p>
           </div>
 
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = isMenuActive(
-              item.href
-            );
+          {menuItems.map(
+            (item) => {
+              const Icon =
+                item.icon;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() =>
-                  setSidebarOpen(false)
-                }
-                className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-200 ${
-                  active
-                    ? 'bg-white text-emerald-900 shadow-xl shadow-black/10'
-                    : 'bg-[#064e3b]/20 text-emerald-50/90 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                {active && (
-                  <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-emerald-600" />
-                )}
+              const active =
+                isMenuActive(
+                  item.href
+                );
 
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={
+                    closeSidebar
+                  }
+                  className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-200 ${
                     active
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-white/[0.07] text-emerald-200 group-hover:bg-white/10'
+                      ? 'bg-white text-emerald-900 shadow-xl shadow-black/10'
+                      : 'bg-[#064e3b]/20 text-emerald-50/90 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  <Icon
-                    size={18}
-                    strokeWidth={2.1}
+                  {active && (
+                    <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-emerald-600" />
+                  )}
+
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
+                      active
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-white/[0.07] text-emerald-200 group-hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      strokeWidth={2.1}
+                    />
+                  </span>
+
+                  <span className="flex-1">
+                    {item.label}
+                  </span>
+
+                  <ChevronRight
+                    size={16}
+                    className={`transition ${
+                      active
+                        ? 'translate-x-0 text-emerald-600'
+                        : '-translate-x-1 text-emerald-100/40 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
+                    }`}
                   />
-                </span>
-
-                <span className="flex-1">
-                  {item.label}
-                </span>
-
-                <ChevronRight
-                  size={16}
-                  className={`transition ${
-                    active
-                      ? 'translate-x-0 text-emerald-600'
-                      : '-translate-x-1 text-emerald-100/40 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
-                  }`}
-                />
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            }
+          )}
         </nav>
 
         {/* Logout */}
         <div className="relative border-t border-white/10 bg-[#022c22]/50 p-4 backdrop-blur-sm">
-          <form action={signOutAction}>
+          <form
+            action={signOutAction}
+          >
             <button
               type="submit"
               className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-bold text-emerald-50 transition hover:border-emerald-200/20 hover:bg-white/10"
@@ -405,9 +437,10 @@ export default function AdminShell({
             <Menu size={21} />
           </button>
 
-          {/* Teks berjalan elegan */}
+          {/* Teks Berjalan */}
           <div className="admin-marquee-container relative min-w-0 flex-1 overflow-hidden">
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white via-white/90 to-transparent" />
+
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white via-white/90 to-transparent" />
 
             <div className="admin-marquee-track flex items-center">
