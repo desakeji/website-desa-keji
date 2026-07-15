@@ -26,6 +26,17 @@ import type {
   WargaActionState,
 } from '@/types/warga';
 
+const ALLOWED_DUSUN = [
+  'Dusun Keji',
+  'Dusun Suruhan',
+  'Dusun Sitoyo',
+] as const;
+
+const ALLOWED_JENIS_KELAMIN = [
+  'L',
+  'P',
+] as const;
+
 function getNikHashSecret() {
   const secret =
     process.env.NIK_HASH_SECRET;
@@ -38,7 +49,7 @@ function getNikHashSecret() {
 
   if (secret.length < 32) {
     throw new Error(
-      'NIK_HASH_SECRET harus memiliki panjang minimal 32 karakter.'
+      'NIK_HASH_SECRET minimal harus terdiri dari 32 karakter.'
     );
   }
 
@@ -72,23 +83,20 @@ function getFormString(
   ).trim();
 }
 
-function normalizeNik(
+function normalizeAngka(
   value: string
 ) {
-  return value.replace(/\D/g, '');
-}
-
-function normalizeNomorWhatsApp(
-  value: string
-) {
-  return value.replace(/\D/g, '');
+  return value.replace(
+    /\D/g,
+    ''
+  );
 }
 
 function normalizeNomorWilayah(
   value: string
 ) {
   const result =
-    value.replace(/\D/g, '');
+    normalizeAngka(value);
 
   if (!result) {
     return null;
@@ -110,26 +118,174 @@ function hashNik(
     .digest('hex');
 }
 
-function validateWargaData(
-  nik: string,
-  namaLengkap: string,
-  nomorWhatsApp: string
+function hashNoKk(
+  noKk: string
 ) {
+  return createHmac(
+    'sha256',
+    getNikHashSecret()
+  )
+    .update(`kk:${noKk}`)
+    .digest('hex');
+}
+
+function validateTanggalLahir(
+  value: string
+) {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      value
+    )
+  ) {
+    throw new Error(
+      'Tanggal lahir wajib diisi.'
+    );
+  }
+
+  const [
+    tahun,
+    bulan,
+    tanggal,
+  ] = value
+    .split('-')
+    .map(Number);
+
+  const date =
+    new Date(
+      Date.UTC(
+        tahun,
+        bulan - 1,
+        tanggal
+      )
+    );
+
+  const tanggalValid =
+    date.getUTCFullYear() ===
+      tahun &&
+    date.getUTCMonth() ===
+      bulan - 1 &&
+    date.getUTCDate() ===
+      tanggal;
+
+  if (!tanggalValid) {
+    throw new Error(
+      'Tanggal lahir tidak valid.'
+    );
+  }
+
+  if (tahun < 1900) {
+    throw new Error(
+      'Tahun lahir tidak boleh kurang dari 1900.'
+    );
+  }
+
+  const hariIni =
+    new Date();
+
+  const hariIniUtc =
+    Date.UTC(
+      hariIni.getUTCFullYear(),
+      hariIni.getUTCMonth(),
+      hariIni.getUTCDate()
+    );
+
+  if (
+    date.getTime() >
+    hariIniUtc
+  ) {
+    throw new Error(
+      'Tanggal lahir tidak boleh melebihi tanggal hari ini.'
+    );
+  }
+
+  const umurPerkiraan =
+    hariIni.getUTCFullYear() -
+    tahun;
+
+  if (umurPerkiraan > 150) {
+    throw new Error(
+      'Tanggal lahir tidak valid karena usia melebihi 150 tahun.'
+    );
+  }
+}
+
+function validateWargaData({
+  nik,
+  noKk,
+  namaLengkap,
+  jenisKelamin,
+  tanggalLahir,
+  dusun,
+  rw,
+  rt,
+  nomorWhatsApp,
+}: {
+  nik: string;
+  noKk: string;
+  namaLengkap: string;
+  jenisKelamin: string;
+  tanggalLahir: string;
+  dusun: string;
+  rw: string | null;
+  rt: string | null;
+  nomorWhatsApp: string;
+}) {
   if (!/^\d{16}$/.test(nik)) {
     throw new Error(
       'NIK harus terdiri dari tepat 16 angka.'
     );
   }
 
-  if (namaLengkap.length < 3) {
+  if (!/^\d{16}$/.test(noKk)) {
     throw new Error(
-      'Nama lengkap minimal terdiri dari 3 karakter.'
+      'Nomor KK harus terdiri dari tepat 16 angka.'
     );
   }
 
-  if (namaLengkap.length > 150) {
+  if (
+    namaLengkap.length < 3 ||
+    namaLengkap.length > 150
+  ) {
     throw new Error(
-      'Nama lengkap maksimal terdiri dari 150 karakter.'
+      'Nama lengkap harus terdiri dari 3 sampai 150 karakter.'
+    );
+  }
+
+  if (
+    !ALLOWED_JENIS_KELAMIN.includes(
+      jenisKelamin as
+        (typeof ALLOWED_JENIS_KELAMIN)[number]
+    )
+  ) {
+    throw new Error(
+      'Jenis kelamin tidak valid.'
+    );
+  }
+
+  validateTanggalLahir(
+    tanggalLahir
+  );
+
+  if (
+    !ALLOWED_DUSUN.includes(
+      dusun as
+        (typeof ALLOWED_DUSUN)[number]
+    )
+  ) {
+    throw new Error(
+      'Dusun yang dipilih tidak valid.'
+    );
+  }
+
+  if (!rw) {
+    throw new Error(
+      'RW wajib diisi.'
+    );
+  }
+
+  if (!rt) {
+    throw new Error(
+      'RT wajib diisi.'
     );
   }
 
@@ -145,6 +301,28 @@ function validateWargaData(
   }
 }
 
+function revalidateWargaPages() {
+  revalidatePath('/admin');
+  revalidatePath('/admin/warga');
+
+  revalidatePath('/data-desa');
+  revalidatePath(
+    '/data-desa/penduduk'
+  );
+  revalidatePath(
+    '/data-desa/populasi-wilayah'
+  );
+  revalidatePath(
+    '/data-desa/rentang-umur'
+  );
+  revalidatePath(
+    '/data-desa/kategori-umur'
+  );
+  revalidatePath(
+    '/data-desa/jenis-kelamin'
+  );
+}
+
 export async function createWargaAction(
   _previousState: WargaActionState,
   formData: FormData
@@ -153,10 +331,18 @@ export async function createWargaAction(
 
   try {
     const nik =
-      normalizeNik(
+      normalizeAngka(
         getFormString(
           formData,
           'nik'
+        )
+      );
+
+    const noKk =
+      normalizeAngka(
+        getFormString(
+          formData,
+          'no_kk'
         )
       );
 
@@ -164,6 +350,18 @@ export async function createWargaAction(
       getFormString(
         formData,
         'nama_lengkap'
+      );
+
+    const jenisKelamin =
+      getFormString(
+        formData,
+        'jenis_kelamin'
+      );
+
+    const tanggalLahir =
+      getFormString(
+        formData,
+        'tanggal_lahir'
       );
 
     const dusun =
@@ -195,24 +393,24 @@ export async function createWargaAction(
       );
 
     const nomorWhatsApp =
-      normalizeNomorWhatsApp(
+      normalizeAngka(
         getFormString(
           formData,
           'nomor_whatsapp'
         )
       );
 
-    validateWargaData(
+    validateWargaData({
       nik,
+      noKk,
       namaLengkap,
-      nomorWhatsApp
-    );
-
-    const nikHash =
-      hashNik(nik);
-
-    const nikEmpatTerakhir =
-      nik.slice(-4);
+      jenisKelamin,
+      tanggalLahir,
+      dusun,
+      rw,
+      rt,
+      nomorWhatsApp,
+    });
 
     const {
       error,
@@ -220,17 +418,27 @@ export async function createWargaAction(
       .from('warga')
       .insert({
         nik_hash:
-          nikHash,
+          hashNik(nik),
 
         nik_empat_terakhir:
-          nikEmpatTerakhir,
+          nik.slice(-4),
+
+        no_kk_hash:
+          hashNoKk(noKk),
+
+        no_kk_empat_terakhir:
+          noKk.slice(-4),
 
         nama_lengkap:
           namaLengkap,
 
-        dusun:
-          dusun || null,
+        jenis_kelamin:
+          jenisKelamin,
 
+        tanggal_lahir:
+          tanggalLahir,
+
+        dusun,
         rw,
         rt,
 
@@ -261,9 +469,7 @@ export async function createWargaAction(
       );
     }
 
-    revalidatePath(
-      '/admin/warga'
-    );
+    revalidateWargaPages();
 
     return {
       error: null,
@@ -311,13 +517,16 @@ export async function toggleStatusWargaAction(
   }
 
   const {
+    data,
     error,
   } = await supabaseAdmin
     .from('warga')
     .update({
       aktif: !aktif,
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select('id')
+    .maybeSingle();
 
   if (error) {
     throw new Error(
@@ -325,7 +534,11 @@ export async function toggleStatusWargaAction(
     );
   }
 
-  revalidatePath(
-    '/admin/warga'
-  );
+  if (!data) {
+    throw new Error(
+      'Data warga tidak ditemukan.'
+    );
+  }
+
+  revalidateWargaPages();
 }

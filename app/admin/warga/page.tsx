@@ -66,18 +66,21 @@ export default async function AdminWargaPage() {
   } = await supabaseAdmin
     .from('warga')
     .select(`
-      id,
-      nik_empat_terakhir,
-      nama_lengkap,
-      dusun,
-      rw,
-      rt,
-      alamat,
-      nomor_whatsapp,
-      aktif,
-      created_at,
-      updated_at
-    `)
+  id,
+  nik_empat_terakhir,
+  no_kk_empat_terakhir,
+  nama_lengkap,
+  jenis_kelamin,
+  dusun,
+  rw,
+  rt,
+  alamat,
+  nomor_whatsapp,
+  aktif,
+  tanggal_lahir,
+  created_at,
+  updated_at
+`)
     .order('created_at', {
       ascending: false,
     });
