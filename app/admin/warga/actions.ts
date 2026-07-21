@@ -37,6 +37,11 @@ const ALLOWED_JENIS_KELAMIN = [
   'P',
 ] as const;
 
+const ALLOWED_STATUS_PENDUDUK = [
+  'TETAP',
+  'TIDAK_TETAP',
+] as const;
+
 function getNikHashSecret() {
   const secret =
     process.env.NIK_HASH_SECRET;
@@ -182,7 +187,7 @@ function validateTanggalLahir(
   const hariIni =
     new Date();
 
-  const hariIniUtc =
+  const tanggalHariIni =
     Date.UTC(
       hariIni.getUTCFullYear(),
       hariIni.getUTCMonth(),
@@ -191,7 +196,7 @@ function validateTanggalLahir(
 
   if (
     date.getTime() >
-    hariIniUtc
+    tanggalHariIni
   ) {
     throw new Error(
       'Tanggal lahir tidak boleh melebihi tanggal hari ini.'
@@ -215,9 +220,11 @@ function validateWargaData({
   namaLengkap,
   jenisKelamin,
   tanggalLahir,
+  statusPenduduk,
   dusun,
   rw,
   rt,
+  alamat,
   nomorWhatsApp,
 }: {
   nik: string;
@@ -225,9 +232,11 @@ function validateWargaData({
   namaLengkap: string;
   jenisKelamin: string;
   tanggalLahir: string;
+  statusPenduduk: string;
   dusun: string;
   rw: string | null;
   rt: string | null;
+  alamat: string;
   nomorWhatsApp: string;
 }) {
   if (!/^\d{16}$/.test(nik)) {
@@ -267,6 +276,17 @@ function validateWargaData({
   );
 
   if (
+    !ALLOWED_STATUS_PENDUDUK.includes(
+      statusPenduduk as
+        (typeof ALLOWED_STATUS_PENDUDUK)[number]
+    )
+  ) {
+    throw new Error(
+      'Status penduduk tidak valid.'
+    );
+  }
+
+  if (
     !ALLOWED_DUSUN.includes(
       dusun as
         (typeof ALLOWED_DUSUN)[number]
@@ -290,6 +310,14 @@ function validateWargaData({
   }
 
   if (
+    alamat.length > 500
+  ) {
+    throw new Error(
+      'Alamat maksimal terdiri dari 500 karakter.'
+    );
+  }
+
+  if (
     nomorWhatsApp &&
     !/^\d{10,15}$/.test(
       nomorWhatsApp
@@ -306,18 +334,27 @@ function revalidateWargaPages() {
   revalidatePath('/admin/warga');
 
   revalidatePath('/data-desa');
+
   revalidatePath(
     '/data-desa/penduduk'
   );
+
   revalidatePath(
     '/data-desa/populasi-wilayah'
   );
+
   revalidatePath(
     '/data-desa/rentang-umur'
   );
+
   revalidatePath(
     '/data-desa/kategori-umur'
   );
+
+  revalidatePath(
+    '/data-desa/status-penduduk'
+  );
+
   revalidatePath(
     '/data-desa/jenis-kelamin'
   );
@@ -364,6 +401,12 @@ export async function createWargaAction(
         'tanggal_lahir'
       );
 
+    const statusPenduduk =
+      getFormString(
+        formData,
+        'status_penduduk'
+      );
+
     const dusun =
       getFormString(
         formData,
@@ -406,9 +449,11 @@ export async function createWargaAction(
       namaLengkap,
       jenisKelamin,
       tanggalLahir,
+      statusPenduduk,
       dusun,
       rw,
       rt,
+      alamat,
       nomorWhatsApp,
     });
 
@@ -437,6 +482,9 @@ export async function createWargaAction(
 
         tanggal_lahir:
           tanggalLahir,
+
+        status_penduduk:
+          statusPenduduk,
 
         dusun,
         rw,
@@ -530,7 +578,7 @@ export async function toggleStatusWargaAction(
 
   if (error) {
     throw new Error(
-      `Status warga gagal diperbarui: ${error.message}`
+      `Status akses warga gagal diperbarui: ${error.message}`
     );
   }
 

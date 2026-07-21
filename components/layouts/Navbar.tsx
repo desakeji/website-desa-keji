@@ -108,13 +108,57 @@ const navItems: NavItem[] = [
   ],
 },
   {
-    name: 'Informasi Publik',
-    href: '/informasi',
-  },
+  name: 'Informasi Publik',
+  href: '/informasi-publik',
+  subItems: [
+    {
+      name: 'Produk Hukum',
+      href: '/informasi-publik/produk-hukum',
+    },
+    {
+      name: 'Informasi Umum',
+      href: '/informasi-publik/informasi-umum',
+    },
+    {
+      name: 'Realisasi APBDes 2024',
+      href: '/informasi-publik/apbdes/2024',
+    },
+    {
+      name: 'Realisasi APBDes 2025',
+      href: '/informasi-publik/apbdes/2025',
+    },
+    {
+      name: 'Realisasi APBDes 2026',
+      href: '/informasi-publik/apbdes/2026',
+    },
+  ],
+},
   {
-    name: 'PPID',
-    href: '/ppid',
-  },
+  name: 'PPID',
+  href: '/ppid',
+  subItems: [
+    {
+      name: 'Apa itu PPID',
+      href: '/ppid/apa-itu-ppid',
+    },
+    {
+      name: 'Profil PPID',
+      href: '/ppid/profil',
+    },
+    {
+      name: 'Klasifikasi Informasi',
+      href: '/ppid/klasifikasi-informasi',
+    },
+    {
+      name: 'Permohonan Informasi Publik',
+      href: '/ppid/permohonan-informasi',
+    },
+    {
+      name: 'Pengajuan Keberatan Informasi',
+      href: '/ppid/pengajuan-keberatan',
+    },
+  ],
+},
   {
     name: 'Layanan',
     href: '/layanan',

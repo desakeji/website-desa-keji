@@ -375,6 +375,45 @@ export default function WargaForm() {
           </p>
         </div>
 
+        {/* Status Penduduk */}
+<div>
+  <label
+    htmlFor="status_penduduk"
+    className="mb-2 block text-sm font-bold text-slate-700"
+  >
+    Status Penduduk
+  </label>
+
+  <select
+    id="status_penduduk"
+    name="status_penduduk"
+    required
+    defaultValue=""
+    disabled={isPending}
+    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    <option
+      value=""
+      disabled
+    >
+      Pilih status penduduk
+    </option>
+
+    <option value="TETAP">
+      Penduduk Tetap
+    </option>
+
+    <option value="TIDAK_TETAP">
+      Penduduk Tidak Tetap
+    </option>
+  </select>
+
+  <p className="mt-2 text-xs text-slate-400">
+    Status digunakan untuk penyajian statistik
+    kependudukan Desa Keji.
+  </p>
+</div>
+
         {/* Alamat */}
         <div className="md:col-span-2">
           <label
