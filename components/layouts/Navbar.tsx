@@ -180,9 +180,9 @@ const navItems: NavItem[] = [
     href: '/kontak',
   },
   {
-    name: 'Desa Anti Korupsi',
-    href: '/anti-korupsi',
-  },
+  name: 'Desa Anti Korupsi',
+  href: '/desa-anti-korupsi',
+},
 ];
 
 const marqueeContent = (
