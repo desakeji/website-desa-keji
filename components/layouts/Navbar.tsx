@@ -164,25 +164,77 @@ const navItems: NavItem[] = [
     href: '/layanan',
   },
   {
-    name: 'Lapak',
-    href: '/umkm',
-  },
+  name: 'Lapak',
+  href: '/umkm',
+},
   {
     name: 'Desa Cantik',
     href: '/desa-cantik',
   },
   {
-    name: 'Desa Wisata',
-    href: '/desa-wisata',
-  },
+  name: 'Desa Wisata',
+  href: '/desa-wisata',
+  subItems: [
+    {
+      name: 'Jelajah Desa Keji',
+      href: '/desa-wisata',
+    },
+    {
+      name: 'Destinasi & Potensi',
+      href: '/desa-wisata/destinasi',
+    },
+    {
+      name: 'Budaya & Tradisi',
+      href: '/desa-wisata/budaya-tradisi',
+    },
+    {
+      name: 'Kuliner & UMKM',
+      href: '/desa-wisata/kuliner-umkm',
+    },
+    {
+      name: 'Agenda Wisata',
+      href: '/desa-wisata/agenda',
+    },
+    {
+      name: 'Galeri Desa',
+      href: '/desa-wisata/galeri',
+    },
+    {
+      name: 'Peta & Informasi Kunjungan',
+      href: '/desa-wisata/informasi-kunjungan',
+    },
+  ],
+},
   {
     name: 'Kontak',
     href: '/kontak',
   },
   {
-    name: 'Desa Anti Korupsi',
-    href: '/anti-korupsi',
-  },
+  name: 'Desa Anti Korupsi',
+  href: '/desa-anti-korupsi',
+  subItems: [
+    {
+      name: 'Tata Laksana',
+      href: '/desa-anti-korupsi/tata-laksana',
+    },
+    {
+      name: 'Pengawasan',
+      href: '/desa-anti-korupsi/pengawasan',
+    },
+    {
+      name: 'Pelayanan Publik',
+      href: '/desa-anti-korupsi/pelayanan-publik',
+    },
+    {
+      name: 'Partisipasi Masyarakat',
+      href: '/desa-anti-korupsi/partisipasi-masyarakat',
+    },
+    {
+      name: 'Kearifan Lokal',
+      href: '/desa-anti-korupsi/kearifan-lokal',
+    },
+  ],
+},
 ];
 
 const marqueeContent = (
