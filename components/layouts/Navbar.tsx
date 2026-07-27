@@ -170,6 +170,28 @@ const navItems: NavItem[] = [
   {
     name: 'Desa Cantik',
     href: '/desa-cantik',
+    subItems: [
+      {
+        name: 'Penduduk',
+        href: '/desa-cantik/penduduk',
+      },
+      {
+        name: 'Pendidikan',
+        href: '/desa-cantik/pendidikan',
+      },
+      {
+        name: 'Kesehatan',
+        href: '/desa-cantik/kesehatan',
+      },
+      {
+        name: 'Perumahan',
+        href: '/desa-cantik/perumahan',
+      },
+      {
+        name: 'Perekonomian',
+        href: '/desa-cantik/perekonomian',
+      },
+    ],
   },
   {
   name: 'Desa Wisata',
