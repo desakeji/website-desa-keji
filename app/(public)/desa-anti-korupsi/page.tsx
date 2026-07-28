@@ -455,113 +455,239 @@ export default async function DesaAntiKorupsiPage() {
     await getDaftarLayanan();
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <ShieldCheck size={16} />
+    <div className="min-h-screen bg-slate-50">
+      {/* Hero utama */}
+      <section className="relative isolate min-h-[650px] overflow-hidden bg-emerald-950 text-white">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage:
+              "url('/images/anti-korupsi/hero-anti-korupsi.jpg'), url('/background.png')",
+          }}
+        />
 
-            Pemerintah Desa Keji
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#021b16] via-emerald-950/90 to-emerald-900/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#021b16] via-transparent to-black/25" />
 
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Desa Keji Anti Korupsi
-          </h1>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
+            backgroundSize:
+              '28px 28px',
+          }}
+        />
 
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Transparansi Anggaran
-            Pendapatan dan Belanja Desa
-            sebagai bentuk keterbukaan,
-            akuntabilitas, dan komitmen
-            Pemerintah Desa Keji dalam
-            mencegah korupsi.
-          </p>
-        </header>
+        <div className="pointer-events-none absolute -left-36 -top-36 h-[480px] w-[480px] rounded-full bg-emerald-400/10 blur-[110px]" />
+        <div className="pointer-events-none absolute -bottom-48 right-0 h-[520px] w-[520px] rounded-full bg-amber-300/[0.06] blur-[120px]" />
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[430px] w-[430px] rounded-full border-[76px] border-white/[0.035]" />
 
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          <main className="min-w-0 space-y-8 lg:w-2/3">
-            {/* Hero */}
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 md:p-8">
-              <div
-                className="pointer-events-none absolute inset-0 opacity-20"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(
-                      circle,
-                      rgba(
-                        255,
-                        255,
-                        255,
-                        0.25
-                      ) 1.5px,
-                      transparent 1.5px
-                    )
-                  `,
-                  backgroundSize:
-                    '25px 25px',
-                }}
-              />
+        <div className="relative mx-auto flex min-h-[650px] max-w-7xl items-center px-4 pb-24 pt-16 sm:px-6 md:pb-28 md:pt-20 lg:px-8">
+          <div className="grid w-full gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div className="max-w-4xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.19em] text-emerald-100 shadow-lg backdrop-blur-md sm:text-xs">
+                <ShieldCheck size={15} />
+                Pemerintah Desa Keji
+              </div>
 
-              <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.06]" />
+              <p className="mt-8 text-xs font-extrabold uppercase tracking-[0.24em] text-emerald-300">
+                Desa Berintegritas
+              </p>
 
-              <div className="relative">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur">
-                  <ShieldCheck
-                    size={31}
-                  />
-                </div>
+              <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.07] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+                Desa Keji
+                <span className="block text-emerald-300">
+                  Anti Korupsi
+                </span>
+              </h1>
 
-                <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-100">
-                  Tahun Anggaran 2026
-                </p>
+              <p className="mt-7 max-w-3xl text-sm font-medium leading-7 text-emerald-50/90 sm:text-base md:text-lg md:leading-9">
+                Mewujudkan pemerintahan desa yang
+                transparan, akuntabel, jujur, dan
+                berorientasi pada pelayanan masyarakat
+                melalui keterbukaan informasi serta
+                partisipasi aktif seluruh warga.
+              </p>
 
-                <h2 className="mt-3 max-w-3xl text-2xl font-black leading-tight md:text-3xl">
-                  Keji Berani, Keji Anti
-                  Korupsi, dan Menjunjung
-                  Kejujuran Tinggi
-                </h2>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/desa-anti-korupsi/tata-laksana"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-400 px-6 text-sm font-extrabold text-emerald-950 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-emerald-300"
+                >
+                  <FileSearch size={18} />
+                  Lihat Bukti Implementasi
+                </Link>
 
-                <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/90 md:text-base md:leading-8">
-                  Masyarakat berhak
-                  mengetahui arah
-                  penggunaan anggaran
-                  desa. Data berikut
-                  menampilkan pendapatan,
-                  belanja, defisit, dan
-                  pembiayaan Desa Keji
-                  Tahun Anggaran 2026.
-                </p>
+                <Link
+                  href="/kontak"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/15"
+                >
+                  <Megaphone size={18} />
+                  Kanal Pengaduan
+                </Link>
+              </div>
 
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-100">
-                      Komitmen
-                    </p>
+              <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
+                <HeroValue
+                  title="Transparan"
+                  description="Informasi Terbuka"
+                />
 
-                    <p className="mt-2 text-sm font-bold leading-relaxed text-white">
-                      Transparan,
-                      akuntabel, jujur,
-                      dan melayani
-                      masyarakat.
-                    </p>
+                <HeroValue
+                  title="Akuntabel"
+                  description="Dapat Dipertanggungjawabkan"
+                />
+
+                <HeroValue
+                  title="Tanpa Pungutan"
+                  description="Pelayanan Masyarakat"
+                />
+              </div>
+            </div>
+
+            <aside className="relative hidden lg:block">
+              <div className="absolute -inset-5 rounded-[2.4rem] bg-emerald-300/10 blur-3xl" />
+
+              <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/25 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 opacity-[0.08]"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px)',
+                    backgroundSize:
+                      '22px 22px',
+                  }}
+                />
+
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-300">
+                        Transparansi Anggaran
+                      </p>
+
+                      <h2 className="mt-2 text-2xl font-black text-white">
+                        APBDes 2026
+                      </h2>
+                    </div>
+
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-emerald-200">
+                      <WalletCards size={25} />
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-100">
-                      Makarti Nyawiji
-                    </p>
+                  <div className="mt-6 space-y-3">
+                    <HeroBudgetItem
+                      label="Pendapatan Desa"
+                      value={TOTAL_PENDAPATAN}
+                      icon={Banknote}
+                    />
 
-                    <p className="mt-2 text-sm font-bold leading-relaxed text-white">
-                      Bersama membangun
-                      Desa Keji yang
-                      berintegritas.
-                    </p>
+                    <HeroBudgetItem
+                      label="Belanja Desa"
+                      value={TOTAL_BELANJA}
+                      icon={WalletCards}
+                    />
+
+                    <HeroBudgetItem
+                      label="Pembiayaan Neto"
+                      value={TOTAL_PEMBIAYAAN}
+                      icon={HandCoins}
+                    />
                   </div>
+
+                  <div className="mt-5 rounded-2xl border border-amber-200/15 bg-amber-300/10 p-4">
+                    <div className="flex items-start gap-3">
+                      <Scale
+                        size={19}
+                        className="mt-0.5 shrink-0 text-amber-200"
+                      />
+
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-amber-200">
+                          Defisit Anggaran
+                        </p>
+
+                        <p className="mt-2 text-lg font-black text-white">
+                          {formatRupiah(
+                            DEFISIT
+                          )}
+                        </p>
+
+                        <p className="mt-1 text-xs font-medium leading-5 text-amber-50/70">
+                          Ditutup melalui pembiayaan
+                          neto tahun anggaran 2026.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/informasi-publik/apbdes/2026"
+                    className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
+                  >
+                    Lihat Detail APBDes
+                    <ArrowRight size={17} />
+                  </Link>
                 </div>
               </div>
-            </section>
+            </aside>
+          </div>
+        </div>
+      </section>
 
+      {/* Navigasi indikator */}
+      <section className="relative z-20 -mt-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5">
+              <AntiKorupsiMenu
+                href="/desa-anti-korupsi/tata-laksana"
+                title="Tata Laksana"
+                description="Penguatan sistem dan prosedur pemerintahan."
+                icon={FileSearch}
+              />
+
+              <AntiKorupsiMenu
+                href="/desa-anti-korupsi/pengawasan"
+                title="Pengawasan"
+                description="Evaluasi dan tindak lanjut pengawasan desa."
+                icon={ShieldCheck}
+              />
+
+              <AntiKorupsiMenu
+                href="/desa-anti-korupsi/pelayanan-publik"
+                title="Pelayanan Publik"
+                description="Pelayanan terbuka dan tanpa pungutan."
+                icon={BadgeCheck}
+              />
+
+              <AntiKorupsiMenu
+                href="/desa-anti-korupsi/partisipasi-masyarakat"
+                title="Partisipasi"
+                description="Keterlibatan aktif masyarakat Desa Keji."
+                icon={Users}
+              />
+
+              <AntiKorupsiMenu
+                href="/desa-anti-korupsi/kearifan-lokal"
+                title="Kearifan Lokal"
+                description="Budaya lokal sebagai penguatan integritas."
+                icon={Landmark}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Konten utama */}
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          <main className="min-w-0 space-y-8 lg:w-2/3">
             {/* Ringkasan APBDes */}
             <section>
               <div className="mb-5">
@@ -1186,5 +1312,97 @@ function PrinsipCard({
         {item.description}
       </p>
     </article>
+  );
+}
+
+function HeroValue({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md">
+      <p className="text-sm font-black text-white">
+        {title}
+      </p>
+
+      <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-emerald-200">
+        {description}
+      </p>
+    </article>
+  );
+}
+
+function HeroBudgetItem({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/[0.08] p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-300/15 text-emerald-200">
+          <Icon size={19} />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-100/65">
+            {label}
+          </p>
+
+          <p className="mt-1 truncate text-base font-black text-white">
+            {formatRupiah(value)}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function AntiKorupsiMenu({
+  href,
+  title,
+  description,
+  icon: Icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative flex min-h-[190px] flex-col border-b border-slate-200 bg-white p-5 transition last:border-b-0 hover:bg-emerald-50 sm:border-b sm:border-r sm:[&:nth-child(2n)]:border-r-0 lg:border-b-0 lg:border-r lg:[&:nth-child(2n)]:border-r lg:last:border-r-0"
+    >
+      <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-emerald-100/50 opacity-0 transition group-hover:opacity-100" />
+
+      <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
+        <Icon size={21} />
+      </div>
+
+      <h2 className="relative mt-5 font-black text-slate-900">
+        {title}
+      </h2>
+
+      <p className="relative mt-2 flex-1 text-xs font-medium leading-5 text-slate-500">
+        {description}
+      </p>
+
+      <span className="relative mt-4 inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700">
+        Lihat dokumen
+
+        <ArrowRight
+          size={14}
+          className="transition group-hover:translate-x-1"
+        />
+      </span>
+    </Link>
   );
 }
