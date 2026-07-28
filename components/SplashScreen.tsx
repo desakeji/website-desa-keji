@@ -4,34 +4,15 @@
 
 import {
   useEffect,
-  useRef,
   useState,
 } from 'react';
 
 export default function SplashScreen() {
-  const [progress, setProgress] =
-    useState(0);
-
   const [isVisible, setIsVisible] =
     useState(true);
 
-  const [isFadingOut, setIsFadingOut] =
+  const [isLeaving, setIsLeaving] =
     useState(false);
-
-  const intervalRef =
-    useRef<ReturnType<typeof setInterval> | null>(
-      null
-    );
-
-  const fadeTimerRef =
-    useRef<ReturnType<typeof setTimeout> | null>(
-      null
-    );
-
-  const hideTimerRef =
-    useRef<ReturnType<typeof setTimeout> | null>(
-      null
-    );
 
   useEffect(() => {
     const previousOverflow =
@@ -40,63 +21,43 @@ export default function SplashScreen() {
     document.body.style.overflow =
       'hidden';
 
-    intervalRef.current = setInterval(() => {
-      setProgress((previousProgress) => {
-        if (previousProgress >= 100) {
-          if (intervalRef.current) {
-            clearInterval(
-              intervalRef.current
-            );
+    const fadeTimer =
+      window.setTimeout(() => {
+        setIsLeaving(true);
+      }, 1700);
 
-            intervalRef.current = null;
-          }
+    const hideTimer =
+      window.setTimeout(() => {
+        setIsVisible(false);
 
-          fadeTimerRef.current =
-            setTimeout(() => {
-              setIsFadingOut(true);
+        document.body.style.overflow =
+          previousOverflow;
+      }, 2350);
 
-              hideTimerRef.current =
-                setTimeout(() => {
-                  setIsVisible(false);
+    /*
+     * Pengaman tambahan apabila
+     * timer utama terganggu.
+     */
+    const failSafeTimer =
+      window.setTimeout(() => {
+        setIsVisible(false);
 
-                  document.body.style.overflow =
-                    previousOverflow;
-                }, 800);
-            }, 350);
-
-          return 100;
-        }
-
-        const increment =
-          Math.floor(
-            Math.random() * 4
-          ) + 3;
-
-        return Math.min(
-          previousProgress + increment,
-          100
-        );
-      });
-    }, 55);
+        document.body.style.overflow =
+          previousOverflow;
+      }, 5000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(
-          intervalRef.current
-        );
-      }
+      window.clearTimeout(
+        fadeTimer
+      );
 
-      if (fadeTimerRef.current) {
-        clearTimeout(
-          fadeTimerRef.current
-        );
-      }
+      window.clearTimeout(
+        hideTimer
+      );
 
-      if (hideTimerRef.current) {
-        clearTimeout(
-          hideTimerRef.current
-        );
-      }
+      window.clearTimeout(
+        failSafeTimer
+      );
 
       document.body.style.overflow =
         previousOverflow;
@@ -110,75 +71,227 @@ export default function SplashScreen() {
   return (
     <div
       role="status"
-      aria-label="Memuat website Desa Keji"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#021c17] px-4 transition-all duration-700 ease-in-out ${
-        isFadingOut
-          ? 'pointer-events-none scale-105 opacity-0'
-          : 'scale-100 opacity-100'
-      }`}
+      aria-label="Memuat Sistem Informasi Keji"
+      className="fixed inset-0 z-[9999]"
+      style={{
+        /*
+         * CSS tetap melepas splash
+         * walaupun React gagal hydration.
+         */
+        animation:
+          'siji-release 1ms linear 5s forwards',
+      }}
     >
-      {/* Background Batik */}
+      <style>{`
+        @keyframes siji-release {
+          to {
+            visibility: hidden;
+            pointer-events: none;
+          }
+        }
+
+        @keyframes siji-logo-enter {
+          from {
+            opacity: 0;
+            transform:
+              translateY(14px)
+              scale(0.94);
+          }
+
+          to {
+            opacity: 1;
+            transform:
+              translateY(0)
+              scale(1);
+          }
+        }
+
+        @keyframes siji-text-enter {
+          from {
+            opacity: 0;
+            transform:
+              translateY(10px);
+          }
+
+          to {
+            opacity: 1;
+            transform:
+              translateY(0);
+          }
+        }
+
+        @keyframes siji-loading {
+          from {
+            transform: scaleX(0);
+          }
+
+          to {
+            transform: scaleX(1);
+          }
+        }
+
+        @keyframes siji-glow {
+          0%,
+          100% {
+            opacity: 0.3;
+            transform: scale(1);
+          }
+
+          50% {
+            opacity: 0.6;
+            transform: scale(1.1);
+          }
+        }
+
+        .siji-logo-enter {
+          animation:
+            siji-logo-enter
+            700ms
+            cubic-bezier(
+              0.22,
+              1,
+              0.36,
+              1
+            )
+            both;
+        }
+
+        .siji-title-enter {
+          animation:
+            siji-text-enter
+            650ms
+            cubic-bezier(
+              0.22,
+              1,
+              0.36,
+              1
+            )
+            150ms
+            both;
+        }
+
+        .siji-subtitle-enter {
+          animation:
+            siji-text-enter
+            650ms
+            cubic-bezier(
+              0.22,
+              1,
+              0.36,
+              1
+            )
+            260ms
+            both;
+        }
+
+        .siji-loading {
+          animation:
+            siji-loading
+            1800ms
+            cubic-bezier(
+              0.22,
+              1,
+              0.36,
+              1
+            )
+            both;
+          transform-origin: left;
+        }
+
+        .siji-glow {
+          animation:
+            siji-glow
+            2.8s
+            ease-in-out
+            infinite;
+        }
+
+        @media (
+          prefers-reduced-motion:
+            reduce
+        ) {
+          .siji-logo-enter,
+          .siji-title-enter,
+          .siji-subtitle-enter,
+          .siji-loading,
+          .siji-glow {
+            animation: none;
+          }
+        }
+      `}</style>
+
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.42]"
-        style={{
-          backgroundImage:
-            "url('/batik-splash.png')",
-        }}
-      />
+        className={`absolute inset-0 flex items-center justify-center overflow-hidden bg-[#031e18] px-5 transition-all duration-700 ease-out ${
+          isLeaving
+            ? 'scale-[1.025] opacity-0'
+            : 'scale-100 opacity-100'
+        }`}
+      >
+        {/* Motif batik */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "url('/batik-splash.png')",
 
-      {/* Overlay gelap */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-emerald-950/75 to-black/85" />
+            backgroundRepeat:
+              'repeat',
 
-      {/* Lapisan warna emerald */}
-      <div className="pointer-events-none absolute inset-0 bg-emerald-950/25 mix-blend-color" />
+            backgroundPosition:
+              'center',
 
-      {/* Cahaya di belakang logo */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-300/10 blur-[100px]" />
+            backgroundSize:
+              '420px auto',
 
-      {/* Cahaya sudut */}
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+            opacity: 0.42,
 
-      <div className="pointer-events-none absolute -bottom-36 -right-32 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
+            filter:
+              'contrast(1.15) brightness(1.05)',
+          }}
+        />
 
-      {/* Bingkai halaman */}
-      <div className="pointer-events-none absolute inset-4 rounded-[30px] border border-white/[0.07] sm:inset-7" />
+        {/* Overlay */}
+        <div className="pointer-events-none absolute inset-0 bg-emerald-950/50" />
 
-      {/* Konten */}
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
-        {/* Logo */}
-        <div className="relative">
-          {/* Cahaya logo */}
-          <div className="absolute inset-0 scale-125 rounded-full bg-amber-300/15 blur-2xl" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/55" />
 
-          {/* Ring luar */}
-          <div className="relative rounded-full border border-amber-200/30 bg-black/20 p-2.5 shadow-[0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-md">
-            {/* Ring tengah */}
-            <div className="rounded-full border border-white/20 bg-white/10 p-2">
-              {/* Area putih logo */}
-              <div className="flex h-32 w-32 items-center justify-center rounded-full bg-white p-5 shadow-inner sm:h-36 sm:w-36">
-                <img
-                  src="/logodesakeji.png"
-                  alt="Logo Desa Keji"
-                  className="h-full w-full object-contain drop-shadow-md"
-                />
+        {/* Cahaya tengah */}
+        <div className="siji-glow pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-300/10 blur-[100px]" />
+
+        {/* Bingkai */}
+        <div className="pointer-events-none absolute inset-5 rounded-[30px] border border-white/[0.08] sm:inset-8" />
+
+        {/* Konten */}
+        <div className="relative z-10 flex w-full max-w-sm flex-col items-center text-center">
+          <div className="siji-logo-enter relative">
+            <div className="absolute inset-0 scale-125 rounded-full bg-emerald-300/15 blur-3xl" />
+
+            <div className="relative rounded-[2rem] border border-white/15 bg-white/[0.08] p-2.5 shadow-[0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-md">
+              <div className="rounded-[1.6rem] border border-white/10 bg-black/15 p-2">
+                <div className="flex h-28 w-28 items-center justify-center rounded-[1.25rem] bg-white p-4 shadow-inner sm:h-32 sm:w-32">
+                  <img
+                    src="/logodesakeji.png"
+                    alt="Logo Desa Keji"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Loading Bar */}
-        <div className="mt-12 w-52 sm:w-60">
-          <div className="h-1.5 w-full overflow-hidden rounded-full border border-white/[0.08] bg-black/45 shadow-inner backdrop-blur-sm">
-            <div
-              className="relative h-full rounded-full bg-gradient-to-r from-amber-700 via-amber-400 to-amber-200 transition-[width] duration-100 ease-out"
-              style={{
-                width: `${progress}%`,
-              }}
-            >
-              {/* Kilap loading */}
-              <div className="absolute inset-y-0 right-0 w-6 translate-x-1/2 bg-white/70 blur-[3px]" />
-            </div>
+          <h1 className="siji-title-enter mt-10 text-5xl font-black tracking-[0.18em] text-white sm:text-6xl">
+            SIJI
+          </h1>
+
+          <div className="mt-4 h-px w-20 bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
+
+          <p className="siji-subtitle-enter mt-4 text-sm font-semibold tracking-[0.1em] text-emerald-50/90 sm:text-base">
+            Sistem Informasi Keji
+          </p>
+
+          <div className="mt-10 w-52 overflow-hidden rounded-full bg-white/10 sm:w-60">
+            <div className="siji-loading h-[3px] w-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-300 to-amber-200" />
           </div>
         </div>
       </div>

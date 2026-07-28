@@ -64,177 +64,178 @@ const navItems: NavItem[] = [
       },
       {
         name: 'RPJMDes 2020–2028',
-        href: 'https://drive.google.com/file/d/144eXukbqxtmsCkPqBc7TxskQIQXhBw5E/view?usp=sharing',
+        href:
+          'https://drive.google.com/file/d/144eXukbqxtmsCkPqBc7TxskQIQXhBw5E/view?usp=sharing',
         external: true,
       },
     ],
   },
   {
-  name: 'Data Desa',
-  href: '/data-desa',
-  subItems: [
-    {
-      name: 'Populasi per Wilayah',
-      href: '/data-desa/populasi-wilayah',
-    },
-    {
-      name: 'Data Penduduk Desa',
-      href: '/data-desa/penduduk',
-    },
-    {
-      name: 'Data Rentang Umur',
-      href: '/data-desa/rentang-umur',
-    },
-    {
-      name: 'Kategori Umur',
-      href: '/data-desa/kategori-umur',
-    },
-    {
-      name: 'Status Penduduk',
-      href: '/data-desa/status-penduduk',
-    },
-    {
-      name: 'Jenis Kelamin',
-      href: '/data-desa/jenis-kelamin',
-    },
-    {
-      name: 'Galeri',
-      href: '/data-desa/galeri',
-    },
-    {
-      name: 'SDGs',
-      href: '/data-desa/sdgs',
-    },
-  ],
-},
+    name: 'Data Desa',
+    href: '/data-desa',
+    subItems: [
+      {
+        name: 'Populasi per Wilayah',
+        href: '/data-desa/populasi-wilayah',
+      },
+      {
+        name: 'Data Penduduk Desa',
+        href: '/data-desa/penduduk',
+      },
+      {
+        name: 'Data Rentang Umur',
+        href: '/data-desa/rentang-umur',
+      },
+      {
+        name: 'Kategori Umur',
+        href: '/data-desa/kategori-umur',
+      },
+      {
+        name: 'Status Penduduk',
+        href: '/data-desa/status-penduduk',
+      },
+      {
+        name: 'Jenis Kelamin',
+        href: '/data-desa/jenis-kelamin',
+      },
+      {
+        name: 'Galeri',
+        href: '/data-desa/galeri',
+      },
+      {
+        name: 'SDGs',
+        href: '/data-desa/sdgs',
+      },
+    ],
+  },
   {
-  name: 'Informasi Publik',
-  href: '/informasi-publik',
-  subItems: [
-    {
-      name: 'Produk Hukum',
-      href: '/informasi-publik/produk-hukum',
-    },
-    {
-      name: 'Informasi Umum',
-      href: '/informasi-publik/informasi-umum',
-    },
-    {
-      name: 'Realisasi APBDes 2024',
-      href: '/informasi-publik/apbdes/2024',
-    },
-    {
-      name: 'Realisasi APBDes 2025',
-      href: '/informasi-publik/apbdes/2025',
-    },
-    {
-      name: 'Realisasi APBDes 2026',
-      href: '/informasi-publik/apbdes/2026',
-    },
-  ],
-},
+    name: 'Informasi Publik',
+    href: '/informasi-publik',
+    subItems: [
+      {
+        name: 'Produk Hukum',
+        href: '/informasi-publik/produk-hukum',
+      },
+      {
+        name: 'Informasi Umum',
+        href: '/informasi-publik/informasi-umum',
+      },
+      {
+        name: 'Realisasi APBDes 2024',
+        href: '/informasi-publik/apbdes/2024',
+      },
+      {
+        name: 'Realisasi APBDes 2025',
+        href: '/informasi-publik/apbdes/2025',
+      },
+      {
+        name: 'Realisasi APBDes 2026',
+        href: '/informasi-publik/apbdes/2026',
+      },
+    ],
+  },
   {
-  name: 'PPID',
-  href: '/ppid',
-  subItems: [
-    {
-      name: 'Apa itu PPID',
-      href: '/ppid/apa-itu-ppid',
-    },
-    {
-      name: 'Profil PPID',
-      href: '/ppid/profil',
-    },
-    {
-      name: 'Klasifikasi Informasi',
-      href: '/ppid/klasifikasi-informasi',
-    },
-    {
-      name: 'Permohonan Informasi Publik',
-      href: '/ppid/permohonan-informasi',
-    },
-    {
-      name: 'Pengajuan Keberatan Informasi',
-      href: '/ppid/pengajuan-keberatan',
-    },
-  ],
-},
+    name: 'PPID',
+    href: '/ppid',
+    subItems: [
+      {
+        name: 'Apa itu PPID',
+        href: '/ppid/apa-itu-ppid',
+      },
+      {
+        name: 'Profil PPID',
+        href: '/ppid/profil',
+      },
+      {
+        name: 'Klasifikasi Informasi',
+        href: '/ppid/klasifikasi-informasi',
+      },
+      {
+        name: 'Permohonan Informasi Publik',
+        href: '/ppid/permohonan-informasi',
+      },
+      {
+        name: 'Pengajuan Keberatan Informasi',
+        href: '/ppid/pengajuan-keberatan',
+      },
+    ],
+  },
   {
     name: 'Layanan',
     href: '/layanan',
   },
   {
-  name: 'Lapak',
-  href: '/umkm',
-},
+    name: 'Lapak',
+    href: '/umkm',
+  },
   {
     name: 'Desa Cantik',
     href: '/desa-cantik',
   },
   {
-  name: 'Desa Wisata',
-  href: '/desa-wisata',
-  subItems: [
-    {
-      name: 'Jelajah Desa Keji',
-      href: '/desa-wisata',
-    },
-    {
-      name: 'Destinasi & Potensi',
-      href: '/desa-wisata/destinasi',
-    },
-    {
-      name: 'Budaya & Tradisi',
-      href: '/desa-wisata/budaya-tradisi',
-    },
-    {
-      name: 'Kuliner & UMKM',
-      href: '/desa-wisata/kuliner-umkm',
-    },
-    {
-      name: 'Agenda Wisata',
-      href: '/desa-wisata/agenda',
-    },
-    {
-      name: 'Galeri Desa',
-      href: '/desa-wisata/galeri',
-    },
-    {
-      name: 'Peta & Informasi Kunjungan',
-      href: '/desa-wisata/informasi-kunjungan',
-    },
-  ],
-},
+    name: 'Desa Wisata',
+    href: '/desa-wisata',
+    subItems: [
+      {
+        name: 'Jelajah Desa Keji',
+        href: '/desa-wisata',
+      },
+      {
+        name: 'Destinasi & Potensi',
+        href: '/desa-wisata/destinasi',
+      },
+      {
+        name: 'Budaya & Tradisi',
+        href: '/desa-wisata/budaya-tradisi',
+      },
+      {
+        name: 'Kuliner & UMKM',
+        href: '/desa-wisata/kuliner-umkm',
+      },
+      {
+        name: 'Agenda Wisata',
+        href: '/desa-wisata/agenda',
+      },
+      {
+        name: 'Galeri Desa',
+        href: '/desa-wisata/galeri',
+      },
+      {
+        name: 'Peta & Informasi Kunjungan',
+        href: '/desa-wisata/informasi-kunjungan',
+      },
+    ],
+  },
+  {
+    name: 'Desa Anti Korupsi',
+    href: '/desa-anti-korupsi',
+    subItems: [
+      {
+        name: 'Tata Laksana',
+        href: '/desa-anti-korupsi/tata-laksana',
+      },
+      {
+        name: 'Pengawasan',
+        href: '/desa-anti-korupsi/pengawasan',
+      },
+      {
+        name: 'Pelayanan Publik',
+        href: '/desa-anti-korupsi/pelayanan-publik',
+      },
+      {
+        name: 'Partisipasi Masyarakat',
+        href: '/desa-anti-korupsi/partisipasi-masyarakat',
+      },
+      {
+        name: 'Kearifan Lokal',
+        href: '/desa-anti-korupsi/kearifan-lokal',
+      },
+    ],
+  },
   {
     name: 'Kontak',
     href: '/kontak',
   },
-  {
-  name: 'Desa Anti Korupsi',
-  href: '/desa-anti-korupsi',
-  subItems: [
-    {
-      name: 'Tata Laksana',
-      href: '/desa-anti-korupsi/tata-laksana',
-    },
-    {
-      name: 'Pengawasan',
-      href: '/desa-anti-korupsi/pengawasan',
-    },
-    {
-      name: 'Pelayanan Publik',
-      href: '/desa-anti-korupsi/pelayanan-publik',
-    },
-    {
-      name: 'Partisipasi Masyarakat',
-      href: '/desa-anti-korupsi/partisipasi-masyarakat',
-    },
-    {
-      name: 'Kearifan Lokal',
-      href: '/desa-anti-korupsi/kearifan-lokal',
-    },
-  ],
-},
 ];
 
 const marqueeContent = (
