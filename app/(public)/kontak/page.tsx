@@ -91,7 +91,7 @@ const daftarKontak:
       jabatan:
         'Pembinaan Wilayah',
       nomor:
-        '0853-2626-8087',
+        '0895-3000-0040',
       description:
         'Koordinasi keamanan wilayah, kedaruratan, dan pembinaan masyarakat.',
       icon: ShieldCheck,

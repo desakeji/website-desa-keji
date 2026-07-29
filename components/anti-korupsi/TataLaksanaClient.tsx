@@ -21,7 +21,6 @@ import {
   Handshake,
   Search,
   ShieldCheck,
-  UsersRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -722,28 +721,21 @@ const indikatorTataLaksana:
 },
   ];
 
-export default function TataLaksanaClient() {
-  const [
-    indikatorAktif,
-    setIndikatorAktif,
-  ] = useState(0);
 
-  const [
-    pencarian,
-    setPencarian,
-  ] = useState('');
+export default function TataLaksanaClient() {
+  const [indikatorAktif, setIndikatorAktif] =
+    useState(0);
+  const [pencarian, setPencarian] =
+    useState('');
 
   const indikator =
-    indikatorTataLaksana[
-      indikatorAktif
-    ];
+    indikatorTataLaksana[indikatorAktif];
 
   const dokumenTersaring =
     useMemo(() => {
-      const query =
-        pencarian
-          .trim()
-          .toLowerCase();
+      const query = pencarian
+        .trim()
+        .toLowerCase();
 
       if (!query) {
         return indikator.dokumen;
@@ -760,10 +752,7 @@ export default function TataLaksanaClient() {
             .toLowerCase()
             .includes(query)
       );
-    }, [
-      indikator,
-      pencarian,
-    ]);
+    }, [indikator, pencarian]);
 
   function pilihIndikator(
     index: number
@@ -771,248 +760,295 @@ export default function TataLaksanaClient() {
     setIndikatorAktif(index);
     setPencarian('');
 
-    window.setTimeout(() => {
-      document
-        .getElementById(
-          'bukti-dukung'
-        )
-        ?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-    }, 50);
+    if (
+      typeof window !== 'undefined' &&
+      window.innerWidth < 1024
+    ) {
+      window.setTimeout(() => {
+        document
+          .getElementById(
+            'bukti-dukung'
+          )
+          ?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+      }, 80);
+    }
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
-      {/* Daftar indikator */}
-      <aside className="print-hide lg:sticky lg:top-24">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 p-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                <FolderOpen
-                  size={21}
-                />
-              </div>
+    <div className="min-w-0">
+      {/* Navigasi indikator untuk HP dan tablet */}
+      <section className="print-hide mb-6 lg:hidden">
+        <div className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="mb-3 flex items-center gap-3 px-2 pt-1">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+              <FolderOpen size={20} />
+            </div>
 
-              <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
-                  Tata Laksana
-                </p>
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                Penguatan Tata Laksana
+              </p>
 
-                <h2 className="mt-1 text-xl font-black text-slate-900">
-                  Kategori & Indikator
-                </h2>
-              </div>
+              <h2 className="truncate text-base font-black text-slate-900">
+                Pilih Indikator
+              </h2>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100 p-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {indikatorTataLaksana.map(
-              (
-                item,
-                index
-              ) => {
-                const Icon =
-                  item.icon;
-
+              (item, index) => {
                 const aktif =
-                  indikatorAktif ===
-                  index;
+                  indikatorAktif === index;
 
                 return (
                   <button
                     key={item.kode}
                     type="button"
                     onClick={() =>
-                      pilihIndikator(
-                        index
-                      )
+                      pilihIndikator(index)
                     }
-                    className={`group flex w-full items-start gap-3 rounded-2xl px-4 py-4 text-left transition ${
+                    aria-pressed={aktif}
+                    className={`shrink-0 rounded-xl border px-4 py-3 text-left transition ${
                       aktif
-                        ? 'bg-emerald-700 text-white shadow-md'
-                        : 'text-slate-700 hover:bg-emerald-50'
+                        ? 'border-emerald-700 bg-emerald-700 text-white shadow-md'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
                     }`}
                   >
-                    <div
-                      className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                    <p
+                      className={`text-[10px] font-extrabold uppercase tracking-[0.14em] ${
                         aktif
-                          ? 'bg-white/15 text-white'
-                          : 'bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200'
+                          ? 'text-emerald-100'
+                          : 'text-emerald-700'
                       }`}
                     >
-                      <Icon size={19} />
-                    </div>
+                      Indikator
+                    </p>
 
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={`text-[10px] font-extrabold uppercase tracking-[0.15em] ${
-                          aktif
-                            ? 'text-emerald-100'
-                            : 'text-emerald-700'
-                        }`}
-                      >
-                        Indikator{' '}
-                        {item.kode}
-                      </p>
+                    <p className="mt-1 text-sm font-black">
+                      {item.kode}
+                    </p>
 
-                      <p className="mt-2 text-sm font-bold leading-5">
-                        {item.judul}
-                      </p>
-
-                      <p
-                        className={`mt-2 text-[11px] font-semibold ${
-                          aktif
-                            ? 'text-emerald-100'
-                            : 'text-slate-400'
-                        }`}
-                      >
-                        {
-                          item.dokumen
-                            .length
-                        }{' '}
-                        dokumen
-                      </p>
-                    </div>
-
-                    <ChevronRight
-                      size={18}
-                      className={`mt-3 shrink-0 transition ${
+                    <p
+                      className={`mt-1 text-[10px] font-semibold ${
                         aktif
-                          ? 'translate-x-1 text-white'
-                          : 'text-slate-300 group-hover:translate-x-1 group-hover:text-emerald-600'
+                          ? 'text-emerald-100'
+                          : 'text-slate-400'
                       }`}
-                    />
+                    >
+                      {item.dokumen.length}{' '}
+                      dokumen
+                    </p>
                   </button>
                 );
               }
             )}
           </div>
         </div>
-      </aside>
+      </section>
 
-      {/* Bukti dukung */}
-      <section
-        id="bukti-dukung"
-        className="min-w-0 scroll-mt-24"
-      >
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          {/* Header bukti */}
-          <div className="border-b border-slate-200 bg-gradient-to-r from-emerald-50 via-white to-white p-6 md:p-8">
-            <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md">
-                  <CheckCircle2
-                    size={24}
-                  />
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[330px_minmax(0,1fr)] xl:gap-8">
+        {/* Navigasi indikator desktop */}
+        <aside className="print-hide hidden min-w-0 lg:block">
+          <div className="sticky top-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <FolderOpen size={21} />
                 </div>
 
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.17em] text-emerald-700">
-                    Indikator{' '}
-                    {indikator.kode}
+                <div className="min-w-0">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Tata Laksana
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-black leading-tight text-slate-900">
-                    Bukti Dukung
+                  <h2 className="mt-1 text-lg font-black text-slate-900">
+                    Kategori Indikator
                   </h2>
+                </div>
+              </div>
+            </div>
 
-                  <p className="mt-3 max-w-3xl text-sm font-semibold leading-7 text-slate-600">
-                    {indikator.judul}
+            <nav
+              aria-label="Indikator Tata Laksana"
+              className="space-y-2 p-3"
+            >
+              {indikatorTataLaksana.map(
+                (item, index) => {
+                  const Icon =
+                    item.icon;
+                  const aktif =
+                    indikatorAktif === index;
+
+                  return (
+                    <button
+                      key={item.kode}
+                      type="button"
+                      onClick={() =>
+                        pilihIndikator(index)
+                      }
+                      aria-pressed={aktif}
+                      className={`group flex w-full items-start gap-3 rounded-2xl border px-3.5 py-4 text-left transition ${
+                        aktif
+                          ? 'border-emerald-700 bg-emerald-700 text-white shadow-md'
+                          : 'border-transparent bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <div
+                        className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+                          aktif
+                            ? 'bg-white/15 text-white'
+                            : 'bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200'
+                        }`}
+                      >
+                        <Icon size={19} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`text-[10px] font-extrabold uppercase tracking-[0.14em] ${
+                            aktif
+                              ? 'text-emerald-100'
+                              : 'text-emerald-700'
+                          }`}
+                        >
+                          Indikator {item.kode}
+                        </p>
+
+                        <p className="mt-1.5 break-words text-xs font-bold leading-5">
+                          {item.judul}
+                        </p>
+
+                        <p
+                          className={`mt-2 text-[10px] font-semibold ${
+                            aktif
+                              ? 'text-emerald-100'
+                              : 'text-slate-400'
+                          }`}
+                        >
+                          {item.dokumen.length}{' '}
+                          dokumen
+                        </p>
+                      </div>
+
+                      <ChevronRight
+                        size={17}
+                        className={`mt-3 shrink-0 transition ${
+                          aktif
+                            ? 'translate-x-0.5 text-white'
+                            : 'text-slate-300 group-hover:translate-x-0.5 group-hover:text-emerald-600'
+                        }`}
+                      />
+                    </button>
+                  );
+                }
+              )}
+            </nav>
+          </div>
+        </aside>
+
+        {/* Daftar bukti dukung */}
+        <section
+          id="bukti-dukung"
+          className="min-w-0 scroll-mt-28"
+        >
+          <div className="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <header className="border-b border-slate-200 bg-gradient-to-br from-emerald-50 via-white to-white p-5 sm:p-6 xl:p-8">
+              <div className="flex min-w-0 flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-md sm:h-12 sm:w-12 sm:rounded-2xl">
+                    <CheckCircle2 size={22} />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-700 sm:text-xs">
+                      Indikator {indikator.kode}
+                    </p>
+
+                    <h2 className="mt-2 text-xl font-black leading-tight text-slate-900 sm:text-2xl">
+                      Bukti Dukung
+                    </h2>
+
+                    <p className="mt-3 break-words text-sm font-bold leading-6 text-slate-700">
+                      {indikator.judul}
+                    </p>
+
+                    <p className="mt-2 break-words text-sm font-medium leading-6 text-slate-500">
+                      {indikator.ringkasan}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="w-fit shrink-0 rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
+                  <p className="text-2xl font-black text-emerald-700">
+                    {indikator.dokumen.length}
                   </p>
 
-                  <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-                    {
-                      indikator.ringkasan
-                    }
+                  <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
+                    Dokumen tercatat
                   </p>
                 </div>
               </div>
 
-              <div className="shrink-0 rounded-2xl border border-emerald-200 bg-white px-5 py-4">
-                <p className="text-2xl font-black text-emerald-700">
-                  {
-                    indikator.dokumen
-                      .length
-                  }
-                </p>
-
-                <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
-                  Dokumen tercatat
-                </p>
-              </div>
-            </div>
-
-            {/* Pencarian */}
-            <div className="print-hide relative mt-7">
-              <Search
-                size={18}
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-
-              <input
-                type="search"
-                value={pencarian}
-                onChange={(event) =>
-                  setPencarian(
-                    event.target.value
-                  )
-                }
-                placeholder="Cari nama atau jenis dokumen..."
-                className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-              />
-            </div>
-          </div>
-
-          {/* Grid dokumen */}
-          <div className="p-5 md:p-7">
-            {dokumenTersaring.length >
-            0 ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {dokumenTersaring.map(
-                  (
-                    dokumen,
-                    index
-                  ) => (
-                    <DokumenCard
-                      key={
-                        dokumen.id
-                      }
-                      dokumen={
-                        dokumen
-                      }
-                      nomor={
-                        index + 1
-                      }
-                    />
-                  )
-                )}
-              </div>
-            ) : (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
-                <FileSearch
-                  size={45}
-                  className="mx-auto text-slate-300"
+              <div className="print-hide relative mt-6">
+                <Search
+                  size={18}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
-                <h3 className="mt-4 text-lg font-black text-slate-800">
-                  Dokumen tidak
-                  ditemukan
-                </h3>
-
-                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
-                  Gunakan kata kunci
-                  lain untuk mencari
-                  dokumen pada indikator
-                  ini.
-                </p>
+                <input
+                  type="search"
+                  value={pencarian}
+                  onChange={(event) =>
+                    setPencarian(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Cari nama atau jenis dokumen..."
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
               </div>
-            )}
+            </header>
+
+            <div className="min-w-0 p-4 sm:p-5 xl:p-7">
+              {dokumenTersaring.length >
+              0 ? (
+                <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+                  {dokumenTersaring.map(
+                    (dokumen, index) => (
+                      <DokumenCard
+                        key={dokumen.id}
+                        dokumen={dokumen}
+                        nomor={index + 1}
+                      />
+                    )
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
+                  <FileSearch
+                    size={44}
+                    className="mx-auto text-slate-300"
+                  />
+
+                  <h3 className="mt-4 text-lg font-black text-slate-800">
+                    Dokumen tidak ditemukan
+                  </h3>
+
+                  <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+                    Gunakan kata kunci lain
+                    untuk mencari dokumen
+                    pada indikator ini.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
@@ -1032,15 +1068,20 @@ function DokumenCard({
     );
 
   return (
-    <article className="document-card group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg">
-      <div className="flex items-start justify-between gap-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-emerald-700">
-          <FileText size={12} />
+    <article className="document-card group flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg sm:p-5">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-emerald-700">
+          <FileText
+            size={12}
+            className="shrink-0"
+          />
 
-          {dokumen.jenis}
+          <span className="truncate">
+            {dokumen.jenis}
+          </span>
         </span>
 
-        <span className="text-xs font-black text-slate-300">
+        <span className="shrink-0 text-xs font-black text-slate-300">
           {String(nomor).padStart(
             2,
             '0'
@@ -1048,11 +1089,11 @@ function DokumenCard({
         </span>
       </div>
 
-      <h3 className="mt-5 text-base font-black leading-6 text-slate-900 transition group-hover:text-emerald-800">
+      <h3 className="mt-4 break-words text-base font-black leading-6 text-slate-900 transition group-hover:text-emerald-800">
         {dokumen.judul}
       </h3>
 
-      <p className="mt-3 flex-1 text-sm font-medium leading-6 text-slate-500">
+      <p className="mt-3 flex-1 break-words text-sm font-medium leading-6 text-slate-500">
         {dokumen.deskripsi}
       </p>
 
@@ -1070,25 +1111,34 @@ function DokumenCard({
                 ? 'noopener noreferrer'
                 : undefined
             }
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-extrabold text-white transition hover:bg-emerald-800"
+            className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-extrabold text-white transition hover:bg-emerald-800"
           >
             <FileCheck2
               size={15}
+              className="shrink-0"
             />
 
-            Buka Dokumen
+            <span className="truncate">
+              Buka Dokumen
+            </span>
 
             {external && (
               <ExternalLink
                 size={13}
+                className="shrink-0"
               />
             )}
           </a>
         ) : (
-          <span className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-100 px-4 text-xs font-extrabold text-slate-500">
-            <Clock3 size={14} />
+          <span className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-xl bg-slate-100 px-4 text-xs font-extrabold text-slate-500">
+            <Clock3
+              size={14}
+              className="shrink-0"
+            />
 
-            Tautan belum ditambahkan
+            <span className="truncate">
+              Tautan belum ditambahkan
+            </span>
           </span>
         )}
       </div>

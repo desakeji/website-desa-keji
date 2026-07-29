@@ -32,6 +32,7 @@ import {
 
 import BeritaTerbaru from '@/components/public/BeritaTerbaru';
 import StatistikPenduduk from '@/components/public/StatistikPenduduk';
+import WaktuRealtime from '@/components/public/WaktuRealtime';
 
 export default function HomePage() {
   const quickLinks = [
@@ -43,12 +44,12 @@ export default function HomePage() {
     {
       name: 'Produk Hukum',
       icon: Scale,
-      href: '/peraturan',
+      href: '/informasi-publik/produk-hukum',
     },
     {
       name: 'Informasi Publik',
       icon: Info,
-      href: '/informasi',
+      href: '/informasi-publik',
     },
     {
       name: 'Lapak UMKM',
@@ -63,7 +64,7 @@ export default function HomePage() {
     {
       name: 'Album Galeri',
       icon: ImageIcon,
-      href: '/galeri',
+      href: '/data-desa/galeri',
     },
     {
       name: 'Pengaduan',
@@ -140,6 +141,9 @@ export default function HomePage() {
 
         {/* Aksen cahaya */}
         <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-emerald-400/10 blur-[100px]" />
+
+        {/* Waktu real-time pojok kanan atas */}
+        <WaktuRealtime />
 
         {/* Konten hero */}
         <div className="relative z-10 w-full max-w-4xl px-4 text-center">
