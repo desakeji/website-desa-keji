@@ -354,38 +354,52 @@ export default function SidebarLayanan({
             </div>
 
             <div>
-              <label
-                htmlFor="layanan"
-                className="mb-1.5 block text-sm font-semibold text-white"
-              >
-                Pilih Layanan
-              </label>
+  <div className="mb-1.5 flex items-center justify-between gap-3">
+    <label
+      htmlFor="layanan"
+      className="block text-sm font-semibold text-white"
+    >
+      Pilih Layanan
+    </label>
 
-              <select
-                id="layanan"
-                name="layanan"
-                required
-                value={layananId}
-                onChange={(event) =>
-                  setLayananId(event.target.value)
-                }
-                disabled={daftarLayanan.length === 0}
-                className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-amber-400 disabled:cursor-not-allowed disabled:bg-gray-200"
-              >
-                <option value="" disabled>
-                  -- Pilih Keperluan --
-                </option>
+    <span className="rounded-full border border-emerald-300/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-emerald-100">
+      {daftarLayanan.length} pilihan
+    </span>
+  </div>
 
-                {daftarLayanan.map((layanan) => (
-                  <option
-                    key={layanan.id}
-                    value={layanan.id}
-                  >
-                    {layanan.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <select
+    id="layanan"
+    name="layanan"
+    required
+    value={layananId}
+    onChange={(event) => {
+      setLayananId(event.target.value);
+      setErrorMessage('');
+    }}
+    disabled={daftarLayanan.length === 0}
+    className="min-h-12 w-full rounded-xl border border-white/10 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-inner outline-none transition focus:ring-4 focus:ring-amber-400/30 disabled:cursor-not-allowed disabled:bg-slate-200"
+  >
+    <option value="" disabled>
+      {daftarLayanan.length === 0
+        ? 'Layanan belum tersedia'
+        : '-- Pilih Jenis Pelayanan --'}
+    </option>
+
+    {daftarLayanan.map((layanan, index) => (
+      <option
+        key={layanan.id}
+        value={layanan.id}
+      >
+        {index + 1}. {layanan.nama}
+      </option>
+    ))}
+  </select>
+
+  <p className="mt-2 text-xs font-medium leading-5 text-emerald-100/80">
+    Pilih jenis pelayanan sesuai dokumen atau keperluan
+    administrasi yang akan diajukan.
+  </p>
+</div>
 
             <button
               type="submit"

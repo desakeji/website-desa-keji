@@ -14,81 +14,29 @@ import {
 
 import {
   ChevronRight,
-  FileText,
-  Images,
   Landmark,
-  LayoutDashboard,
   LogOut,
   Menu,
-  Newspaper,
-  ScrollText,
-  Settings,
   Sparkles,
-  Target,
   UserRound,
-  Users,
   X,
-  type LucideIcon,
 } from 'lucide-react';
 
 import {
   signOutAction,
 } from '@/app/admin/actions';
 
+import NotifikasiPermohonan from '@/components/admin/NotifikasiPermohonan';
+
+import {
+  adminMenuGroups,
+} from '@/lib/admin-navigation';
+
 interface AdminShellProps {
   children: ReactNode;
   email: string;
   displayName: string;
 }
-
-interface MenuItem {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-}
-
-const menuItems: MenuItem[] = [
-  {
-    label: 'Dashboard',
-    href: '/admin',
-    icon: LayoutDashboard,
-  },
-  {
-    label: 'Data Warga',
-    href: '/admin/warga',
-    icon: Users,
-  },
-  {
-    label: 'Permohonan Layanan',
-    href: '/admin/permohonan',
-    icon: FileText,
-  },
-  {
-    label: 'SDGs Desa',
-    href: '/admin/sdgs',
-    icon: Target,
-  },
-  {
-    label: 'Kelola Galeri',
-    href: '/admin/galeri',
-    icon: Images,
-  },
-  {
-    label: 'Produk Hukum',
-    href: '/admin/produk-hukum',
-    icon: ScrollText,
-  },
-  {
-    label: 'Kelola Berita',
-    href: '/admin/berita',
-    icon: Newspaper,
-  },
-  {
-    label: 'Pengaturan',
-    href: '/admin/pengaturan',
-    icon: Settings,
-  },
-];
 
 export default function AdminShell({
   children,
@@ -107,9 +55,7 @@ export default function AdminShell({
     href: string
   ) {
     if (href === '/admin') {
-      return (
-        pathname === '/admin'
-      );
+      return pathname === '/admin';
     }
 
     return (
@@ -147,6 +93,32 @@ export default function AdminShell({
           animation-play-state: paused;
         }
 
+        .admin-sidebar-scroll {
+          scrollbar-width: thin;
+          scrollbar-color:
+            rgba(167, 243, 208, 0.28)
+            transparent;
+        }
+
+        .admin-sidebar-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .admin-sidebar-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .admin-sidebar-scroll::-webkit-scrollbar-thumb {
+          border-radius: 999px;
+          background:
+            rgba(167, 243, 208, 0.25);
+        }
+
+        .admin-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+          background:
+            rgba(167, 243, 208, 0.42);
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .admin-marquee-track {
             animation: none;
@@ -154,7 +126,7 @@ export default function AdminShell({
         }
       `}</style>
 
-      {/* Overlay Mobile */}
+      {/* Overlay sidebar mobile */}
       {sidebarOpen && (
         <button
           type="button"
@@ -168,16 +140,37 @@ export default function AdminShell({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[285px] flex-col overflow-hidden border-r border-emerald-300/10 bg-gradient-to-b from-[#033f32] via-[#065f46] to-[#022c22] text-white shadow-2xl transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen
-            ? 'translate-x-0'
-            : '-translate-x-full'
-        }`}
+        className={`
+          fixed
+          inset-y-0
+          left-0
+          z-50
+          flex
+          w-[285px]
+          flex-col
+          overflow-hidden
+          border-r
+          border-emerald-300/10
+          bg-gradient-to-b
+          from-[#033f32]
+          via-[#065f46]
+          to-[#022c22]
+          text-white
+          shadow-2xl
+          transition-transform
+          duration-300
+          lg:translate-x-0
+          ${
+            sidebarOpen
+              ? 'translate-x-0'
+              : '-translate-x-full'
+          }
+        `}
       >
-        {/* Dasar Lembut */}
+        {/* Lapisan warna dasar */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.025] via-transparent to-black/[0.08]" />
 
-        {/* Motif Batik Kawung */}
+        {/* Motif batik kawung */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.24]"
           style={{
@@ -221,7 +214,7 @@ export default function AdminShell({
           }}
         />
 
-        {/* Motif Lapisan Kedua */}
+        {/* Motif batik lapisan kedua */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.10]"
           style={{
@@ -258,7 +251,7 @@ export default function AdminShell({
           }}
         />
 
-        {/* Isen-Isen Diagonal */}
+        {/* Isen-isen diagonal */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.06]"
           style={{
@@ -283,19 +276,19 @@ export default function AdminShell({
           }}
         />
 
-        {/* Ornamen Sidebar */}
+        {/* Ornamen sidebar */}
         <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rotate-12 rounded-[42%] border-[48px] border-emerald-200/[0.045]" />
 
         <div className="pointer-events-none absolute -bottom-40 -left-36 h-96 w-96 -rotate-12 rounded-[42%] border-[64px] border-white/[0.035]" />
 
-        {/* Overlay Gradasi */}
+        {/* Gradasi sidebar */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-gradient-to-b from-[#033f32]/80 to-transparent" />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#022c22]/90 to-transparent" />
 
         <div className="pointer-events-none absolute bottom-28 right-0 top-40 w-px bg-gradient-to-b from-transparent via-emerald-200/25 to-transparent" />
 
-        {/* Header Sidebar */}
+        {/* Header sidebar */}
         <div className="relative flex h-[84px] shrink-0 items-center justify-between border-b border-white/10 bg-[#033f32]/25 px-5 backdrop-blur-[2px]">
           <Link
             href="/admin"
@@ -307,9 +300,7 @@ export default function AdminShell({
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur-md">
               <Landmark
                 size={23}
-                strokeWidth={
-                  2.1
-                }
+                strokeWidth={2.1}
                 className="text-emerald-100"
               />
             </div>
@@ -320,8 +311,7 @@ export default function AdminShell({
               </p>
 
               <p className="mt-0.5 truncate text-[11px] font-medium text-emerald-100/70">
-                Pemerintah Desa
-                Keji
+                Pemerintah Desa Keji
               </p>
             </div>
           </Link>
@@ -338,7 +328,7 @@ export default function AdminShell({
           </button>
         </div>
 
-        {/* Profil Admin */}
+        {/* Profil admin */}
         <div className="relative shrink-0 px-4 pt-5">
           <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#064e3b]/70 p-3.5 shadow-lg shadow-black/10 backdrop-blur-md">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent" />
@@ -347,9 +337,7 @@ export default function AdminShell({
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-200/20 bg-emerald-100/10 text-emerald-50 shadow-lg">
                 <UserRound
                   size={21}
-                  strokeWidth={
-                    2.2
-                  }
+                  strokeWidth={2.2}
                 />
               </div>
 
@@ -369,85 +357,156 @@ export default function AdminShell({
           </div>
         </div>
 
-        {/* Navigasi Sidebar */}
-        <nav className="relative min-h-0 flex-1 space-y-1.5 overflow-y-auto px-4 py-6">
-          <div className="mb-3 flex items-center gap-2 px-3">
-            <Sparkles
-              size={12}
-              className="text-emerald-200/70"
-            />
-
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-100/60">
-              Menu Utama
-            </p>
-          </div>
-
-          {menuItems.map(
-            (item) => {
-              const Icon =
-                item.icon;
-
-              const active =
-                isMenuActive(
-                  item.href
-                );
-
-              return (
-                <Link
-                  key={
-                    item.href
-                  }
-                  href={
-                    item.href
-                  }
-                  onClick={
-                    closeSidebar
-                  }
-                  className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-200 ${
-                    active
-                      ? 'bg-white text-emerald-900 shadow-xl shadow-black/10'
-                      : 'bg-[#064e3b]/20 text-emerald-50/90 hover:bg-white/10 hover:text-white'
-                  }`}
+        {/* Navigasi sidebar */}
+        <nav className="admin-sidebar-scroll relative min-h-0 flex-1 overflow-y-auto px-4 py-6">
+          <div className="space-y-6">
+            {adminMenuGroups.map(
+              (group) => (
+                <section
+                  key={group.label}
                 >
-                  {active && (
-                    <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-emerald-600" />
-                  )}
-
-                  <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
-                      active
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-white/[0.07] text-emerald-200 group-hover:bg-white/10'
-                    }`}
-                  >
-                    <Icon
-                      size={
-                        18
-                      }
-                      strokeWidth={
-                        2.1
-                      }
+                  <div className="mb-3 flex items-center gap-2 px-3">
+                    <Sparkles
+                      size={12}
+                      className="text-emerald-200/70"
                     />
-                  </span>
 
-                  <span className="min-w-0 flex-1 truncate">
-                    {
-                      item.label
-                    }
-                  </span>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-100/60">
+                      {group.label}
+                    </p>
+                  </div>
 
-                  <ChevronRight
-                    size={16}
-                    className={`shrink-0 transition ${
-                      active
-                        ? 'translate-x-0 text-emerald-600'
-                        : '-translate-x-1 text-emerald-100/40 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
-                    }`}
-                  />
-                </Link>
-              );
-            }
-          )}
+                  <div className="space-y-1.5">
+                    {group.items.map(
+                      (item) => {
+                        const Icon =
+                          item.icon;
+
+                        const active =
+                          item.enabled &&
+                          isMenuActive(
+                            item.href
+                          );
+
+                        /*
+                         * Modul yang belum memiliki halaman
+                         * admin tetap ditampilkan agar seluruh
+                         * konten publik terlihat pada sidebar.
+                         */
+                        if (
+                          !item.enabled
+                        ) {
+                          return (
+                            <div
+                              key={
+                                item.id
+                              }
+                              title="Halaman pengelolaan admin belum dibuat"
+                              aria-disabled="true"
+                              className="group relative flex cursor-not-allowed items-center gap-3 overflow-hidden rounded-xl bg-[#064e3b]/15 px-3.5 py-3 text-sm font-semibold text-emerald-50/45"
+                            >
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.045] text-emerald-200/45">
+                                <Icon
+                                  size={18}
+                                  strokeWidth={2.1}
+                                />
+                              </span>
+
+                              <span className="min-w-0 flex-1 truncate">
+                                {item.label}
+                              </span>
+
+                              <span className="shrink-0 rounded-full border border-white/[0.08] bg-white/[0.05] px-2 py-1 text-[8px] font-extrabold uppercase tracking-[0.1em] text-emerald-100/40">
+                                Segera
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={
+                              item.id
+                            }
+                            href={
+                              item.href
+                            }
+                            onClick={
+                              closeSidebar
+                            }
+                            className={`
+                              group
+                              relative
+                              flex
+                              items-center
+                              gap-3
+                              overflow-hidden
+                              rounded-xl
+                              px-3.5
+                              py-3
+                              text-sm
+                              font-semibold
+                              transition-all
+                              duration-200
+                              ${
+                                active
+                                  ? 'bg-white text-emerald-900 shadow-xl shadow-black/10'
+                                  : 'bg-[#064e3b]/20 text-emerald-50/90 hover:bg-white/10 hover:text-white'
+                              }
+                            `}
+                          >
+                            {active && (
+                              <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-emerald-600" />
+                            )}
+
+                            <span
+                              className={`
+                                flex
+                                h-9
+                                w-9
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-lg
+                                transition
+                                ${
+                                  active
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-white/[0.07] text-emerald-200 group-hover:bg-white/10'
+                                }
+                              `}
+                            >
+                              <Icon
+                                size={18}
+                                strokeWidth={2.1}
+                              />
+                            </span>
+
+                            <span className="min-w-0 flex-1 truncate">
+                              {item.label}
+                            </span>
+
+                            <ChevronRight
+                              size={16}
+                              className={`
+                                shrink-0
+                                transition
+                                ${
+                                  active
+                                    ? 'translate-x-0 text-emerald-600'
+                                    : '-translate-x-1 text-emerald-100/40 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
+                                }
+                              `}
+                            />
+                          </Link>
+                        );
+                      }
+                    )}
+                  </div>
+                </section>
+              )
+            )}
+          </div>
         </nav>
 
         {/* Logout */}
@@ -461,9 +520,7 @@ export default function AdminShell({
               type="submit"
               className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-bold text-emerald-50 transition hover:border-emerald-200/20 hover:bg-white/10"
             >
-              <LogOut
-                size={18}
-              />
+              <LogOut size={18} />
 
               Keluar
             </button>
@@ -471,10 +528,11 @@ export default function AdminShell({
         </div>
       </aside>
 
-      {/* Konten Admin */}
+      {/* Area konten admin */}
       <div className="min-h-screen lg:pl-[285px]">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex h-[84px] items-center gap-4 border-b border-slate-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl sm:px-6 lg:px-9">
+        <header className="sticky top-0 z-30 flex h-[84px] items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 shadow-sm backdrop-blur-xl sm:gap-4 sm:px-6 lg:px-9">
+          {/* Tombol sidebar mobile */}
           <button
             type="button"
             aria-label="Buka sidebar"
@@ -488,7 +546,7 @@ export default function AdminShell({
             <Menu size={21} />
           </button>
 
-          {/* Teks Berjalan */}
+          {/* Teks berjalan */}
           <div className="admin-marquee-container relative min-w-0 flex-1 overflow-hidden">
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white via-white/90 to-transparent" />
 
@@ -497,22 +555,19 @@ export default function AdminShell({
             <div className="admin-marquee-track flex items-center">
               <div className="flex shrink-0 items-center gap-5 pr-20">
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Sistem Informasi
-                  Desa Keji
+                  Sistem Informasi Desa Keji
                 </span>
 
                 <span className="h-[5px] w-[5px] rounded-full bg-emerald-500/70" />
 
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Portal Administrasi
-                  Pemerintah Desa
+                  Portal Administrasi Pemerintah Desa
                 </span>
 
                 <span className="h-[5px] w-[5px] rounded-full bg-emerald-500/70" />
 
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Cepat · Aman ·
-                  Terintegrasi
+                  Cepat · Aman · Terintegrasi
                 </span>
               </div>
 
@@ -521,29 +576,29 @@ export default function AdminShell({
                 className="flex shrink-0 items-center gap-5 pr-20"
               >
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Sistem Informasi
-                  Desa Keji
+                  Sistem Informasi Desa Keji
                 </span>
 
                 <span className="h-[5px] w-[5px] rounded-full bg-emerald-500/70" />
 
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Portal Administrasi
-                  Pemerintah Desa
+                  Portal Administrasi Pemerintah Desa
                 </span>
 
                 <span className="h-[5px] w-[5px] rounded-full bg-emerald-500/70" />
 
                 <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-slate-700">
-                  Cepat · Aman ·
-                  Terintegrasi
+                  Cepat · Aman · Terintegrasi
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Informasi Akun */}
-          <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-emerald-100 bg-white px-2.5 py-2 shadow-sm sm:px-3">
+          {/* Notifikasi permohonan */}
+          <NotifikasiPermohonan />
+
+          {/* Informasi akun */}
+          <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-emerald-100 bg-white px-2 py-2 shadow-sm sm:px-3">
             <div className="hidden max-w-[210px] text-right md:block">
               <p className="truncate text-sm font-extrabold leading-tight text-slate-800">
                 {displayName}
@@ -560,15 +615,13 @@ export default function AdminShell({
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-md shadow-emerald-900/20">
               <UserRound
                 size={20}
-                strokeWidth={
-                  2.2
-                }
+                strokeWidth={2.2}
               />
             </div>
           </div>
         </header>
 
-        {/* Isi Halaman Admin */}
+        {/* Isi halaman admin */}
         <main className="p-4 sm:p-6 lg:p-9">
           {children}
         </main>

@@ -1,157 +1,426 @@
+// app/api/permohonan/route.ts
+
+import { createHmac } from 'node:crypto';
+
+import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
+
 import { supabaseAdmin } from '@/lib/supabase-admin';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+interface RequestBody {
+  nik?: unknown;
+  layananId?: unknown;
+  noWa?: unknown;
+}
+
+interface WargaRow {
+  id: number;
+  nama_lengkap: string;
+  nik_hash: string;
+  nik_empat_terakhir: string;
+  aktif: boolean;
+}
+
+interface LayananRow {
+  id: number;
+  nama: string;
+  aktif: boolean;
+}
+
+function normalisasiNik(value: string) {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 16);
+}
+
+function normalisasiWhatsApp(value: string) {
+  let digits = value.replace(/\D/g, '');
+
+  if (digits.startsWith('62')) {
+    digits = `0${digits.slice(2)}`;
+  } else if (digits.startsWith('8')) {
+    digits = `0${digits}`;
+  }
+
+  return digits;
+}
+
+function hashNik(nik: string) {
+  const secret = process.env.NIK_HASH_SECRET;
+
+  if (!secret) {
+    throw new Error(
+      'NIK_HASH_SECRET belum tersedia di .env.local.'
+    );
+  }
+
+  if (secret.length < 32) {
+    throw new Error(
+      'NIK_HASH_SECRET minimal terdiri dari 32 karakter.'
+    );
+  }
+
+  return createHmac('sha256', secret)
+    .update(nik)
+    .digest('hex');
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body =
+      (await request.json()) as RequestBody;
 
-    const nik = String(body?.nik ?? '').replace(/\D/g, '');
-    const layananId = Number(body?.layananId);
-    const noWa = String(body?.noWa ?? '')
-      .replace(/\s/g, '')
-      .replace(/-/g, '');
+    const nik = normalisasiNik(
+      String(body.nik ?? '')
+    );
 
+    const layananId = Number(
+      body.layananId
+    );
+
+    const noWa = normalisasiWhatsApp(
+      String(body.noWa ?? '')
+    );
+
+    /*
+     * Validasi NIK.
+     */
     if (!/^\d{16}$/.test(nik)) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Format NIK tidak valid.',
+          message:
+            'NIK harus terdiri dari tepat 16 angka.',
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    if (!Number.isInteger(layananId) || layananId <= 0) {
+    /*
+     * Validasi layanan.
+     */
+    if (
+      !Number.isInteger(layananId) ||
+      layananId <= 0
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Layanan yang dipilih tidak valid.',
+          message:
+            'Layanan yang dipilih tidak valid.',
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    if (!/^(?:\+62|62|0)8\d{8,12}$/.test(noWa)) {
+    /*
+     * Validasi nomor WhatsApp.
+     */
+    if (!/^08\d{8,12}$/.test(noWa)) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Nomor WhatsApp tidak valid.',
+          message:
+            'Nomor WhatsApp tidak valid.',
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // NIK diverifikasi kembali di server.
-    // Jangan hanya mengandalkan hasil verifikasi dari browser.
+    /*
+     * NIK diverifikasi kembali di server.
+     * Proses ini harus sama dengan:
+     * app/api/warga/verifikasi/route.ts
+     */
+    const nikHash = hashNik(nik);
 
-    const { data: warga, error: wargaError } = await supabaseAdmin
+    const {
+      data: wargaData,
+      error: wargaError,
+    } = await supabaseAdmin
       .from('warga')
-      .select('nik')
-      .eq('nik', nik)
-      .eq('status_aktif', true)
+      .select(`
+        id,
+        nama_lengkap,
+        nik_hash,
+        nik_empat_terakhir,
+        aktif
+      `)
+      .eq('nik_hash', nikHash)
+      .eq('aktif', true)
       .maybeSingle();
 
     if (wargaError) {
-      console.error('Kesalahan membaca data warga:', wargaError);
+      console.error(
+        'Kesalahan membaca data warga saat mengirim permohonan:',
+        {
+          message: wargaError.message,
+          code: wargaError.code,
+          details: wargaError.details,
+          hint: wargaError.hint,
+        }
+      );
 
       return NextResponse.json(
         {
           success: false,
-          message: 'Data warga tidak dapat diverifikasi.',
+          message:
+            wargaError.message ||
+            'Data warga tidak dapat diverifikasi.',
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
+
+    const warga =
+      wargaData as WargaRow | null;
 
     if (!warga) {
       return NextResponse.json(
         {
           success: false,
-          message: 'NIK tidak terdaftar sebagai warga aktif.',
+          message:
+            'NIK tidak terdaftar sebagai warga aktif Desa Keji.',
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    const { data: layanan, error: layananError } =
-      await supabaseAdmin
-        .from('layanan')
-        .select('id')
-        .eq('id', layananId)
-        .eq('aktif', true)
-        .maybeSingle();
+    /*
+     * Periksa apakah layanan masih aktif.
+     */
+    const {
+      data: layananData,
+      error: layananError,
+    } = await supabaseAdmin
+      .from('layanan')
+      .select(`
+        id,
+        nama,
+        aktif
+      `)
+      .eq('id', layananId)
+      .eq('aktif', true)
+      .maybeSingle();
 
     if (layananError) {
-      console.error('Kesalahan membaca layanan:', layananError);
+      console.error(
+        'Kesalahan membaca data layanan:',
+        {
+          message: layananError.message,
+          code: layananError.code,
+          details: layananError.details,
+          hint: layananError.hint,
+        }
+      );
 
       return NextResponse.json(
         {
           success: false,
-          message: 'Data layanan tidak dapat diperiksa.',
+          message:
+            'Data layanan tidak dapat diperiksa.',
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
+
+    const layanan =
+      layananData as LayananRow | null;
 
     if (!layanan) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Layanan tidak tersedia atau sudah dinonaktifkan.',
+          message:
+            'Layanan tidak tersedia atau sudah dinonaktifkan.',
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
-    const { error: insertError } = await supabaseAdmin
+    /*
+     * Periksa permohonan aktif dengan
+     * NIK dan layanan yang sama.
+     *
+     * Tabel yang digunakan tetap:
+     * public.permohonan
+     */
+    const {
+      data: permohonanAktif,
+      error: duplikasiError,
+    } = await supabaseAdmin
+      .from('permohonan')
+      .select('id')
+      .eq('warga_nik', nik)
+      .eq('layanan_id', layananId)
+      .in('status', [
+        'Menunggu',
+        'Diproses',
+      ])
+      .limit(1)
+      .maybeSingle();
+
+    if (duplikasiError) {
+      console.error(
+        'Kesalahan memeriksa duplikasi permohonan:',
+        {
+          message: duplikasiError.message,
+          code: duplikasiError.code,
+          details: duplikasiError.details,
+          hint: duplikasiError.hint,
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            'Permohonan sebelumnya tidak dapat diperiksa.',
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    if (permohonanAktif) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            'Anda masih memiliki permohonan layanan yang sama dengan status Menunggu atau Diproses.',
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    /*
+     * Simpan permohonan.
+     *
+     * warga_nik tetap digunakan karena
+     * tabel permohonan milikmu saat ini
+     * memakai kolom tersebut.
+     */
+    const {
+      data: permohonanBaru,
+      error: insertError,
+    } = await supabaseAdmin
       .from('permohonan')
       .insert({
         warga_nik: nik,
         layanan_id: layananId,
         no_wa: noWa,
         status: 'Menunggu',
-      });
+      })
+      .select(`
+        id,
+        status,
+        created_at
+      `)
+      .single();
 
     if (insertError) {
-      // PostgreSQL unique violation.
-      if (insertError.code === '23505') {
+      if (
+        insertError.code === '23505'
+      ) {
         return NextResponse.json(
           {
             success: false,
             message:
               'Anda masih memiliki permohonan layanan yang sama dengan status Menunggu.',
           },
-          { status: 409 }
+          {
+            status: 409,
+          }
         );
       }
 
-      console.error('Kesalahan menyimpan permohonan:', insertError);
+      console.error(
+        'Kesalahan menyimpan permohonan:',
+        {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint,
+        }
+      );
 
       return NextResponse.json(
         {
           success: false,
-          message: 'Permohonan gagal disimpan.',
+          message:
+            insertError.message ||
+            'Permohonan gagal disimpan.',
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
+
+    /*
+     * Segarkan dashboard dan halaman admin.
+     */
+    revalidatePath('/admin');
+    revalidatePath(
+      '/admin/permohonan'
+    );
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Permohonan berhasil dikirim.',
+        message:
+          'Permohonan berhasil dikirim.',
+        permohonan: {
+          id: permohonanBaru.id,
+          status:
+            permohonanBaru.status,
+          layanan:
+            layanan.nama,
+          namaPemohon:
+            warga.nama_lengkap,
+        },
       },
-      { status: 201 }
+      {
+        status: 201,
+      }
     );
   } catch (error) {
-    console.error('Kesalahan API permohonan:', error);
+    console.error(
+      'Kesalahan API permohonan:',
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        message: 'Permintaan tidak dapat diproses.',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Permintaan tidak dapat diproses.',
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

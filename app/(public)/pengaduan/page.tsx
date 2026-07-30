@@ -25,8 +25,12 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import FormPengaduan from '@/components/FormPengaduan';
+
 export const metadata: Metadata = {
-  title: 'Pengaduan Masyarakat | SIJI',
+  title:
+    'Pengaduan Masyarakat | SIJI',
+
   description:
     'Saluran resmi pengaduan, aspirasi, kritik, dan saran masyarakat Desa Keji.',
 };
@@ -44,61 +48,95 @@ interface TahapPengaduan {
   icon: LucideIcon;
 }
 
-const kategoriPengaduan: KategoriPengaduan[] = [
+const kategoriPengaduan:
+  KategoriPengaduan[] = [
   {
-    nama: 'Pelayanan Administrasi',
+    nama:
+      'Pelayanan Administrasi',
+
     deskripsi:
       'Laporan mengenai proses, waktu, prosedur, atau kendala pelayanan administrasi desa.',
-    icon: FileCheck2,
+
+    icon:
+      FileCheck2,
   },
   {
-    nama: 'Pembangunan Desa',
+    nama:
+      'Pembangunan Desa',
+
     deskripsi:
       'Masukan atau laporan mengenai kegiatan, fasilitas, dan pembangunan di wilayah desa.',
-    icon: Building2,
+
+    icon:
+      Building2,
   },
   {
-    nama: 'Lingkungan & Ketertiban',
+    nama:
+      'Lingkungan dan Ketertiban',
+
     deskripsi:
       'Laporan mengenai kebersihan, fasilitas umum, ketertiban, dan kondisi lingkungan.',
-    icon: UsersRound,
+
+    icon:
+      UsersRound,
   },
   {
-    nama: 'Aspirasi dan Saran',
+    nama:
+      'Aspirasi dan Saran',
+
     deskripsi:
       'Usulan, kritik, dan saran untuk peningkatan pelayanan serta penyelenggaraan desa.',
-    icon: MessageSquareText,
+
+    icon:
+      MessageSquareText,
   },
 ];
 
-const tahapPengaduan: TahapPengaduan[] = [
+const tahapPengaduan:
+  TahapPengaduan[] = [
   {
     nomor: '01',
-    nama: 'Pengaduan Disampaikan',
+    nama:
+      'Pengaduan Disampaikan',
+
     deskripsi:
       'Pelapor menyampaikan kronologi, lokasi, waktu, serta bukti pendukung bila tersedia.',
-    icon: Megaphone,
+
+    icon:
+      Megaphone,
   },
   {
     nomor: '02',
-    nama: 'Verifikasi Awal',
+    nama:
+      'Verifikasi Awal',
+
     deskripsi:
       'Petugas memeriksa kelengkapan informasi dan memastikan laporan dapat ditindaklanjuti.',
-    icon: SearchCheck,
+
+    icon:
+      SearchCheck,
   },
   {
     nomor: '03',
-    nama: 'Disposisi dan Tindak Lanjut',
+    nama:
+      'Disposisi dan Tindak Lanjut',
+
     deskripsi:
       'Laporan diteruskan kepada perangkat atau pihak terkait sesuai bidang penanganannya.',
-    icon: ClipboardCheck,
+
+    icon:
+      ClipboardCheck,
   },
   {
     nomor: '04',
-    nama: 'Penyampaian Hasil',
+    nama:
+      'Penyampaian Hasil',
+
     deskripsi:
-      'Informasi tindak lanjut disampaikan melalui saluran kontak yang diberikan pelapor.',
-    icon: CheckCircle2,
+      'Informasi tindak lanjut disampaikan melalui kontak yang diberikan pelapor.',
+
+    icon:
+      CheckCircle2,
   },
 ];
 
@@ -113,7 +151,7 @@ const panduanLaporan = [
 export default function PengaduanPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-slate-50">
-      {/* HERO */}
+      {/* Hero */}
       <section className="relative isolate overflow-hidden bg-emerald-950 text-white">
         <div
           aria-hidden="true"
@@ -125,6 +163,7 @@ export default function PengaduanPage() {
         />
 
         <div className="absolute inset-0 bg-gradient-to-r from-[#021b16] via-emerald-950/92 to-emerald-900/48" />
+
         <div className="absolute inset-0 bg-gradient-to-t from-[#021b16] via-transparent to-black/25" />
 
         <div
@@ -133,18 +172,17 @@ export default function PengaduanPage() {
           style={{
             backgroundImage:
               'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
+            backgroundSize:
+              '28px 28px',
           }}
         />
-
-        <div className="pointer-events-none absolute -left-32 -top-32 h-[430px] w-[430px] rounded-full bg-emerald-300/10 blur-[115px]" />
-        <div className="pointer-events-none absolute -bottom-40 right-0 h-[470px] w-[470px] rounded-full bg-cyan-300/[0.07] blur-[120px]" />
 
         <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 md:pb-28 md:pt-20 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
             <div className="max-w-4xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.17em] text-emerald-100 backdrop-blur">
                 <ShieldCheck size={15} />
+
                 Kanal Resmi Pemerintah Desa
               </div>
 
@@ -157,25 +195,30 @@ export default function PengaduanPage() {
               </h1>
 
               <p className="mt-6 max-w-3xl text-sm font-medium leading-7 text-emerald-50/85 md:text-base md:leading-8">
-                Sampaikan laporan, kritik, saran, dan aspirasi kepada Pemerintah
-                Desa Keji melalui saluran resmi agar dapat diverifikasi dan
-                ditindaklanjuti secara tepat.
+                Sampaikan laporan, kritik, saran, dan
+                aspirasi kepada Pemerintah Desa Keji
+                melalui saluran resmi agar dapat
+                diverifikasi dan ditindaklanjuti.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/kontak"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-300 px-6 text-sm font-extrabold text-emerald-950 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-emerald-200"
+                  href="#form-pengaduan"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-300 px-6 text-sm font-extrabold text-emerald-950 shadow-xl transition hover:-translate-y-0.5 hover:bg-emerald-200"
                 >
-                  <MessageSquareText size={18} />
-                  Buka Kontak Resmi
+                  <MessageSquareText
+                    size={18}
+                  />
+
+                  Buat Pengaduan Online
                 </Link>
 
                 <a
                   href="mailto:desakeji01@gmail.com?subject=Pengaduan%20Masyarakat%20Desa%20Keji"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/15"
                 >
                   <Mail size={18} />
+
                   Kirim Email
                 </a>
               </div>
@@ -212,8 +255,8 @@ export default function PengaduanPage() {
                 />
 
                 <CommitmentItem
-                  title="Dapat Ditindaklanjuti"
-                  description="Informasi yang lengkap memudahkan penanganan."
+                  title="Ditindaklanjuti"
+                  description="Informasi lengkap memudahkan proses penanganan."
                   icon={ClipboardCheck}
                 />
               </div>
@@ -225,8 +268,9 @@ export default function PengaduanPage() {
                 />
 
                 <p className="text-xs font-semibold leading-5 text-amber-50/75">
-                  Hindari mengirim NIK, nomor KK, kata sandi, atau data sensitif
-                  lain yang tidak diperlukan.
+                  Hindari mengirim NIK, nomor KK, kata
+                  sandi, atau data sensitif yang tidak
+                  diperlukan.
                 </p>
               </div>
             </aside>
@@ -234,21 +278,21 @@ export default function PengaduanPage() {
         </div>
       </section>
 
-      {/* RINGKASAN MENGAMBANG */}
+      {/* Ringkasan */}
       <section className="relative z-20 -mt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 sm:grid-cols-2 lg:grid-cols-4">
             <FloatingStat
               label="Saluran Resmi"
               value="2"
-              description="Kontak desa dan email"
+              description="Formulir online dan email"
               icon={MessageSquareText}
               primary
             />
 
             <FloatingStat
               label="Kategori"
-              value="4"
+              value="5"
               description="Jenis laporan masyarakat"
               icon={FileCheck2}
             />
@@ -271,54 +315,13 @@ export default function PengaduanPage() {
       </section>
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 lg:px-8">
-        {/* SALURAN PENGADUAN */}
-        <section>
-          <div className="mb-7">
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-              Saluran Pengaduan
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
-              Hubungi Pemerintah Desa Keji
-            </h2>
-
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-              Gunakan saluran resmi berikut untuk menyampaikan laporan atau
-              meminta informasi lanjutan.
-            </p>
-          </div>
-
-          <div className="grid gap-5 lg:grid-cols-3">
-            <ChannelCard
-              href="/kontak"
-              title="Halaman Kontak"
-              description="Lihat alamat kantor, nomor layanan, dan kanal komunikasi resmi Desa Keji."
-              label="Buka Kontak"
-              icon={Building2}
-              primary
-            />
-
-            <ChannelCard
-              href="mailto:desakeji01@gmail.com?subject=Pengaduan%20Masyarakat%20Desa%20Keji"
-              title="Email Pemerintah Desa"
-              description="Kirim laporan tertulis dan lampiran melalui email resmi Pemerintah Desa Keji."
-              label="Tulis Email"
-              icon={Mail}
-              external
-            />
-
-            <ChannelCard
-              href="/ppid/permohonan-informasi"
-              title="Permohonan Informasi"
-              description="Ajukan permintaan informasi publik melalui layanan PPID Desa Keji."
-              label="Buka PPID"
-              icon={FileCheck2}
-            />
-          </div>
+        {/* Formulir online */}
+        <section className="mb-12">
+          <FormPengaduan />
         </section>
 
-        {/* KATEGORI */}
-        <section className="mt-12 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        {/* Kategori */}
+        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 via-white to-white p-6 md:p-8">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
@@ -335,21 +338,27 @@ export default function PengaduanPage() {
                 </h2>
 
                 <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-                  Pilih kategori yang paling sesuai agar laporan lebih mudah
-                  diarahkan kepada pihak yang menangani.
+                  Pilih kategori yang paling sesuai agar
+                  laporan dapat diarahkan kepada pihak yang
+                  menangani.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="grid gap-4 p-6 sm:grid-cols-2 md:p-8">
-            {kategoriPengaduan.map((item) => (
-              <KategoriCard key={item.nama} item={item} />
-            ))}
+            {kategoriPengaduan.map(
+              (item) => (
+                <KategoriCard
+                  key={item.nama}
+                  item={item}
+                />
+              )
+            )}
           </div>
         </section>
 
-        {/* ALUR */}
+        {/* Tahapan */}
         <section className="mt-12">
           <div className="mb-7">
             <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
@@ -357,29 +366,37 @@ export default function PengaduanPage() {
             </p>
 
             <h2 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
-              Alur Pengaduan Masyarakat
+              Tahapan Inti Prosedur Pengaduan
             </h2>
 
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-              Laporan yang masuk diproses melalui tahapan pemeriksaan dan tindak
-              lanjut yang terarah.
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              Pengaduan dapat disampaikan secara langsung
+              maupun online dan akan melalui proses
+              verifikasi serta tindak lanjut.
             </p>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {tahapPengaduan.map((item) => (
-              <TahapCard key={item.nomor} item={item} />
-            ))}
+            {tahapPengaduan.map(
+              (item) => (
+                <TahapCard
+                  key={item.nomor}
+                  item={item}
+                />
+              )
+            )}
           </div>
         </section>
 
-        {/* PANDUAN */}
+        {/* Panduan */}
         <section className="mt-12 grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
           <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 p-6 md:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-white">
-                  <ClipboardCheck size={23} />
+                  <ClipboardCheck
+                    size={23}
+                  />
                 </div>
 
                 <div>
@@ -394,9 +411,9 @@ export default function PengaduanPage() {
               </div>
             </div>
 
-            <div className="p-6 md:p-8">
-              <div className="space-y-4">
-                {panduanLaporan.map((item, index) => (
+            <div className="space-y-4 p-6 md:p-8">
+              {panduanLaporan.map(
+                (item, index) => (
                   <div
                     key={item}
                     className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -409,8 +426,8 @@ export default function PengaduanPage() {
                       {item}
                     </p>
                   </div>
-                ))}
-              </div>
+                )
+              )}
             </div>
           </article>
 
@@ -418,7 +435,9 @@ export default function PengaduanPage() {
             <article className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 md:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white">
-                  <FileWarning size={23} />
+                  <FileWarning
+                    size={23}
+                  />
                 </div>
 
                 <div>
@@ -431,9 +450,8 @@ export default function PengaduanPage() {
                   </h2>
 
                   <p className="mt-3 text-sm font-semibold leading-7 text-amber-900/80">
-                    Data pelapor digunakan sesuai kebutuhan penanganan laporan.
-                    Jangan mengirim dokumen pribadi yang tidak berkaitan dengan
-                    pokok pengaduan.
+                    Jangan mengirim dokumen pribadi yang
+                    tidak berkaitan dengan pokok pengaduan.
                   </p>
                 </div>
               </div>
@@ -445,31 +463,20 @@ export default function PengaduanPage() {
                   <Clock3 size={23} />
                 </div>
 
-                <div>
+                <div className="w-full">
                   <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-                    Waktu Pelayanan
+                    Waktu Penyelesaian
                   </p>
 
                   <h2 className="mt-2 text-xl font-black text-emerald-950">
-                    Jam kerja kantor desa
+                    Menyesuaikan jenis masalah
                   </h2>
 
-                  <div className="mt-4 space-y-3 text-sm font-semibold text-emerald-900/80">
-                    <div className="flex justify-between gap-4">
-                      <span>Senin–Kamis</span>
-                      <span className="font-black">08.00–15.00</span>
-                    </div>
-
-                    <div className="flex justify-between gap-4">
-                      <span>Jumat</span>
-                      <span className="font-black">08.00–11.30</span>
-                    </div>
-
-                    <div className="flex justify-between gap-4">
-                      <span>Sabtu–Minggu</span>
-                      <span className="font-black">Libur</span>
-                    </div>
-                  </div>
+                  <p className="mt-3 text-sm font-semibold leading-7 text-emerald-900/80">
+                    Waktu tindak lanjut disesuaikan dengan
+                    tingkat kesulitan dan pihak yang berkaitan
+                    dengan pengaduan.
+                  </p>
                 </div>
               </div>
             </article>
@@ -477,17 +484,7 @@ export default function PengaduanPage() {
         </section>
 
         {/* CTA */}
-        <section className="mt-12 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-xl md:p-9">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.12]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
-              backgroundSize: '25px 25px',
-            }}
-          />
-
+        <section className="relative mt-12 overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-xl md:p-9">
           <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <div className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl border border-white/15 bg-white/10">
@@ -499,31 +496,37 @@ export default function PengaduanPage() {
               </p>
 
               <h2 className="mt-2 max-w-3xl text-2xl font-black md:text-3xl">
-                Sampaikan laporan melalui saluran resmi Desa Keji
+                Sampaikan laporan melalui saluran resmi
+                Desa Keji
               </h2>
 
               <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Laporan yang jelas dan dapat diverifikasi membantu Pemerintah
-                Desa menangani persoalan dengan lebih tepat.
+                Laporan yang jelas dan dapat diverifikasi
+                membantu Pemerintah Desa menangani persoalan
+                secara tepat.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+            <div className="flex flex-col gap-3">
               <Link
-                href="/kontak"
+                href="#form-pengaduan"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
               >
-                <MapPin size={17} />
-                Kontak Pemerintah Desa
+                <MessageSquareText
+                  size={17}
+                />
+
+                Buat Pengaduan
               </Link>
 
-              <a
-                href="mailto:desakeji01@gmail.com?subject=Pengaduan%20Masyarakat%20Desa%20Keji"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/15"
+              <Link
+                href="/kontak"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:bg-white/15"
               >
-                <Mail size={17} />
-                Kirim Email
-              </a>
+                <MapPin size={17} />
+
+                Kontak Pemerintah Desa
+              </Link>
             </div>
           </div>
         </section>
@@ -549,7 +552,9 @@ function CommitmentItem({
         </div>
 
         <div>
-          <h3 className="text-sm font-black text-white">{title}</h3>
+          <h3 className="text-sm font-black text-white">
+            {title}
+          </h3>
 
           <p className="mt-1 text-xs font-medium leading-5 text-emerald-50/70">
             {description}
@@ -576,7 +581,9 @@ function FloatingStat({
   return (
     <article
       className={`min-h-[170px] p-6 ${
-        primary ? 'bg-emerald-800 text-white' : 'bg-white text-slate-900'
+        primary
+          ? 'bg-emerald-800 text-white'
+          : 'bg-white text-slate-900'
       }`}
     >
       <div
@@ -591,17 +598,23 @@ function FloatingStat({
 
       <p
         className={`mt-5 text-[10px] font-extrabold uppercase tracking-[0.15em] ${
-          primary ? 'text-emerald-200' : 'text-slate-500'
+          primary
+            ? 'text-emerald-200'
+            : 'text-slate-500'
         }`}
       >
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-black">{value}</p>
+      <p className="mt-2 text-2xl font-black">
+        {value}
+      </p>
 
       <p
         className={`mt-2 text-xs font-semibold leading-5 ${
-          primary ? 'text-emerald-100/75' : 'text-slate-500'
+          primary
+            ? 'text-emerald-100/75'
+            : 'text-slate-500'
         }`}
       >
         {description}
@@ -610,81 +623,11 @@ function FloatingStat({
   );
 }
 
-function ChannelCard({
-  href,
-  title,
-  description,
-  label,
-  icon: Icon,
-  primary = false,
-  external = false,
+function KategoriCard({
+  item,
 }: {
-  href: string;
-  title: string;
-  description: string;
-  label: string;
-  icon: LucideIcon;
-  primary?: boolean;
-  external?: boolean;
+  item: KategoriPengaduan;
 }) {
-  const className = `group relative overflow-hidden rounded-3xl border p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg ${
-    primary
-      ? 'border-emerald-700 bg-emerald-800 text-white'
-      : 'border-slate-200 bg-white text-slate-900 hover:border-emerald-200'
-  }`;
-
-  const content = (
-    <>
-      <div
-        className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-          primary
-            ? 'bg-white/10 text-emerald-100'
-            : 'bg-emerald-100 text-emerald-700'
-        }`}
-      >
-        <Icon size={23} />
-      </div>
-
-      <h3 className="mt-5 text-lg font-black">{title}</h3>
-
-      <p
-        className={`mt-2 text-sm font-medium leading-6 ${
-          primary ? 'text-emerald-50/75' : 'text-slate-500'
-        }`}
-      >
-        {description}
-      </p>
-
-      <span
-        className={`mt-5 inline-flex items-center gap-2 text-xs font-extrabold ${
-          primary ? 'text-emerald-200' : 'text-emerald-700'
-        }`}
-      >
-        {label}
-        <ArrowRight
-          size={15}
-          className="transition group-hover:translate-x-1"
-        />
-      </span>
-    </>
-  );
-
-  if (external) {
-    return (
-      <a href={href} className={className}>
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className={className}>
-      {content}
-    </Link>
-  );
-}
-
-function KategoriCard({ item }: { item: KategoriPengaduan }) {
   const Icon = item.icon;
 
   return (
@@ -694,7 +637,9 @@ function KategoriCard({ item }: { item: KategoriPengaduan }) {
       </div>
 
       <div>
-        <h3 className="font-black text-slate-900">{item.nama}</h3>
+        <h3 className="font-black text-slate-900">
+          {item.nama}
+        </h3>
 
         <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
           {item.deskripsi}
@@ -704,11 +649,15 @@ function KategoriCard({ item }: { item: KategoriPengaduan }) {
   );
 }
 
-function TahapCard({ item }: { item: TahapPengaduan }) {
+function TahapCard({
+  item,
+}: {
+  item: TahapPengaduan;
+}) {
   const Icon = item.icon;
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
+    <article className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
       <div className="pointer-events-none absolute -right-8 -top-8 text-[90px] font-black text-emerald-950/[0.035]">
         {item.nomor}
       </div>
@@ -724,7 +673,9 @@ function TahapCard({ item }: { item: TahapPengaduan }) {
           </span>
         </div>
 
-        <h3 className="mt-5 text-lg font-black text-slate-900">{item.nama}</h3>
+        <h3 className="mt-5 text-lg font-black text-slate-900">
+          {item.nama}
+        </h3>
 
         <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
           {item.deskripsi}
