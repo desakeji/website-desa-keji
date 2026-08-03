@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import {
-  CalendarDays,
+  Download,
   Eye,
   FileSearch,
   FileText,
@@ -19,8 +19,8 @@ import {
 } from '@/lib/supabase-admin';
 
 import type {
-  InformasiUmum,
-} from '@/types/informasi-umum';
+  InformasiUmumItem,
+} from '@/types/informasi-publik';
 
 import type {
   PilihanLayanan,
@@ -34,16 +34,10 @@ export const revalidate = 0;
 interface PageProps {
   searchParams: Promise<{
     q?: string;
-    tahun?: string;
     kategori?: string;
+    tahun?: string;
     page?: string;
-    limit?: string;
   }>;
-}
-
-interface InformasiMetadata {
-  tahun: number;
-  kategori: string;
 }
 
 interface LayananRow {
@@ -52,14 +46,7 @@ interface LayananRow {
   slug: string;
 }
 
-const DEFAULT_LIMIT = 10;
-
-const ALLOWED_LIMITS = [
-  5,
-  10,
-  20,
-  50,
-];
+const LIMIT = 10;
 
 function sanitizeSearch(
   value: string
@@ -70,78 +57,34 @@ function sanitizeSearch(
       /[^\p{L}\p{N}\s\-/]/gu,
       ' '
     )
-    .replace(
-      /\s+/g,
-      ' '
-    )
+    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 100);
 }
 
-function parsePositiveInteger(
-  value: string | undefined,
-  fallback: number
+function parsePage(
+  value: string | undefined
 ) {
   const number =
     Number(value);
 
-  if (
-    !Number.isInteger(number) ||
-    number < 1
-  ) {
-    return fallback;
-  }
-
-  return number;
+  return Number.isInteger(
+    number
+  ) &&
+    number > 0
+    ? number
+    : 1;
 }
 
-function formatTanggal(
-  value:
-    | string
-    | null
-) {
-  if (!value) {
-    return '-';
-  }
-
-  const date =
-    value.length === 10
-      ? new Date(
-          `${value}T00:00:00+07:00`
-        )
-      : new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return '-';
-  }
-
-  return new Intl.DateTimeFormat(
-    'id-ID',
-    {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      timeZone:
-        'Asia/Jakarta',
-    }
-  ).format(date);
-}
-
-function buildPageUrl({
+function buildUrl({
   q,
-  tahun,
   kategori,
-  limit,
+  tahun,
   page,
 }: {
   q: string;
-  tahun: string;
   kategori: string;
-  limit: number;
+  tahun: string;
   page: number;
 }) {
   const params =
@@ -151,13 +94,6 @@ function buildPageUrl({
     params.set('q', q);
   }
 
-  if (tahun) {
-    params.set(
-      'tahun',
-      tahun
-    );
-  }
-
   if (kategori) {
     params.set(
       'kategori',
@@ -165,10 +101,12 @@ function buildPageUrl({
     );
   }
 
-  params.set(
-    'limit',
-    String(limit)
-  );
+  if (tahun) {
+    params.set(
+      'tahun',
+      tahun
+    );
+  }
 
   params.set(
     'page',
@@ -186,61 +124,43 @@ export default async function InformasiUmumPage({
 
   const q =
     sanitizeSearch(
-      params.q ?? ''
+      params.q ??
+        ''
     );
-
-  const tahun =
-    String(
-      params.tahun ?? ''
-    ).trim();
 
   const kategori =
     String(
-      params.kategori ?? ''
+      params.kategori ??
+        ''
+    ).trim();
+
+  const tahun =
+    String(
+      params.tahun ??
+        ''
     ).trim();
 
   const page =
-    parsePositiveInteger(
-      params.page,
-      1
+    parsePage(
+      params.page
     );
-
-  const requestedLimit =
-    parsePositiveInteger(
-      params.limit,
-      DEFAULT_LIMIT
-    );
-
-  const limit =
-    ALLOWED_LIMITS.includes(
-      requestedLimit
-    )
-      ? requestedLimit
-      : DEFAULT_LIMIT;
 
   const from =
-    (page - 1) * limit;
+    (page - 1) *
+    LIMIT;
 
   const to =
-    from + limit - 1;
+    from +
+    LIMIT -
+    1;
 
-  let informasiQuery =
+  let query =
     supabaseAdmin
-      .from('informasi_umum')
+      .from(
+        'informasi_umum'
+      )
       .select(
-        `
-          id,
-          judul,
-          kategori,
-          tahun,
-          tanggal_dokumen,
-          deskripsi,
-          file_url,
-          file_path,
-          aktif,
-          created_at,
-          updated_at
-        `,
+        '*',
         {
           count: 'exact',
         }
@@ -248,37 +168,39 @@ export default async function InformasiUmumPage({
       .eq('aktif', true);
 
   if (q) {
-    informasiQuery =
-      informasiQuery.or(
-        `judul.ilike.%${q}%,deskripsi.ilike.%${q}%`
-      );
-  }
-
-  if (
-    tahun &&
-    /^\d{4}$/.test(tahun)
-  ) {
-    informasiQuery =
-      informasiQuery.eq(
-        'tahun',
-        Number(tahun)
+    query =
+      query.ilike(
+        'judul',
+        `%${q}%`
       );
   }
 
   if (kategori) {
-    informasiQuery =
-      informasiQuery.eq(
+    query =
+      query.eq(
         'kategori',
         kategori
       );
   }
 
-  informasiQuery =
-    informasiQuery
-      .order('tahun', {
-        ascending: false,
+  if (
+    /^\d{4}$/.test(
+      tahun
+    )
+  ) {
+    query =
+      query.eq(
+        'tahun',
+        Number(tahun)
+      );
+  }
+
+  query =
+    query
+      .order('urutan', {
+        ascending: true,
       })
-      .order('created_at', {
+      .order('tahun', {
         ascending: false,
       })
       .range(from, to);
@@ -288,13 +210,15 @@ export default async function InformasiUmumPage({
     metadataResult,
     layananResult,
   ] = await Promise.all([
-    informasiQuery,
+    query,
 
     supabaseAdmin
-      .from('informasi_umum')
+      .from(
+        'informasi_umum'
+      )
       .select(`
-        tahun,
-        kategori
+        kategori,
+        tahun
       `)
       .eq('aktif', true),
 
@@ -311,72 +235,47 @@ export default async function InformasiUmumPage({
       }),
   ]);
 
-  if (
-    informasiResult.error
-  ) {
-    console.error(
-      'Gagal mengambil informasi umum:',
-      {
-        message:
-          informasiResult.error.message,
-        code:
-          informasiResult.error.code,
-        details:
-          informasiResult.error.details,
-        hint:
-          informasiResult.error.hint,
-      }
-    );
-  }
-
-  if (
-    metadataResult.error
-  ) {
-    console.error(
-      'Gagal mengambil metadata informasi:',
-      {
-        message:
-          metadataResult.error.message,
-      }
-    );
-  }
-
-  if (
-    layananResult.error
-  ) {
-    console.error(
-      'Gagal mengambil layanan:',
-      {
-        message:
-          layananResult.error.message,
-      }
-    );
-  }
-
   const daftarInformasi =
-    (informasiResult.data ??
-      []) as InformasiUmum[];
+    (
+      informasiResult.data ??
+      []
+    ) as InformasiUmumItem[];
 
   const totalData =
-    informasiResult.count ?? 0;
+    informasiResult.count ??
+    0;
 
   const totalPages =
     Math.max(
       Math.ceil(
-        totalData / limit
+        totalData /
+        LIMIT
       ),
       1
     );
 
   const metadata =
-    (metadataResult.data ??
-      []) as InformasiMetadata[];
+    metadataResult.data ??
+    [];
 
-  const daftarTahun = [
+  const kategoriList = [
     ...new Set(
       metadata.map(
         (item) =>
-          Number(item.tahun)
+          String(
+            item.kategori
+          )
+      )
+    ),
+  ].sort();
+
+  const tahunList = [
+    ...new Set(
+      metadata.map(
+        (item) =>
+          Number(
+            item.tahun
+          )
       )
     ),
   ].sort(
@@ -384,70 +283,22 @@ export default async function InformasiUmumPage({
       b - a
   );
 
-  const daftarKategori = [
-    ...new Set(
-      metadata
-        .map(
-          (item) =>
-            String(
-              item.kategori
-            ).trim()
-        )
-        .filter(Boolean)
-    ),
-  ].sort(
-    (a, b) =>
-      a.localeCompare(
-        b,
-        'id-ID'
-      )
-  );
-
   const daftarLayanan:
     PilihanLayanan[] = (
       (layananResult.data ??
         []) as LayananRow[]
-    )
-      .map((item) => ({
+    ).map(
+      (item) => ({
         id:
           Number(item.id),
 
         nama:
-          String(
-            item.nama ?? ''
-          ).trim(),
+          String(item.nama),
 
         slug:
-          String(
-            item.slug ?? ''
-          ).trim(),
-      }))
-      .filter(
-        (item) =>
-          item.id > 0 &&
-          item.nama &&
-          item.slug
-      );
-
-  const pageNumbers =
-    Array.from(
-      new Set([
-        1,
-        page - 1,
-        page,
-        page + 1,
-        totalPages,
-      ])
-    )
-      .filter(
-        (item) =>
-          item >= 1 &&
-          item <= totalPages
-      )
-      .sort(
-        (a, b) =>
-          a - b
-      );
+          String(item.slug),
+      })
+    );
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -458,194 +309,66 @@ export default async function InformasiUmumPage({
             Informasi Publik
           </div>
 
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+          <h1 className="text-3xl font-black text-slate-900 md:text-4xl">
             Informasi Umum
           </h1>
 
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Informasi resmi Pemerintah
-            Desa Keji yang dapat diakses
-            oleh masyarakat secara
-            terbuka dan transparan.
+          <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-slate-500">
+            Dokumen pemerintahan, pembangunan,
+            pelayanan, dan informasi umum Desa Keji.
           </p>
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           <main className="min-w-0 space-y-6 lg:w-2/3">
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 p-6 text-white shadow-xl md:p-8">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[45px] border-white/[0.06]" />
-
-              <div className="relative flex items-start gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-                  <FileSearch
-                    size={27}
-                  />
+            <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-emerald-100 p-3 text-emerald-700">
+                  <FileSearch size={22} />
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black md:text-2xl">
-                    Keterbukaan Informasi Desa
+                  <h2 className="font-black text-slate-900">
+                    Dokumen Informasi Desa
                   </h2>
 
-                  <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-emerald-50/85">
-                    Gunakan pencarian dan
-                    filter untuk menemukan
-                    dokumen informasi publik
-                    berdasarkan judul,
-                    kategori, maupun tahun
-                    penerbitan.
+                  <p className="mt-1 text-sm font-medium text-slate-500">
+                    Gunakan pencarian dan filter untuk
+                    menemukan dokumen yang dibutuhkan.
                   </p>
                 </div>
               </div>
             </section>
 
             <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 p-5 md:p-6">
+              <div className="border-b border-slate-100 p-5">
                 <div className="mb-5 flex items-center gap-3">
                   <Filter
                     size={20}
                     className="text-emerald-700"
                   />
 
-                  <h2 className="text-lg font-black text-slate-900">
+                  <h2 className="font-black text-slate-900">
                     Filter Informasi
                   </h2>
                 </div>
 
                 <form
                   method="get"
-                  action="/informasi-publik/informasi-umum"
                   className="grid gap-4 md:grid-cols-2"
                 >
-                  <div>
-                    <label
-                      htmlFor="tahun"
-                      className="mb-2 block text-sm font-bold text-slate-700"
-                    >
-                      Tahun
-                    </label>
-
-                    <select
-                      id="tahun"
-                      name="tahun"
-                      defaultValue={tahun}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
-                    >
-                      <option value="">
-                        Semua Tahun
-                      </option>
-
-                      {daftarTahun.map(
-                        (item) => (
-                          <option
-                            key={item}
-                            value={item}
-                          >
-                            {item}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="kategori"
-                      className="mb-2 block text-sm font-bold text-slate-700"
-                    >
-                      Kategori
-                    </label>
-
-                    <select
-                      id="kategori"
-                      name="kategori"
-                      defaultValue={kategori}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
-                    >
-                      <option value="">
-                        Semua Kategori
-                      </option>
-
-                      {daftarKategori.map(
-                        (item) => (
-                          <option
-                            key={item}
-                            value={item}
-                          >
-                            {item}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label
-                      htmlFor="q"
-                      className="mb-2 block text-sm font-bold text-slate-700"
-                    >
-                      Pencarian
-                    </label>
-
-                    <div className="relative">
-                      <Search
-                        size={18}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                      />
-
-                      <input
-                        id="q"
-                        name="q"
-                        type="search"
-                        defaultValue={q}
-                        placeholder="Cari judul atau isi informasi..."
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
-                      />
-                    </div>
-                  </div>
-
-                  <input
-                    type="hidden"
-                    name="limit"
-                    value={limit}
-                  />
-
-                  <div className="flex flex-col gap-2 sm:flex-row md:col-span-2">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-emerald-800"
-                    >
-                      <Search size={17} />
-                      Terapkan Filter
-                    </button>
-
-                    <Link
-                      href="/informasi-publik/informasi-umum"
-                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700"
-                    >
-                      Reset Filter
-                    </Link>
-                  </div>
-                </form>
-              </div>
-
-              <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
-                <form
-                  method="get"
-                  className="flex items-center gap-2 text-sm text-slate-500"
-                >
-                  <span>
-                    Tampilkan
-                  </span>
-
                   <select
-                    name="limit"
-                    defaultValue={String(
-                      limit
-                    )}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700"
+                    name="kategori"
+                    defaultValue={
+                      kategori
+                    }
+                    className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold"
                   >
-                    {ALLOWED_LIMITS.map(
+                    <option value="">
+                      Semua Kategori
+                    </option>
+
+                    {kategoriList.map(
                       (item) => (
                         <option
                           key={item}
@@ -657,56 +380,58 @@ export default async function InformasiUmumPage({
                     )}
                   </select>
 
-                  <span>entri</span>
-
-                  {q && (
-                    <input
-                      type="hidden"
-                      name="q"
-                      value={q}
-                    />
-                  )}
-
-                  {tahun && (
-                    <input
-                      type="hidden"
-                      name="tahun"
-                      value={tahun}
-                    />
-                  )}
-
-                  {kategori && (
-                    <input
-                      type="hidden"
-                      name="kategori"
-                      value={kategori}
-                    />
-                  )}
-
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600"
+                  <select
+                    name="tahun"
+                    defaultValue={tahun}
+                    className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold"
                   >
-                    Terapkan
-                  </button>
-                </form>
+                    <option value="">
+                      Semua Tahun
+                    </option>
 
-                <p className="text-xs font-semibold text-slate-400">
-                  Menampilkan{' '}
-                  {totalData === 0
-                    ? 0
-                    : from + 1}
-                  –
-                  {Math.min(
-                    from +
-                      daftarInformasi.length,
-                    totalData
-                  )}{' '}
-                  dari {totalData} informasi
-                </p>
+                    {tahunList.map(
+                      (item) => (
+                        <option
+                          key={item}
+                          value={item}
+                        >
+                          {item}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                  <div className="relative md:col-span-2">
+                    <Search
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+
+                    <input
+                      name="q"
+                      defaultValue={q}
+                      placeholder="Cari informasi..."
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-semibold"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 md:col-span-2">
+                    <button className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white">
+                      Terapkan Filter
+                    </button>
+
+                    <Link
+                      href="/informasi-publik/informasi-umum"
+                      className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600"
+                    >
+                      Reset
+                    </Link>
+                  </div>
+                </form>
               </div>
 
-              {daftarInformasi.length === 0 ? (
+              {daftarInformasi.length ===
+              0 ? (
                 <div className="px-6 py-14 text-center">
                   <FileText
                     size={46}
@@ -714,232 +439,104 @@ export default async function InformasiUmumPage({
                   />
 
                   <h3 className="mt-4 font-black text-slate-700">
-                    Informasi tidak ditemukan
+                    Dokumen tidak ditemukan
                   </h3>
-
-                  <p className="mt-2 text-sm text-slate-500">
-                    Belum ada informasi yang
-                    sesuai dengan filter.
-                  </p>
                 </div>
               ) : (
-                <>
-                  <div className="hidden overflow-x-auto md:block">
-                    <table className="w-full min-w-[850px] border-collapse text-left">
-                      <thead>
-                        <tr className="bg-slate-700 text-white">
-                          <th className="w-[70px] px-4 py-4 text-center text-xs font-extrabold uppercase">
-                            No
-                          </th>
+                <div className="divide-y divide-slate-100">
+                  {daftarInformasi.map(
+                    (item) => (
+                      <article
+                        key={item.id}
+                        className="p-5 md:p-6"
+                      >
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold text-emerald-700">
+                                {item.kategori}
+                              </span>
 
-                          <th className="px-5 py-4 text-xs font-extrabold uppercase">
-                            Judul Informasi
-                          </th>
-
-                          <th className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase">
-                            Tahun
-                          </th>
-
-                          <th className="w-[180px] px-4 py-4 text-xs font-extrabold uppercase">
-                            Kategori
-                          </th>
-
-                          <th className="w-[130px] px-4 py-4 text-center text-xs font-extrabold uppercase">
-                            Tanggal Upload
-                          </th>
-
-                          <th className="w-[110px] px-4 py-4 text-center text-xs font-extrabold uppercase">
-                            Aksi
-                          </th>
-                        </tr>
-                      </thead>
-
-                      <tbody className="divide-y divide-slate-200">
-                        {daftarInformasi.map(
-                          (
-                            item,
-                            index
-                          ) => (
-                            <tr
-                              key={item.id}
-                              className="transition odd:bg-white even:bg-slate-50 hover:bg-emerald-50/60"
-                            >
-                              <td className="px-4 py-4 text-center text-sm font-semibold text-slate-600">
-                                {from +
-                                  index +
-                                  1}
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <p className="font-bold leading-relaxed text-slate-800">
-                                  {item.judul}
-                                </p>
-
-                                {item.deskripsi && (
-                                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-400">
-                                    {item.deskripsi}
-                                  </p>
-                                )}
-
-                                {item.tanggal_dokumen && (
-                                  <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
-                                    <CalendarDays
-                                      size={13}
-                                    />
-
-                                    Dokumen:{' '}
-                                    {formatTanggal(
-                                      item.tanggal_dokumen
-                                    )}
-                                  </p>
-                                )}
-                              </td>
-
-                              <td className="px-4 py-4 text-center text-sm font-bold text-slate-700">
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold text-slate-500">
                                 {item.tahun}
-                              </td>
+                              </span>
+                            </div>
 
-                              <td className="px-4 py-4">
-                                <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1.5 text-[10px] font-extrabold text-cyan-700">
-                                  {item.kategori}
-                                </span>
-                              </td>
+                            <h2 className="mt-3 text-lg font-black text-slate-900">
+                              {item.judul}
+                            </h2>
 
-                              <td className="px-4 py-4 text-center text-xs font-semibold text-slate-500">
-                                {formatTanggal(
-                                  item.created_at
-                                )}
-                              </td>
-
-                              <td className="px-4 py-4">
-                                <a
-                                  href={item.file_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mx-auto inline-flex items-center gap-2 rounded-xl bg-cyan-700 px-3 py-2.5 text-xs font-extrabold text-white transition hover:bg-cyan-800"
-                                >
-                                  <Eye
-                                    size={15}
-                                  />
-                                  Lihat
-                                </a>
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="grid gap-4 p-4 md:hidden">
-                    {daftarInformasi.map(
-                      (item) => (
-                        <article
-                          key={item.id}
-                          className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <span className="rounded-full bg-cyan-100 px-3 py-1 text-[10px] font-extrabold text-cyan-700">
-                              {item.kategori}
-                            </span>
-
-                            <span className="text-xs font-black text-slate-500">
-                              {item.tahun}
-                            </span>
-                          </div>
-
-                          <h2 className="mt-3 font-black leading-relaxed text-slate-800">
-                            {item.judul}
-                          </h2>
-
-                          {item.deskripsi && (
-                            <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-500">
+                            <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
                               {item.deskripsi}
                             </p>
-                          )}
+                          </div>
 
-                          <p className="mt-3 text-xs font-semibold text-slate-400">
-                            Diunggah:{' '}
-                            {formatTanggal(
-                              item.created_at
-                            )}
-                          </p>
+                          <div className="flex shrink-0 gap-2">
+                            <a
+                              href={
+                                item.file_url
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex h-10 items-center gap-2 rounded-xl bg-cyan-700 px-4 text-xs font-extrabold text-white"
+                            >
+                              <Eye size={15} />
+                              Lihat
+                            </a>
 
-                          <a
-                            href={item.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-700 px-4 py-3 text-xs font-extrabold text-white"
-                          >
-                            <Eye size={15} />
-                            Lihat Dokumen
-                          </a>
-                        </article>
-                      )
-                    )}
-                  </div>
-                </>
+                            <a
+                              href={
+                                item.file_url
+                              }
+                              download
+                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 text-emerald-700"
+                            >
+                              <Download
+                                size={16}
+                              />
+                            </a>
+                          </div>
+                        </div>
+                      </article>
+                    )
+                  )}
+                </div>
               )}
 
               {totalPages > 1 && (
-                <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                <div className="flex items-center justify-between border-t border-slate-100 p-5">
                   <p className="text-xs font-semibold text-slate-400">
                     Halaman {page} dari{' '}
                     {totalPages}
                   </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-2">
                     {page > 1 && (
                       <Link
-                        href={buildPageUrl({
+                        href={buildUrl({
                           q,
-                          tahun,
                           kategori,
-                          limit,
+                          tahun,
                           page:
                             page - 1,
                         })}
-                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700"
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold"
                       >
                         Sebelumnya
                       </Link>
                     )}
 
-                    {pageNumbers.map(
-                      (item) => (
-                        <Link
-                          key={item}
-                          href={buildPageUrl({
-                            q,
-                            tahun,
-                            kategori,
-                            limit,
-                            page:
-                              item,
-                          })}
-                          className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-extrabold transition ${
-                            item === page
-                              ? 'bg-emerald-700 text-white'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-700'
-                          }`}
-                        >
-                          {item}
-                        </Link>
-                      )
-                    )}
-
                     {page <
                       totalPages && (
                       <Link
-                        href={buildPageUrl({
+                        href={buildUrl({
                           q,
-                          tahun,
                           kategori,
-                          limit,
+                          tahun,
                           page:
                             page + 1,
                         })}
-                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700"
+                        className="rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white"
                       >
                         Selanjutnya
                       </Link>

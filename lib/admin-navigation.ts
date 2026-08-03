@@ -93,7 +93,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/beranda',
     publicHref: '/',
     icon: Home,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'profil',
@@ -113,7 +113,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/pemerintahan',
     publicHref: '/pemerintahan',
     icon: Landmark,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'data-desa',
@@ -123,7 +123,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/data-desa',
     publicHref: '/data-desa',
     icon: Database,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'berita',
@@ -163,7 +163,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/informasi-publik',
     publicHref: '/informasi-publik',
     icon: Info,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'ppid',
@@ -263,7 +263,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/peta',
     publicHref: '/peta',
     icon: Map,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'kontak',
@@ -273,7 +273,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/kontak',
     publicHref: '/kontak',
     icon: Building2,
-    enabled: false,
+    enabled: true,
   },
 ];
 
