@@ -23,6 +23,10 @@ import {
 import SidebarLayanan from '@/components/SidebarLayanan';
 
 import {
+  getPpidSettings,
+} from '@/lib/ppid-settings';
+
+import {
   supabaseAdmin,
 } from '@/lib/supabase-admin';
 
@@ -52,40 +56,54 @@ const tujuanPPID:
     {
       title:
         'Menjamin Hak Informasi',
+
       description:
         'Memberikan akses kepada masyarakat untuk memperoleh informasi publik yang berada dalam penguasaan Pemerintah Desa.',
+
       icon: Eye,
     },
     {
       title:
         'Meningkatkan Transparansi',
+
       description:
         'Mendorong keterbukaan dalam penyelenggaraan pemerintahan, pelayanan publik, dan pembangunan desa.',
+
       icon: FileSearch,
     },
     {
       title:
         'Meningkatkan Partisipasi',
+
       description:
         'Membantu masyarakat memahami kebijakan desa sehingga dapat berpartisipasi dalam pembangunan.',
+
       icon: Users,
     },
     {
       title:
         'Mewujudkan Akuntabilitas',
+
       description:
         'Mendorong pengelolaan pemerintahan desa yang tertib, dapat dipertanggungjawabkan, dan dipercaya masyarakat.',
+
       icon: ShieldCheck,
     },
   ];
 
 const tugasPPID = [
   'Menghimpun dan mengoordinasikan informasi serta dokumentasi dari setiap bagian Pemerintah Desa.',
+
   'Menyimpan, mendokumentasikan, menyediakan, dan memberikan pelayanan informasi publik.',
+
   'Melakukan verifikasi terhadap informasi yang akan diberikan atau diumumkan kepada masyarakat.',
+
   'Memutakhirkan daftar informasi publik secara berkala.',
+
   'Menentukan informasi yang dapat dibuka dan informasi yang dikecualikan sesuai ketentuan.',
+
   'Mencatat dan mengelola permohonan informasi publik serta pengajuan keberatan.',
+
   'Menyusun laporan pelaksanaan pelayanan informasi publik.',
 ];
 
@@ -94,29 +112,37 @@ const prinsipLayanan:
     {
       title:
         'Mudah dan Sederhana',
+
       description:
         'Prosedur pelayanan dibuat jelas dan mudah dipahami oleh masyarakat.',
+
       icon: CheckCircle2,
     },
     {
       title:
         'Cepat dan Tepat Waktu',
+
       description:
         'Permohonan informasi diproses sesuai jangka waktu yang berlaku.',
+
       icon: ClipboardCheck,
     },
     {
       title:
         'Biaya Ringan',
+
       description:
         'Akses informasi tidak dipungut biaya, kecuali biaya penggandaan atau pengiriman dokumen.',
+
       icon: FileCheck2,
     },
     {
       title:
         'Akurat dan Bertanggung Jawab',
+
       description:
         'Informasi yang diberikan harus benar, dapat diverifikasi, dan tidak menyesatkan.',
+
       icon: BookOpenCheck,
     },
   ];
@@ -125,32 +151,40 @@ const dasarHukum = [
   {
     title:
       'Undang-Undang Nomor 14 Tahun 2008',
+
     description:
       'Tentang Keterbukaan Informasi Publik.',
+
     href:
       'https://peraturan.bpk.go.id/Details/39047/uu-no-14-tahun-2008',
   },
   {
     title:
       'Peraturan Pemerintah Nomor 61 Tahun 2010',
+
     description:
       'Tentang pelaksanaan Undang-Undang Nomor 14 Tahun 2008.',
+
     href:
       'https://peraturan.bpk.go.id/Details/5084/pp-no-61-tahun-2010',
   },
   {
     title:
       'Peraturan Komisi Informasi Nomor 1 Tahun 2021',
+
     description:
       'Tentang Standar Layanan Informasi Publik.',
+
     href:
       'https://komisiinformasi.go.id/pdf/20230306111128-Perki-1-2021.pdf',
   },
   {
     title:
       'Peraturan Menteri Dalam Negeri Nomor 2 Tahun 2026',
+
     description:
       'Tentang Pengelolaan Layanan Informasi Publik di Kementerian Dalam Negeri, Pemerintah Daerah, dan Pemerintah Desa.',
+
     href:
       'https://peraturan.bpk.go.id/Details/345979/permendagri-no-2-tahun-2026',
   },
@@ -168,10 +202,16 @@ async function getDaftarLayanan():
       nama,
       slug
     `)
-    .eq('aktif', true)
-    .order('urutan', {
-      ascending: true,
-    });
+    .eq(
+      'aktif',
+      true
+    )
+    .order(
+      'urutan',
+      {
+        ascending: true,
+      }
+    );
 
   if (error) {
     console.error(
@@ -179,10 +219,13 @@ async function getDaftarLayanan():
       {
         message:
           error.message,
+
         code:
           error.code,
+
         details:
           error.details,
+
         hint:
           error.hint,
       }
@@ -220,8 +263,13 @@ async function getDaftarLayanan():
 }
 
 export default async function ApaItuPpidPage() {
-  const daftarLayanan =
-    await getDaftarLayanan();
+  const [
+    daftarLayanan,
+    ppid,
+  ] = await Promise.all([
+    getDaftarLayanan(),
+    getPpidSettings(),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -229,22 +277,19 @@ export default async function ApaItuPpidPage() {
         {/* Header halaman */}
         <header className="mb-8">
           <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <Landmark size={16} />
+            <Landmark
+              size={16}
+            />
 
-            Pejabat Pengelola Informasi
-            dan Dokumentasi
+            {ppid.header_label}
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Apa itu PPID?
+            {ppid.apa_title}
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Mengenal peran PPID dalam
-            memberikan pelayanan
-            informasi publik yang
-            terbuka, mudah, dan dapat
-            dipertanggungjawabkan.
+            {ppid.apa_description}
           </p>
         </header>
 
@@ -254,6 +299,7 @@ export default async function ApaItuPpidPage() {
             {/* Hero */}
             <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 md:p-8">
               <div
+                aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: `
@@ -268,36 +314,34 @@ export default async function ApaItuPpidPage() {
                       transparent 1.5px
                     )
                   `,
+
                   backgroundSize:
                     '25px 25px',
                 }}
               />
 
-              <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.06]" />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.06]"
+              />
 
               <div className="relative">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur">
-                  <Info size={31} />
+                  <Info
+                    size={31}
+                  />
                 </div>
 
                 <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-100">
-                  Pengertian PPID
+                  {ppid.apa_hero_label}
                 </p>
 
                 <h2 className="mt-3 text-2xl font-black leading-tight md:text-3xl">
-                  Pejabat Pengelola
-                  Informasi dan
-                  Dokumentasi
+                  {ppid.apa_hero_title}
                 </h2>
 
                 <p className="mt-4 max-w-2xl text-sm font-medium leading-7 text-emerald-50/90 md:text-base md:leading-8">
-                  PPID adalah pejabat yang
-                  bertanggung jawab dalam
-                  penyimpanan,
-                  pendokumentasian,
-                  penyediaan, dan pelayanan
-                  informasi publik di
-                  lingkungan badan publik.
+                  {ppid.apa_hero_description}
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -332,12 +376,14 @@ export default async function ApaItuPpidPage() {
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                  <Network size={23} />
+                  <Network
+                    size={23}
+                  />
                 </div>
 
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
-                    PPID Desa Keji
+                    {ppid.office_name}
                   </p>
 
                   <h2 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">
@@ -362,8 +408,7 @@ export default async function ApaItuPpidPage() {
                       memperoleh informasi
                       mengenai profil desa,
                       program pembangunan,
-                      pelayanan
-                      administrasi,
+                      pelayanan administrasi,
                       penggunaan anggaran,
                       produk hukum, dan
                       informasi publik
@@ -544,7 +589,9 @@ export default async function ApaItuPpidPage() {
                 >
                   Ajukan Permohonan
 
-                  <ArrowRight size={17} />
+                  <ArrowRight
+                    size={17}
+                  />
                 </Link>
 
                 <Link
@@ -557,11 +604,48 @@ export default async function ApaItuPpidPage() {
               </div>
             </section>
 
+            {/* Informasi kantor */}
+            <section className="grid gap-4 sm:grid-cols-2">
+              <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
+                  Alamat Pelayanan
+                </p>
+
+                <h2 className="mt-3 font-black text-slate-900">
+                  {ppid.office_name}
+                </h2>
+
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                  {ppid.office_address}
+                </p>
+              </article>
+
+              <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
+                  Kontak dan Jam Pelayanan
+                </p>
+
+                <p className="mt-3 text-sm font-bold text-slate-800">
+                  {ppid.office_email}
+                </p>
+
+                <p className="mt-2 text-sm font-medium text-slate-500">
+                  Telepon: {ppid.office_phone}
+                </p>
+
+                <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                  {ppid.office_hours}
+                </p>
+              </article>
+            </section>
+
             {/* Dasar hukum */}
             <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-start gap-4 border-b border-slate-100 p-6 md:p-8">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-800 text-white">
-                  <Scale size={23} />
+                  <Scale
+                    size={23}
+                  />
                 </div>
 
                 <div>
@@ -638,7 +722,9 @@ export default async function ApaItuPpidPage() {
                 >
                   Permohonan Informasi
 
-                  <ArrowRight size={17} />
+                  <ArrowRight
+                    size={17}
+                  />
                 </Link>
               </div>
             </section>
@@ -671,7 +757,9 @@ function InfoCard({
   return (
     <article className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
-        <Icon size={23} />
+        <Icon
+          size={23}
+        />
       </div>
 
       <h3 className="mt-4 text-base font-black text-slate-900">

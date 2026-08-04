@@ -173,7 +173,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/ppid',
     publicHref: '/ppid/apa-itu-ppid',
     icon: FileText,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'layanan',
@@ -193,7 +193,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/umkm',
     publicHref: '/umkm',
     icon: ShoppingCart,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'pembangunan',
@@ -203,7 +203,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/pembangunan',
     publicHref: '/pembangunan',
     icon: Hammer,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'idm',
@@ -213,7 +213,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/idm',
     publicHref: '/idm',
     icon: BarChart3,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'desa-cantik',

@@ -2,7 +2,6 @@
 
 import {
   Building2,
-  CheckCircle2,
   Clock3,
   FileCheck2,
   FileSearch,
@@ -12,12 +11,15 @@ import {
   Network,
   Phone,
   ShieldCheck,
-  UserRound,
   Users,
   type LucideIcon,
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+
+import {
+  getPpidSettings,
+} from '@/lib/ppid-settings';
 
 import {
   supabaseAdmin,
@@ -54,133 +56,179 @@ const tugasPpid:
     {
       title:
         'Pengumpulan Informasi',
+
       description:
         'Menghimpun informasi dan dokumentasi dari setiap bagian Pemerintah Desa Keji.',
+
       icon: FileSearch,
     },
     {
       title:
         'Pengelolaan Dokumen',
+
       description:
         'Menyimpan, menata, dan memutakhirkan dokumen informasi publik secara berkala.',
+
       icon: FileCheck2,
     },
     {
       title:
         'Pelayanan Informasi',
+
       description:
         'Memberikan informasi yang dibutuhkan masyarakat sesuai prosedur pelayanan.',
+
       icon: Users,
     },
     {
       title:
         'Perlindungan Informasi',
+
       description:
         'Menjaga informasi pribadi dan informasi yang dikecualikan berdasarkan ketentuan.',
+
       icon: ShieldCheck,
     },
   ];
 
 const fallbackProfil:
   ProfilPpid = {
-    id: '',
-    profil_key: 'utama',
+  id: '',
 
-    judul:
-      'Profil PPID Desa Keji',
+  profil_key:
+    'utama',
 
-    deskripsi:
-      'Pejabat Pengelola Informasi dan Dokumentasi Desa Keji bertanggung jawab mengelola, mendokumentasikan, menyediakan, serta memberikan pelayanan informasi publik kepada masyarakat.',
+  judul:
+    'Profil PPID Desa Keji',
 
-    email: null,
-    telepon: null,
+  deskripsi:
+    'Pejabat Pengelola Informasi dan Dokumentasi Desa Keji bertanggung jawab mengelola, mendokumentasikan, menyediakan, serta memberikan pelayanan informasi publik kepada masyarakat.',
 
-    alamat:
-      'Kantor Pemerintah Desa Keji, Kecamatan Ungaran Barat, Kabupaten Semarang',
+  email: null,
 
-    jam_layanan:
-      'Senin–Kamis 08.00–15.00 WIB dan Jumat 08.00–11.30 WIB',
+  telepon: null,
 
-    aktif: true,
-    created_at: '',
-    updated_at: '',
-  };
+  alamat:
+    'Kantor Pemerintah Desa Keji, Kecamatan Ungaran Barat, Kabupaten Semarang',
+
+  jam_layanan:
+    'Senin–Kamis 08.00–15.00 WIB dan Jumat 08.00–11.30 WIB',
+
+  aktif: true,
+
+  created_at: '',
+
+  updated_at: '',
+};
+
+function getSafeString(
+  value: unknown,
+  fallback: string
+) {
+  if (
+    typeof value !==
+    'string'
+  ) {
+    return fallback;
+  }
+
+  const text =
+    value.trim();
+
+  return text || fallback;
+}
+
+function getNullableString(
+  value: unknown
+) {
+  if (
+    typeof value !==
+    'string'
+  ) {
+    return null;
+  }
+
+  const text =
+    value.trim();
+
+  return text || null;
+}
 
 function normalizeProfil(
-  data: Record<
-    string,
-    unknown
-  > | null
+  data:
+    | Record<
+        string,
+        unknown
+      >
+    | null
 ): ProfilPpid {
   if (!data) {
-    return fallbackProfil;
+    return {
+      ...fallbackProfil,
+    };
   }
 
   return {
     id:
-      String(
-        data.id ?? ''
+      getSafeString(
+        data.id,
+        fallbackProfil.id
       ),
 
     profil_key:
-      String(
-        data.profil_key ??
-          'utama'
+      getSafeString(
+        data.profil_key,
+        fallbackProfil.profil_key
       ),
 
     judul:
-      String(
-        data.judul ??
-          fallbackProfil.judul
+      getSafeString(
+        data.judul,
+        fallbackProfil.judul
       ),
 
     deskripsi:
-      String(
-        data.deskripsi ??
-          fallbackProfil.deskripsi
+      getSafeString(
+        data.deskripsi,
+        fallbackProfil.deskripsi
       ),
 
     email:
-      data.email
-        ? String(data.email)
-        : null,
-
-    telepon:
-      data.telepon
-        ? String(
-            data.telepon
-          )
-        : null,
-
-    alamat:
-      data.alamat
-        ? String(
-            data.alamat
-          )
-        : null,
-
-    jam_layanan:
-      data.jam_layanan
-        ? String(
-            data.jam_layanan
-          )
-        : null,
-
-    aktif:
-      Boolean(
-        data.aktif
+      getNullableString(
+        data.email
       ),
 
+    telepon:
+      getNullableString(
+        data.telepon
+      ),
+
+    alamat:
+      getNullableString(
+        data.alamat
+      ),
+
+    jam_layanan:
+      getNullableString(
+        data.jam_layanan
+      ),
+
+    aktif:
+      typeof data.aktif ===
+      'boolean'
+        ? data.aktif
+        : fallbackProfil.aktif,
+
     created_at:
-      String(
-        data.created_at ??
-          ''
+      getSafeString(
+        data.created_at,
+        ''
       ),
 
     updated_at:
-      String(
-        data.updated_at ??
-          ''
+      getSafeString(
+        data.updated_at,
+        ''
       ),
   };
 }
@@ -188,80 +236,98 @@ function normalizeProfil(
 function normalizePengurus(
   data: unknown
 ): PengurusPpid[] {
-  if (!Array.isArray(data)) {
+  if (
+    !Array.isArray(data)
+  ) {
     return [];
   }
 
-  return data.map(
-    (item) => {
-      const row =
-        item as Record<
-          string,
-          unknown
-        >;
+  return data
+    .map(
+      (
+        item
+      ): PengurusPpid => {
+        const row =
+          item as Record<
+            string,
+            unknown
+          >;
 
-      return {
-        id:
-          String(
-            row.id ?? ''
-          ),
-
-        nama:
-          String(
-            row.nama ?? ''
-          ),
-
-        jabatan_desa:
-          String(
-            row.jabatan_desa ??
+        return {
+          id:
+            getSafeString(
+              row.id,
               ''
-          ),
+            ),
 
-        jabatan_ppid:
-          String(
-            row.jabatan_ppid ??
+          nama:
+            getSafeString(
+              row.nama,
               ''
-          ),
+            ),
 
-        urutan:
-          Number(
-            row.urutan ?? 0
-          ),
-
-        aktif:
-          Boolean(
-            row.aktif
-          ),
-
-        created_at:
-          String(
-            row.created_at ??
+          jabatan_desa:
+            getSafeString(
+              row.jabatan_desa,
               ''
-          ),
+            ),
 
-        updated_at:
-          String(
-            row.updated_at ??
+          jabatan_ppid:
+            getSafeString(
+              row.jabatan_ppid,
               ''
-          ),
-      };
-    }
-  );
+            ),
+
+          urutan:
+            Number(
+              row.urutan ??
+                0
+            ),
+
+          aktif:
+            typeof row.aktif ===
+            'boolean'
+              ? row.aktif
+              : true,
+
+          created_at:
+            getSafeString(
+              row.created_at,
+              ''
+            ),
+
+          updated_at:
+            getSafeString(
+              row.updated_at,
+              ''
+            ),
+        };
+      }
+    )
+    .filter(
+      (item) =>
+        item.id.length > 0 &&
+        item.nama.length > 0
+    );
 }
 
 function getInitials(
   nama: string
 ) {
-  return nama
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((kata) =>
-      kata
-        .charAt(0)
-        .toUpperCase()
-    )
-    .join('');
+  const initials =
+    nama
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(
+        (kata) =>
+          kata
+            .charAt(0)
+            .toUpperCase()
+      )
+      .join('');
+
+  return initials || 'PP';
 }
 
 function formatTanggal(
@@ -286,8 +352,11 @@ function formatTanggal(
     'id-ID',
     {
       day: '2-digit',
+
       month: 'long',
+
       year: 'numeric',
+
       timeZone:
         'Asia/Jakarta',
     }
@@ -296,12 +365,17 @@ function formatTanggal(
 
 export default async function ProfilPpidPage() {
   const [
+    ppid,
     profilResult,
     pengurusResult,
     layananResult,
   ] = await Promise.all([
+    getPpidSettings(),
+
     supabaseAdmin
-      .from('profil_ppid')
+      .from(
+        'profil_ppid'
+      )
       .select(`
         id,
         profil_key,
@@ -319,11 +393,16 @@ export default async function ProfilPpidPage() {
         'profil_key',
         'utama'
       )
-      .eq('aktif', true)
+      .eq(
+        'aktif',
+        true
+      )
       .maybeSingle(),
 
     supabaseAdmin
-      .from('ppid_pengurus')
+      .from(
+        'ppid_pengurus'
+      )
       .select(`
         id,
         nama,
@@ -334,13 +413,22 @@ export default async function ProfilPpidPage() {
         created_at,
         updated_at
       `)
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('created_at', {
-        ascending: true,
-      }),
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'urutan',
+        {
+          ascending: true,
+        }
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true,
+        }
+      ),
 
     supabaseAdmin
       .from('layanan')
@@ -349,10 +437,16 @@ export default async function ProfilPpidPage() {
         nama,
         slug
       `)
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      }),
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'urutan',
+        {
+          ascending: true,
+        }
+      ),
   ]);
 
   if (
@@ -362,13 +456,20 @@ export default async function ProfilPpidPage() {
       'Gagal mengambil profil PPID:',
       {
         message:
-          profilResult.error.message,
+          profilResult.error
+            .message,
+
         code:
-          profilResult.error.code,
+          profilResult.error
+            .code,
+
         details:
-          profilResult.error.details,
+          profilResult.error
+            .details,
+
         hint:
-          profilResult.error.hint,
+          profilResult.error
+            .hint,
       }
     );
   }
@@ -380,13 +481,20 @@ export default async function ProfilPpidPage() {
       'Gagal mengambil pengurus PPID:',
       {
         message:
-          pengurusResult.error.message,
+          pengurusResult.error
+            .message,
+
         code:
-          pengurusResult.error.code,
+          pengurusResult.error
+            .code,
+
         details:
-          pengurusResult.error.details,
+          pengurusResult.error
+            .details,
+
         hint:
-          pengurusResult.error.hint,
+          pengurusResult.error
+            .hint,
       }
     );
   }
@@ -395,10 +503,23 @@ export default async function ProfilPpidPage() {
     layananResult.error
   ) {
     console.error(
-      'Gagal mengambil layanan:',
+      'Gagal mengambil layanan pada halaman Profil PPID:',
       {
         message:
-          layananResult.error.message,
+          layananResult.error
+            .message,
+
+        code:
+          layananResult.error
+            .code,
+
+        details:
+          layananResult.error
+            .details,
+
+        hint:
+          layananResult.error
+            .hint,
       }
     );
   }
@@ -425,16 +546,20 @@ export default async function ProfilPpidPage() {
     )
       .map((item) => ({
         id:
-          Number(item.id),
+          Number(
+            item.id
+          ),
 
         nama:
           String(
-            item.nama ?? ''
+            item.nama ??
+              ''
           ).trim(),
 
         slug:
           String(
-            item.slug ?? ''
+            item.slug ??
+              ''
           ).trim(),
       }))
       .filter(
@@ -459,27 +584,54 @@ export default async function ProfilPpidPage() {
         .filter(Boolean)
     ).size;
 
+  /*
+   * Data dari profil_ppid menjadi
+   * prioritas. Jika kosong, gunakan
+   * data umum dari ppid_settings.
+   */
+  const alamatPpid =
+    profil.alamat?.trim() ||
+    ppid.office_address;
+
+  const emailPpid =
+    profil.email?.trim() ||
+    ppid.office_email;
+
+  const teleponPpid =
+    profil.telepon?.trim() ||
+    ppid.office_phone;
+
+  const jamLayananPpid =
+    profil.jam_layanan?.trim() ||
+    ppid.office_hours;
+
+  const statusPpid =
+    profil.aktif
+      ? 'Aktif'
+      : 'Nonaktif';
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="mb-8">
           <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <Landmark size={16} />
+            <Landmark
+              size={16}
+            />
 
-            Pejabat Pengelola Informasi
-            dan Dokumentasi
+            {ppid.header_label}
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Profil PPID
+            {profil.judul}
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Profil, struktur
-            organisasi, tugas, dan
-            pelayanan PPID Pemerintah
-            Desa Keji.
+            Profil, struktur organisasi,
+            tugas, pengurus, dan pelayanan
+            informasi publik{' '}
+            {ppid.office_name}.
           </p>
         </header>
 
@@ -488,6 +640,7 @@ export default async function ProfilPpidPage() {
             {/* Hero */}
             <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 md:p-8">
               <div
+                aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: `
@@ -502,20 +655,26 @@ export default async function ProfilPpidPage() {
                       transparent 1.5px
                     )
                   `,
+
                   backgroundSize:
                     '26px 26px',
                 }}
               />
 
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[46px] border-white/[0.06]" />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[46px] border-white/[0.06]"
+              />
 
               <div className="relative">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur">
-                  <Network size={31} />
+                  <Network
+                    size={31}
+                  />
                 </div>
 
                 <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-100">
-                  Pemerintah Desa Keji
+                  {ppid.office_name}
                 </p>
 
                 <h2 className="mt-3 text-2xl font-black leading-tight md:text-3xl">
@@ -537,14 +696,20 @@ export default async function ProfilPpidPage() {
 
                   <HeroStat
                     label="Jabatan PPID"
-                    value={jumlahBidang}
+                    value={
+                      jumlahBidang
+                    }
                     icon={Building2}
                   />
 
                   <HeroStat
                     label="Status"
-                    value="Aktif"
-                    icon={ShieldCheck}
+                    value={
+                      statusPpid
+                    }
+                    icon={
+                      ShieldCheck
+                    }
                   />
                 </div>
               </div>
@@ -554,7 +719,9 @@ export default async function ProfilPpidPage() {
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                  <Landmark size={23} />
+                  <Landmark
+                    size={23}
+                  />
                 </div>
 
                 <div>
@@ -563,8 +730,7 @@ export default async function ProfilPpidPage() {
                   </p>
 
                   <h2 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">
-                    PPID Pemerintah Desa
-                    Keji
+                    {ppid.office_name}
                   </h2>
 
                   <div className="mt-4 space-y-4 text-sm font-medium leading-7 text-slate-600">
@@ -574,8 +740,8 @@ export default async function ProfilPpidPage() {
                       Pemerintah Desa yang
                       bertanggung jawab
                       terhadap pengelolaan
-                      dan pelayanan
-                      informasi publik.
+                      dan pelayanan informasi
+                      publik.
                     </p>
 
                     <p>
@@ -589,16 +755,13 @@ export default async function ProfilPpidPage() {
                     </p>
 
                     <p>
-                      Informasi yang
-                      dikelola meliputi
-                      informasi
+                      Informasi yang dikelola
+                      meliputi informasi
                       pemerintahan,
-                      pembangunan,
-                      pelayanan publik,
-                      produk hukum,
-                      anggaran, dan
-                      informasi desa
-                      lainnya.
+                      pembangunan, pelayanan
+                      publik, produk hukum,
+                      anggaran, dan informasi
+                      desa lainnya.
                     </p>
                   </div>
 
@@ -635,7 +798,9 @@ export default async function ProfilPpidPage() {
                 {tugasPpid.map(
                   (item) => (
                     <TugasCard
-                      key={item.title}
+                      key={
+                        item.title
+                      }
                       item={item}
                     />
                   )
@@ -648,7 +813,9 @@ export default async function ProfilPpidPage() {
               <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white p-6 md:p-8">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md">
-                    <Users size={23} />
+                    <Users
+                      size={23}
+                    />
                   </div>
 
                   <div>
@@ -728,7 +895,8 @@ export default async function ProfilPpidPage() {
                               className="transition odd:bg-white even:bg-slate-50 hover:bg-emerald-50/60"
                             >
                               <td className="px-4 py-4 text-center text-sm font-semibold text-slate-500">
-                                {index + 1}
+                                {index +
+                                  1}
                               </td>
 
                               <td className="px-5 py-4">
@@ -790,7 +958,8 @@ export default async function ProfilPpidPage() {
                             <div className="min-w-0">
                               <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                                 Pengurus{' '}
-                                {index + 1}
+                                {index +
+                                  1}
                               </p>
 
                               <h3 className="mt-1 font-black text-slate-800">
@@ -828,8 +997,8 @@ export default async function ProfilPpidPage() {
                 </p>
 
                 <h2 className="mt-2 text-xl font-black md:text-2xl">
-                  Sekretariat PPID Desa
-                  Keji
+                  Sekretariat{' '}
+                  {ppid.office_name}
                 </h2>
 
                 <p className="mt-2 text-sm font-medium leading-6 text-slate-300">
@@ -845,8 +1014,7 @@ export default async function ProfilPpidPage() {
                   icon={MapPin}
                   label="Alamat"
                   value={
-                    profil.alamat ??
-                    'Alamat belum tersedia'
+                    alamatPpid
                   }
                 />
 
@@ -854,8 +1022,7 @@ export default async function ProfilPpidPage() {
                   icon={Clock3}
                   label="Jam Pelayanan"
                   value={
-                    profil.jam_layanan ??
-                    'Jam pelayanan belum tersedia'
+                    jamLayananPpid
                   }
                 />
 
@@ -863,8 +1030,7 @@ export default async function ProfilPpidPage() {
                   icon={Phone}
                   label="Telepon"
                   value={
-                    profil.telepon ??
-                    'Nomor telepon belum tersedia'
+                    teleponPpid
                   }
                 />
 
@@ -872,8 +1038,7 @@ export default async function ProfilPpidPage() {
                   icon={Mail}
                   label="Email"
                   value={
-                    profil.email ??
-                    'Email belum tersedia'
+                    emailPpid
                   }
                 />
               </div>
@@ -964,12 +1129,12 @@ function ContactItem({
           <Icon size={19} />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
             {label}
           </p>
 
-          <p className="mt-2 text-sm font-bold leading-6 text-white">
+          <p className="mt-2 break-words text-sm font-bold leading-6 text-white">
             {value}
           </p>
         </div>

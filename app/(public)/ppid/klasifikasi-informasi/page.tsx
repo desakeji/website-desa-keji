@@ -26,6 +26,10 @@ import {
 import SidebarLayanan from '@/components/SidebarLayanan';
 
 import {
+  getPpidSettings,
+} from '@/lib/ppid-settings';
+
+import {
   supabaseAdmin,
 } from '@/lib/supabase-admin';
 
@@ -482,8 +486,13 @@ async function getDaftarLayanan():
 }
 
 export default async function KlasifikasiInformasiPage() {
-  const daftarLayanan =
-    await getDaftarLayanan();
+  const [
+    daftarLayanan,
+    ppid,
+  ] = await Promise.all([
+    getDaftarLayanan(),
+    getPpidSettings(),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -493,21 +502,15 @@ export default async function KlasifikasiInformasiPage() {
           <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
             <Landmark size={16} />
 
-            Pejabat Pengelola Informasi
-            dan Dokumentasi
+            {ppid.header_label}
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Klasifikasi Informasi
+            {ppid.klasifikasi_title}
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Pengelompokan informasi
-            publik yang dikelola oleh
-            Pemerintah Desa Keji
-            berdasarkan sifat,
-            kepentingan, dan waktu
-            penyampaiannya.
+            {ppid.klasifikasi_description}
           </p>
         </header>
 
@@ -545,27 +548,15 @@ export default async function KlasifikasiInformasiPage() {
                 </div>
 
                 <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-100">
-                  Standar Layanan
-                  Informasi Publik
+                  {ppid.klasifikasi_hero_label}
                 </p>
 
                 <h2 className="mt-3 max-w-2xl text-2xl font-black leading-tight md:text-3xl">
-                  Informasi publik harus
-                  mudah ditemukan,
-                  dipahami, dan diakses
-                  masyarakat
+                  {ppid.klasifikasi_hero_title}
                 </h2>
 
                 <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/90 md:text-base md:leading-8">
-                  Informasi publik adalah
-                  informasi yang
-                  dihasilkan, disimpan,
-                  dikelola, dikirim, atau
-                  diterima oleh Pemerintah
-                  Desa dalam pelaksanaan
-                  pemerintahan, pelayanan,
-                  pembangunan, dan
-                  kepentingan masyarakat.
+                  {ppid.klasifikasi_hero_description}
                 </p>
 
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">

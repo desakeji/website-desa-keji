@@ -18,9 +18,11 @@ import {
   supabaseAdmin,
 } from '@/lib/supabase-admin';
 
-import type {
-  PpidActionState,
-} from '@/types/ppid';
+const PPID_KEY =
+  'utama';
+
+const PROFIL_KEY =
+  'utama';
 
 async function requireAdmin() {
   const supabase =
@@ -31,360 +33,930 @@ async function requireAdmin() {
       user,
     },
     error,
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (
+    error ||
+    !user
+  ) {
     redirect('/login');
   }
-
-  return user;
 }
 
-function getFormString(
+function getString(
   formData: FormData,
   key: string
 ) {
   return String(
-    formData.get(key) ?? ''
+    formData.get(key) ??
+      ''
   ).trim();
 }
 
-function normalizeTelepon(
+function getBoolean(
+  formData: FormData,
+  key: string
+) {
+  return (
+    getString(
+      formData,
+      key
+    ) === 'true'
+  );
+}
+
+function getNumber(
+  formData: FormData,
+  key: string
+) {
+  return Number(
+    getString(
+      formData,
+      key
+    )
+  );
+}
+
+function isValidEmail(
   value: string
 ) {
-  if (!value) {
-    return '';
-  }
-
-  const hasPlus =
-    value.startsWith('+');
-
-  const angka =
-    value.replace(/\D/g, '');
-
-  return hasPlus
-    ? `+${angka}`
-    : angka;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    value
+  );
 }
 
-function validateEmail(
-  email: string
+function isValidResourceUrl(
+  value: string
 ) {
-  if (!email) {
-    return;
-  }
-
-  const valid =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      email
-    );
-
-  if (!valid) {
-    throw new Error(
-      'Alamat email PPID tidak valid.'
-    );
-  }
+  return (
+    value.startsWith('/') ||
+    value.startsWith(
+      'https://'
+    ) ||
+    value.startsWith(
+      'http://'
+    )
+  );
 }
 
-function validateTelepon(
-  telepon: string
+function buildUrl(
+  type:
+    | 'success'
+    | 'error',
+  message: string,
+  section?: string
 ) {
-  if (!telepon) {
-    return;
-  }
+  const params =
+    new URLSearchParams({
+      [type]: message,
+    });
 
-  const angka =
-    telepon.replace(/\D/g, '');
+  const anchor =
+    section
+      ? `#${section}`
+      : '';
+
+  return `/admin/ppid?${params.toString()}${anchor}`;
+}
+
+function revalidatePpid() {
+  revalidatePath(
+    '/admin/ppid'
+  );
+
+  revalidatePath(
+    '/ppid'
+  );
+
+  revalidatePath(
+    '/ppid/profil'
+  );
+
+  revalidatePath(
+    '/ppid/apa-itu-ppid'
+  );
+
+  revalidatePath(
+    '/ppid/klasifikasi-informasi'
+  );
+
+  revalidatePath(
+    '/ppid/permohonan-informasi'
+  );
+
+  revalidatePath(
+    '/ppid/pengajuan-keberatan'
+  );
+
+  revalidatePath(
+    '/admin'
+  );
+}
+
+/* =========================================================
+   PENGATURAN UMUM PPID
+========================================================= */
+
+export async function simpanPpidSettingsAction(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const input = {
+    header_label:
+      getString(
+        formData,
+        'header_label'
+      ),
+
+    office_name:
+      getString(
+        formData,
+        'office_name'
+      ),
+
+    office_address:
+      getString(
+        formData,
+        'office_address'
+      ),
+
+    office_email:
+      getString(
+        formData,
+        'office_email'
+      ),
+
+    office_phone:
+      getString(
+        formData,
+        'office_phone'
+      ),
+
+    office_hours:
+      getString(
+        formData,
+        'office_hours'
+      ),
+
+    apa_title:
+      getString(
+        formData,
+        'apa_title'
+      ),
+
+    apa_description:
+      getString(
+        formData,
+        'apa_description'
+      ),
+
+    apa_hero_label:
+      getString(
+        formData,
+        'apa_hero_label'
+      ),
+
+    apa_hero_title:
+      getString(
+        formData,
+        'apa_hero_title'
+      ),
+
+    apa_hero_description:
+      getString(
+        formData,
+        'apa_hero_description'
+      ),
+
+    klasifikasi_title:
+      getString(
+        formData,
+        'klasifikasi_title'
+      ),
+
+    klasifikasi_description:
+      getString(
+        formData,
+        'klasifikasi_description'
+      ),
+
+    klasifikasi_hero_label:
+      getString(
+        formData,
+        'klasifikasi_hero_label'
+      ),
+
+    klasifikasi_hero_title:
+      getString(
+        formData,
+        'klasifikasi_hero_title'
+      ),
+
+    klasifikasi_hero_description:
+      getString(
+        formData,
+        'klasifikasi_hero_description'
+      ),
+
+    permohonan_title:
+      getString(
+        formData,
+        'permohonan_title'
+      ),
+
+    permohonan_description:
+      getString(
+        formData,
+        'permohonan_description'
+      ),
+
+    permohonan_hero_label:
+      getString(
+        formData,
+        'permohonan_hero_label'
+      ),
+
+    permohonan_hero_title:
+      getString(
+        formData,
+        'permohonan_hero_title'
+      ),
+
+    permohonan_hero_description:
+      getString(
+        formData,
+        'permohonan_hero_description'
+      ),
+
+    permohonan_poster_url:
+      getString(
+        formData,
+        'permohonan_poster_url'
+      ),
+
+    permohonan_poster_alt:
+      getString(
+        formData,
+        'permohonan_poster_alt'
+      ),
+
+    permohonan_form_url:
+      getString(
+        formData,
+        'permohonan_form_url'
+      ),
+
+    keberatan_title:
+      getString(
+        formData,
+        'keberatan_title'
+      ),
+
+    keberatan_description:
+      getString(
+        formData,
+        'keberatan_description'
+      ),
+
+    keberatan_hero_label:
+      getString(
+        formData,
+        'keberatan_hero_label'
+      ),
+
+    keberatan_hero_title:
+      getString(
+        formData,
+        'keberatan_hero_title'
+      ),
+
+    keberatan_hero_description:
+      getString(
+        formData,
+        'keberatan_hero_description'
+      ),
+
+    keberatan_poster_url:
+      getString(
+        formData,
+        'keberatan_poster_url'
+      ),
+
+    keberatan_poster_alt:
+      getString(
+        formData,
+        'keberatan_poster_alt'
+      ),
+
+    keberatan_form_url:
+      getString(
+        formData,
+        'keberatan_form_url'
+      ),
+  };
 
   if (
-    angka.length < 8 ||
-    angka.length > 15
+    Object.values(input).some(
+      (value) =>
+        value.length === 0
+    )
   ) {
-    throw new Error(
-      'Nomor telepon harus terdiri dari 8 sampai 15 angka.'
+    redirect(
+      buildUrl(
+        'error',
+        'Semua kolom pengaturan umum PPID wajib diisi.',
+        'pengaturan-umum'
+      )
     );
   }
-}
 
-function revalidatePpidPages() {
-  revalidatePath('/admin');
-  revalidatePath('/admin/ppid');
+  if (
+    !isValidEmail(
+      input.office_email
+    )
+  ) {
+    redirect(
+      buildUrl(
+        'error',
+        'Alamat email PPID tidak valid.',
+        'pengaturan-umum'
+      )
+    );
+  }
 
-  revalidatePath('/ppid');
-  revalidatePath('/ppid/profil');
-  revalidatePath('/ppid/apa-itu-ppid');
-}
+  const resourceUrls = [
+    input.permohonan_poster_url,
+    input.permohonan_form_url,
+    input.keberatan_poster_url,
+    input.keberatan_form_url,
+  ];
 
-export async function updateProfilPpidAction(
-  _previousState: PpidActionState,
-  formData: FormData
-): Promise<PpidActionState> {
-  await requireAdmin();
-
-  try {
-    const judul =
-      getFormString(
-        formData,
-        'judul'
-      );
-
-    const deskripsi =
-      getFormString(
-        formData,
-        'deskripsi'
-      );
-
-    const email =
-      getFormString(
-        formData,
-        'email'
-      );
-
-    const telepon =
-      normalizeTelepon(
-        getFormString(
-          formData,
-          'telepon'
+  if (
+    resourceUrls.some(
+      (value) =>
+        !isValidResourceUrl(
+          value
         )
-      );
+    )
+  ) {
+    redirect(
+      buildUrl(
+        'error',
+        'URL poster dan formulir harus dimulai dengan /, http://, atau https://.',
+        'pengaturan-umum'
+      )
+    );
+  }
 
-    const alamat =
-      getFormString(
-        formData,
-        'alamat'
-      );
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      'ppid_settings'
+    )
+    .upsert(
+      {
+        ppid_key:
+          PPID_KEY,
 
-    const jamLayanan =
-      getFormString(
-        formData,
-        'jam_layanan'
-      );
+        ...input,
 
-    const aktif =
-      getFormString(
-        formData,
-        'aktif'
-      ) === 'on';
-
-    if (
-      judul.length < 5 ||
-      judul.length > 180
-    ) {
-      throw new Error(
-        'Judul profil harus terdiri dari 5 sampai 180 karakter.'
-      );
-    }
-
-    if (
-      deskripsi.length < 20 ||
-      deskripsi.length > 5000
-    ) {
-      throw new Error(
-        'Deskripsi profil harus terdiri dari 20 sampai 5000 karakter.'
-      );
-    }
-
-    if (alamat.length > 1000) {
-      throw new Error(
-        'Alamat maksimal 1000 karakter.'
-      );
-    }
-
-    if (
-      jamLayanan.length > 180
-    ) {
-      throw new Error(
-        'Jam pelayanan maksimal 180 karakter.'
-      );
-    }
-
-    validateEmail(email);
-    validateTelepon(telepon);
-
-    const {
-      error,
-    } = await supabaseAdmin
-      .from('profil_ppid')
-      .upsert(
-        {
-          profil_key:
-            'utama',
-
-          judul,
-          deskripsi,
-
-          email:
-            email || null,
-
-          telepon:
-            telepon || null,
-
-          alamat:
-            alamat || null,
-
-          jam_layanan:
-            jamLayanan || null,
-
-          aktif,
-        },
-        {
-          onConflict:
-            'profil_key',
-        }
-      );
-
-    if (error) {
-      throw new Error(
-        `Profil PPID gagal diperbarui: ${error.message}`
-      );
-    }
-
-    revalidatePpidPages();
-
-    return {
-      error: null,
-      success:
-        'Profil PPID berhasil diperbarui.',
-    };
-  } catch (error) {
-    console.error(
-      'Update profil PPID error:',
-      error
+        updated_at:
+          new Date()
+            .toISOString(),
+      },
+      {
+        onConflict:
+          'ppid_key',
+      }
     );
 
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Profil PPID gagal diperbarui.',
+  if (error) {
+    console.error(
+      'Gagal menyimpan pengaturan umum PPID:',
+      {
+        message:
+          error.message,
 
-      success: null,
-    };
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'pengaturan-umum'
+      )
+    );
   }
+
+  revalidatePpid();
+
+  redirect(
+    buildUrl(
+      'success',
+      'Pengaturan umum PPID berhasil diperbarui.',
+      'pengaturan-umum'
+    )
+  );
 }
 
-export async function createPengurusPpidAction(
-  _previousState: PpidActionState,
+/* =========================================================
+   PROFIL PPID
+========================================================= */
+
+interface ProfilPpidInput {
+  judul: string;
+  deskripsi: string;
+  email: string;
+  telepon: string;
+  alamat: string;
+  jamLayanan: string;
+  aktif: boolean;
+}
+
+function parseProfilPpid(
   formData: FormData
-): Promise<PpidActionState> {
+): ProfilPpidInput {
+  return {
+    judul:
+      getString(
+        formData,
+        'profil_judul'
+      ),
+
+    deskripsi:
+      getString(
+        formData,
+        'profil_deskripsi'
+      ),
+
+    email:
+      getString(
+        formData,
+        'profil_email'
+      ),
+
+    telepon:
+      getString(
+        formData,
+        'profil_telepon'
+      ),
+
+    alamat:
+      getString(
+        formData,
+        'profil_alamat'
+      ),
+
+    jamLayanan:
+      getString(
+        formData,
+        'profil_jam_layanan'
+      ),
+
+    aktif:
+      getBoolean(
+        formData,
+        'profil_aktif'
+      ),
+  };
+}
+
+function validateProfilPpid(
+  input: ProfilPpidInput
+) {
+  if (
+    input.judul.length < 3
+  ) {
+    return 'Judul profil minimal terdiri dari 3 karakter.';
+  }
+
+  if (
+    input.deskripsi.length <
+    20
+  ) {
+    return 'Deskripsi profil minimal terdiri dari 20 karakter.';
+  }
+
+  if (
+    input.email &&
+    !isValidEmail(
+      input.email
+    )
+  ) {
+    return 'Alamat email profil PPID tidak valid.';
+  }
+
+  if (
+    input.alamat.length < 5
+  ) {
+    return 'Alamat pelayanan minimal terdiri dari 5 karakter.';
+  }
+
+  if (
+    input.jamLayanan.length <
+    5
+  ) {
+    return 'Jam pelayanan harus diisi dengan benar.';
+  }
+
+  return null;
+}
+
+export async function simpanProfilPpidAction(
+  formData: FormData
+) {
   await requireAdmin();
 
-  try {
-    const nama =
-      getFormString(
+  const input =
+    parseProfilPpid(
+      formData
+    );
+
+  const validationError =
+    validateProfilPpid(
+      input
+    );
+
+  if (validationError) {
+    redirect(
+      buildUrl(
+        'error',
+        validationError,
+        'profil-ppid'
+      )
+    );
+  }
+
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      'profil_ppid'
+    )
+    .upsert(
+      {
+        profil_key:
+          PROFIL_KEY,
+
+        judul:
+          input.judul,
+
+        deskripsi:
+          input.deskripsi,
+
+        email:
+          input.email ||
+          null,
+
+        telepon:
+          input.telepon ||
+          null,
+
+        alamat:
+          input.alamat,
+
+        jam_layanan:
+          input.jamLayanan,
+
+        aktif:
+          input.aktif,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      },
+      {
+        onConflict:
+          'profil_key',
+      }
+    );
+
+  if (error) {
+    console.error(
+      'Gagal menyimpan profil PPID:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'profil-ppid'
+      )
+    );
+  }
+
+  revalidatePpid();
+
+  redirect(
+    buildUrl(
+      'success',
+      'Profil PPID berhasil diperbarui.',
+      'profil-ppid'
+    )
+  );
+}
+
+/* =========================================================
+   PENGURUS PPID
+========================================================= */
+
+interface PengurusPpidInput {
+  nama: string;
+  jabatanDesa: string;
+  jabatanPpid: string;
+  urutan: number;
+  aktif: boolean;
+}
+
+function parsePengurusPpid(
+  formData: FormData
+): PengurusPpidInput {
+  return {
+    nama:
+      getString(
         formData,
         'nama'
-      );
+      ),
 
-    const jabatanDesa =
-      getFormString(
+    jabatanDesa:
+      getString(
         formData,
         'jabatan_desa'
-      );
+      ),
 
-    const jabatanPpid =
-      getFormString(
+    jabatanPpid:
+      getString(
         formData,
         'jabatan_ppid'
-      );
+      ),
 
-    const urutanValue =
-      getFormString(
+    urutan:
+      getNumber(
         formData,
         'urutan'
-      );
+      ),
 
-    const aktif =
-      getFormString(
+    aktif:
+      getBoolean(
         formData,
         'aktif'
-      ) === 'on';
+      ),
+  };
+}
 
-    if (
-      nama.length < 3 ||
-      nama.length > 150
-    ) {
-      throw new Error(
-        'Nama pengurus harus terdiri dari 3 sampai 150 karakter.'
-      );
-    }
+function validatePengurusPpid(
+  input: PengurusPpidInput
+) {
+  if (
+    input.nama.length < 2
+  ) {
+    return 'Nama pengurus minimal terdiri dari 2 karakter.';
+  }
 
-    if (
-      jabatanDesa.length < 3 ||
-      jabatanDesa.length > 150
-    ) {
-      throw new Error(
-        'Jabatan desa harus terdiri dari 3 sampai 150 karakter.'
-      );
-    }
+  if (
+    input.jabatanDesa.length <
+    2
+  ) {
+    return 'Jabatan desa harus diisi.';
+  }
 
-    if (
-      jabatanPpid.length < 3 ||
-      jabatanPpid.length > 180
-    ) {
-      throw new Error(
-        'Jabatan dalam PPID harus terdiri dari 3 sampai 180 karakter.'
-      );
-    }
+  if (
+    input.jabatanPpid.length <
+    2
+  ) {
+    return 'Jabatan dalam PPID harus diisi.';
+  }
 
-    const urutan =
-      Number(urutanValue);
+  if (
+    !Number.isInteger(
+      input.urutan
+    ) ||
+    input.urutan < 1
+  ) {
+    return 'Nomor urutan minimal 1.';
+  }
 
-    if (
-      !Number.isInteger(urutan) ||
-      urutan < 0 ||
-      urutan > 999
-    ) {
-      throw new Error(
-        'Urutan pengurus tidak valid.'
-      );
-    }
+  return null;
+}
 
-    const {
-      error,
-    } = await supabaseAdmin
-      .from('ppid_pengurus')
-      .insert({
-        nama,
+function pengurusPayload(
+  input: PengurusPpidInput
+) {
+  return {
+    nama:
+      input.nama,
 
-        jabatan_desa:
-          jabatanDesa,
+    jabatan_desa:
+      input.jabatanDesa,
 
-        jabatan_ppid:
-          jabatanPpid,
+    jabatan_ppid:
+      input.jabatanPpid,
 
-        urutan,
-        aktif,
-      });
+    urutan:
+      input.urutan,
 
-    if (error) {
-      throw new Error(
-        `Pengurus PPID gagal ditambahkan: ${error.message}`
-      );
-    }
+    aktif:
+      input.aktif,
 
-    revalidatePpidPages();
+    updated_at:
+      new Date()
+        .toISOString(),
+  };
+}
 
-    return {
-      error: null,
-      success:
-        'Pengurus PPID berhasil ditambahkan.',
-    };
-  } catch (error) {
-    console.error(
-      'Create pengurus PPID error:',
-      error
+export async function tambahPengurusPpidAction(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const input =
+    parsePengurusPpid(
+      formData
     );
 
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Pengurus PPID gagal ditambahkan.',
+  const validationError =
+    validatePengurusPpid(
+      input
+    );
 
-      success: null,
-    };
+  if (validationError) {
+    redirect(
+      buildUrl(
+        'error',
+        validationError,
+        'pengurus-ppid'
+      )
+    );
   }
+
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      'ppid_pengurus'
+    )
+    .insert(
+      pengurusPayload(
+        input
+      )
+    );
+
+  if (error) {
+    console.error(
+      'Gagal menambahkan pengurus PPID:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'pengurus-ppid'
+      )
+    );
+  }
+
+  revalidatePpid();
+
+  redirect(
+    buildUrl(
+      'success',
+      'Pengurus PPID berhasil ditambahkan.',
+      'pengurus-ppid'
+    )
+  );
+}
+
+export async function ubahPengurusPpidAction(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const id =
+    getString(
+      formData,
+      'id'
+    );
+
+  if (!id) {
+    redirect(
+      buildUrl(
+        'error',
+        'ID pengurus PPID tidak valid.',
+        'pengurus-ppid'
+      )
+    );
+  }
+
+  const input =
+    parsePengurusPpid(
+      formData
+    );
+
+  const validationError =
+    validatePengurusPpid(
+      input
+    );
+
+  if (validationError) {
+    redirect(
+      buildUrl(
+        'error',
+        validationError,
+        'pengurus-ppid'
+      )
+    );
+  }
+
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      'ppid_pengurus'
+    )
+    .update(
+      pengurusPayload(
+        input
+      )
+    )
+    .eq(
+      'id',
+      id
+    );
+
+  if (error) {
+    console.error(
+      'Gagal memperbarui pengurus PPID:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'pengurus-ppid'
+      )
+    );
+  }
+
+  revalidatePpid();
+
+  redirect(
+    buildUrl(
+      'success',
+      'Pengurus PPID berhasil diperbarui.',
+      'pengurus-ppid'
+    )
+  );
 }
 
 export async function togglePengurusPpidAction(
@@ -393,88 +965,140 @@ export async function togglePengurusPpidAction(
   await requireAdmin();
 
   const id =
-    getFormString(
+    getString(
       formData,
       'id'
     );
 
   const aktif =
-    getFormString(
+    getBoolean(
       formData,
       'aktif'
-    ) === 'true';
+    );
 
   if (!id) {
-    throw new Error(
-      'ID pengurus tidak valid.'
+    redirect(
+      buildUrl(
+        'error',
+        'ID pengurus PPID tidak valid.',
+        'pengurus-ppid'
+      )
     );
   }
 
   const {
-    data,
     error,
   } = await supabaseAdmin
-    .from('ppid_pengurus')
+    .from(
+      'ppid_pengurus'
+    )
     .update({
-      aktif: !aktif,
+      aktif,
+
+      updated_at:
+        new Date()
+          .toISOString(),
     })
-    .eq('id', id)
-    .select('id')
-    .maybeSingle();
+    .eq(
+      'id',
+      id
+    );
 
   if (error) {
-    throw new Error(
-      `Status pengurus gagal diperbarui: ${error.message}`
+    console.error(
+      'Gagal mengubah status pengurus PPID:',
+      error
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'pengurus-ppid'
+      )
     );
   }
 
-  if (!data) {
-    throw new Error(
-      'Data pengurus tidak ditemukan.'
-    );
-  }
+  revalidatePpid();
 
-  revalidatePpidPages();
+  redirect(
+    buildUrl(
+      'success',
+      aktif
+        ? 'Pengurus PPID berhasil diaktifkan.'
+        : 'Pengurus PPID berhasil dinonaktifkan.',
+      'pengurus-ppid'
+    )
+  );
 }
 
-export async function deletePengurusPpidAction(
+export async function hapusPengurusPpidAction(
   formData: FormData
 ) {
   await requireAdmin();
 
   const id =
-    getFormString(
+    getString(
       formData,
       'id'
     );
 
   if (!id) {
-    throw new Error(
-      'ID pengurus tidak valid.'
+    redirect(
+      buildUrl(
+        'error',
+        'ID pengurus PPID tidak valid.',
+        'pengurus-ppid'
+      )
     );
   }
 
   const {
-    data,
     error,
   } = await supabaseAdmin
-    .from('ppid_pengurus')
+    .from(
+      'ppid_pengurus'
+    )
     .delete()
-    .eq('id', id)
-    .select('id')
-    .maybeSingle();
+    .eq(
+      'id',
+      id
+    );
 
   if (error) {
-    throw new Error(
-      `Pengurus PPID gagal dihapus: ${error.message}`
+    console.error(
+      'Gagal menghapus pengurus PPID:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildUrl(
+        'error',
+        error.message,
+        'pengurus-ppid'
+      )
     );
   }
 
-  if (!data) {
-    throw new Error(
-      'Data pengurus tidak ditemukan.'
-    );
-  }
+  revalidatePpid();
 
-  revalidatePpidPages();
+  redirect(
+    buildUrl(
+      'success',
+      'Pengurus PPID berhasil dihapus.',
+      'pengurus-ppid'
+    )
+  );
 }

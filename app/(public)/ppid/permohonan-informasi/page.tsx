@@ -1,6 +1,5 @@
 // app/(public)/ppid/permohonan-informasi/page.tsx
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 import {
@@ -22,6 +21,10 @@ import {
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+
+import {
+  getPpidSettings,
+} from '@/lib/ppid-settings';
 
 import {
   supabaseAdmin,
@@ -146,8 +149,13 @@ async function getDaftarLayanan():
 }
 
 export default async function PermohonanInformasiPage() {
-  const daftarLayanan =
-    await getDaftarLayanan();
+  const [
+    daftarLayanan,
+    ppid,
+  ] = await Promise.all([
+    getDaftarLayanan(),
+    getPpidSettings(),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -157,19 +165,15 @@ export default async function PermohonanInformasiPage() {
           <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
             <Landmark size={16} />
 
-            Pejabat Pengelola Informasi
-            dan Dokumentasi
+            {ppid.header_label}
           </div>
 
           <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Permohonan Informasi Publik
+            {ppid.permohonan_title}
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Prosedur untuk memperoleh
-            informasi publik yang
-            dikelola oleh Pemerintah
-            Desa Keji melalui PPID.
+            {ppid.permohonan_description}
           </p>
         </header>
 
@@ -203,23 +207,15 @@ export default async function PermohonanInformasiPage() {
                 </div>
 
                 <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-100">
-                  Layanan PPID Desa Keji
+                  {ppid.permohonan_hero_label}
                 </p>
 
                 <h2 className="mt-3 max-w-2xl text-2xl font-black leading-tight md:text-3xl">
-                  Ajukan informasi yang
-                  belum tersedia pada
-                  website Desa Keji
+                  {ppid.permohonan_hero_title}
                 </h2>
 
                 <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/90 md:text-base md:leading-8">
-                  Masyarakat dapat
-                  mengajukan permohonan
-                  apabila informasi yang
-                  dibutuhkan belum
-                  dipublikasikan pada
-                  halaman Informasi Publik
-                  atau halaman PPID.
+                  {ppid.permohonan_hero_description}
                 </p>
 
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -293,17 +289,14 @@ export default async function PermohonanInformasiPage() {
 
               <div className="bg-slate-100 p-3 sm:p-5">
                 <a
-                  href="/images/ppid/Permohonan-Informasi.png"
+                  href={ppid.permohonan_poster_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block overflow-hidden rounded-2xl bg-white"
                 >
-                  <Image
-                    src="/images/ppid/Permohonan-Informasi.png"
-                    alt="Poster alur permohonan informasi PPID Desa Keji"
-                    width={1055}
-                    height={1491}
-                    priority
+                  <img
+                    src={ppid.permohonan_poster_url}
+                    alt={ppid.permohonan_poster_alt}
                     className="h-auto w-full object-contain"
                   />
                 </a>
@@ -311,7 +304,7 @@ export default async function PermohonanInformasiPage() {
 
               <div className="border-t border-slate-100 p-5">
                 <a
-                  href="/images/ppid/Permohonan-Informasi.png"
+                  href={ppid.permohonan_poster_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm font-extrabold text-emerald-700 transition hover:text-emerald-800"
@@ -498,7 +491,7 @@ export default async function PermohonanInformasiPage() {
                   </div>
 
                   <a
-                    href="/documents/FORMAT_FORMULIR_PERMOHONAN_INFORMASI_PUBLIK.docx"
+                    href={ppid.permohonan_form_url}
                     download
                     className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-cyan-700 px-5 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-cyan-800"
                   >
