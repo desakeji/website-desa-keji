@@ -4,11 +4,18 @@ import Link from 'next/link';
 
 import {
   AlertCircle,
-  BarChart3,
+  Banknote,
+  Building2,
   CalendarDays,
   CheckCircle2,
   CircleDollarSign,
   ExternalLink,
+  Eye,
+  EyeOff,
+  FileImage,
+  FilePlus2,
+  FileText,
+  Gauge,
   HardHat,
   Image as ImageIcon,
   MapPin,
@@ -17,7 +24,8 @@ import {
   Save,
   Trash2,
   TrendingUp,
-  UploadCloud,
+  Upload,
+  XCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -28,20 +36,19 @@ import {
   ubahProyekPembangunanAction,
 } from '@/app/admin/pembangunan/actions';
 
-import {
-  supabaseAdmin,
-} from '@/lib/supabase-admin';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
-import {
-  STATUS_PEMBANGUNAN_OPTIONS,
-  type ProyekPembangunan,
-  type StatusPembangunan,
-} from '@/types/pembangunan';
-
-export const dynamic =
-  'force-dynamic';
-
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+const STATUS_PEMBANGUNAN_OPTIONS = [
+  'Perencanaan',
+  'Berjalan',
+  'Selesai',
+] as const;
+
+type StatusPembangunan =
+  (typeof STATUS_PEMBANGUNAN_OPTIONS)[number];
 
 interface PageProps {
   searchParams: Promise<{
@@ -50,21 +57,25 @@ interface PageProps {
   }>;
 }
 
-function safeString(
-  value: unknown
-) {
-  return String(
-    value ?? ''
-  ).trim();
+interface ProyekPembangunanAdmin {
+  id: string;
+  nama: string;
+  lokasi: string;
+  tahun: number;
+  sumber_dana: string;
+  anggaran: number;
+  progres: number;
+  status: StatusPembangunan;
+  deskripsi: string;
+  gambar_url: string | null;
+  aktif: boolean;
+  urutan: number;
+  created_at: string;
+  updated_at: string;
 }
 
-function nullableString(
-  value: unknown
-) {
-  const text =
-    safeString(value);
-
-  return text || null;
+function safeString(value: unknown) {
+  return String(value ?? '').trim();
 }
 
 function isStatusPembangunan(
@@ -75,153 +86,114 @@ function isStatusPembangunan(
   ).includes(value);
 }
 
-function normalizePembangunan(
+function normalizeProyek(
   value: unknown
-): ProyekPembangunan | null {
+): ProyekPembangunanAdmin | null {
   if (
     !value ||
-    typeof value !==
-      'object' ||
+    typeof value !== 'object' ||
     Array.isArray(value)
   ) {
     return null;
   }
 
-  const row =
-    value as Record<
-      string,
-      unknown
-    >;
+  const row = value as Record<
+    string,
+    unknown
+  >;
 
-  const id =
-    safeString(
-      row.id
-    );
+  const id = safeString(row.id);
+  const nama = safeString(row.nama);
+  const lokasi = safeString(row.lokasi);
+  const sumberDana = safeString(
+    row.sumber_dana
+  );
+  const status = safeString(row.status);
 
-  const nama =
-    safeString(
-      row.nama
-    );
-
-  const lokasi =
-    safeString(
-      row.lokasi
-    );
-
-  const tahun =
-    Number(
-      row.tahun ?? 0
-    );
-
-  const anggaran =
-    Number(
-      row.anggaran ?? 0
-    );
-
-  const progres =
-    Number(
-      row.progres ?? 0
-    );
-
-  const status =
-    safeString(
-      row.status
-    );
+  const tahun = Number(row.tahun);
+  const anggaran = Number(
+    row.anggaran ?? 0
+  );
+  const progres = Number(
+    row.progres ?? 0
+  );
+  const urutan = Number(
+    row.urutan ?? 0
+  );
 
   if (
     !id ||
     !nama ||
     !lokasi ||
-    !Number.isInteger(
-      tahun
-    ) ||
-    !Number.isFinite(
-      anggaran
-    ) ||
-    !Number.isInteger(
-      progres
-    ) ||
-    !isStatusPembangunan(
-      status
-    )
+    !sumberDana ||
+    !Number.isInteger(tahun) ||
+    !Number.isFinite(anggaran) ||
+    !Number.isFinite(progres) ||
+    !Number.isInteger(urutan) ||
+    !isStatusPembangunan(status)
   ) {
     return null;
   }
+
+  const gambarUrl = safeString(
+    row.gambar_url
+  );
 
   return {
     id,
     nama,
     lokasi,
     tahun,
-
-    sumber_dana:
-      safeString(
-        row.sumber_dana
-      ),
-
+    sumber_dana: sumberDana,
     anggaran,
     progres,
     status,
 
-    deskripsi:
-      safeString(
-        row.deskripsi
-      ),
+    deskripsi: safeString(
+      row.deskripsi
+    ),
 
     gambar_url:
-      nullableString(
-        row.gambar_url
-      ),
+      gambarUrl.length > 0
+        ? gambarUrl
+        : null,
 
-    aktif:
-      Boolean(
-        row.aktif
-      ),
+    aktif: Boolean(row.aktif),
+    urutan,
 
-    urutan:
-      Number(
-        row.urutan ?? 0
-      ),
+    created_at: safeString(
+      row.created_at
+    ),
 
-    created_at:
-      safeString(
-        row.created_at
-      ),
-
-    updated_at:
-      safeString(
-        row.updated_at
-      ),
+    updated_at: safeString(
+      row.updated_at
+    ),
   };
 }
 
-function formatRupiah(
-  value: number
-) {
+function formatRupiah(value: number) {
   return new Intl.NumberFormat(
     'id-ID',
     {
       style: 'currency',
       currency: 'IDR',
-      minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }
-  ).format(
-    Number.isFinite(value)
-      ? value
-      : 0
-  );
+  ).format(value);
 }
 
-function formatTanggal(
-  value: string
-) {
+function formatAngka(value: number) {
+  return new Intl.NumberFormat(
+    'id-ID'
+  ).format(value);
+}
+
+function formatTanggal(value: string) {
   if (!value) {
     return 'Belum diperbarui';
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
   if (
     Number.isNaN(
@@ -237,8 +209,7 @@ function formatTanggal(
       day: '2-digit',
       month: 'long',
       year: 'numeric',
-      timeZone:
-        'Asia/Jakarta',
+      timeZone: 'Asia/Jakarta',
     }
   ).format(date);
 }
@@ -247,15 +218,32 @@ function getStatusClass(
   status: StatusPembangunan
 ) {
   switch (status) {
-    case 'Selesai':
-      return 'bg-emerald-100 text-emerald-700';
+    case 'Perencanaan':
+      return 'border-blue-200 bg-blue-50 text-blue-700';
 
     case 'Berjalan':
-      return 'bg-cyan-100 text-cyan-700';
+      return 'border-amber-200 bg-amber-50 text-amber-700';
 
-    case 'Perencanaan':
-      return 'bg-amber-100 text-amber-700';
+    case 'Selesai':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-700';
   }
+}
+
+function getProgressClass(
+  progres: number
+) {
+  if (progres >= 100) {
+    return 'bg-emerald-600';
+  }
+
+  if (progres >= 50) {
+    return 'bg-amber-500';
+  }
+
+  return 'bg-blue-600';
 }
 
 export default async function AdminPembangunanPage({
@@ -263,14 +251,12 @@ export default async function AdminPembangunanPage({
 }: PageProps) {
   const [
     params,
-    pembangunanResult,
+    proyekResult,
   ] = await Promise.all([
     searchParams,
 
     supabaseAdmin
-      .from(
-        'proyek_pembangunan'
-      )
+      .from('proyek_pembangunan')
       .select(`
         id,
         nama,
@@ -287,105 +273,90 @@ export default async function AdminPembangunanPage({
         created_at,
         updated_at
       `)
-      .order(
-        'tahun',
-        {
-          ascending: false,
-        }
-      )
-      .order(
-        'urutan',
-        {
-          ascending: true,
-        }
-      )
-      .order(
-        'created_at',
-        {
-          ascending: false,
-        }
-      ),
+      .order('tahun', {
+        ascending: false,
+      })
+      .order('urutan', {
+        ascending: true,
+      })
+      .order('created_at', {
+        ascending: false,
+      }),
   ]);
 
-  if (
-    pembangunanResult.error
-  ) {
+  if (proyekResult.error) {
     console.error(
-      'Gagal mengambil proyek pembangunan pada admin:',
+      'Gagal mengambil proyek pembangunan:',
       {
         message:
-          pembangunanResult.error
-            .message,
+          proyekResult.error.message,
 
         code:
-          pembangunanResult.error
-            .code,
+          proyekResult.error.code,
 
         details:
-          pembangunanResult.error
-            .details,
+          proyekResult.error.details,
 
         hint:
-          pembangunanResult.error
-            .hint,
+          proyekResult.error.hint,
       }
     );
   }
 
-  const daftarProyek =
-    (
-      pembangunanResult.data ??
-      []
-    )
-      .map(
-        normalizePembangunan
-      )
-      .filter(
-        (
-          item
-        ): item is ProyekPembangunan =>
-          item !== null
-      );
-
-  const proyekAktif =
-    daftarProyek.filter(
-      (item) =>
-        item.aktif
+  const daftarProyek = (
+    proyekResult.data ?? []
+  )
+    .map(normalizeProyek)
+    .filter(
+      (
+        item
+      ): item is ProyekPembangunanAdmin =>
+        item !== null
     );
 
-  const proyekBerjalan =
-    proyekAktif.filter(
+  const daftarAktif =
+    daftarProyek.filter(
+      (item) => item.aktif
+    );
+
+  const jumlahBerjalan =
+    daftarProyek.filter(
       (item) =>
-        item.status ===
-        'Berjalan'
+        item.status === 'Berjalan'
     ).length;
 
-  const proyekSelesai =
-    proyekAktif.filter(
+  const jumlahSelesai =
+    daftarProyek.filter(
       (item) =>
-        item.status ===
-        'Selesai'
+        item.status === 'Selesai'
     ).length;
 
   const totalAnggaran =
-    proyekAktif.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.anggaran,
+    daftarProyek.reduce(
+      (total, item) =>
+        total + item.anggaran,
       0
     );
 
+  const rataRataProgres =
+    daftarProyek.length > 0
+      ? Math.round(
+          daftarProyek.reduce(
+            (total, item) =>
+              total + item.progres,
+            0
+          ) /
+            daftarProyek.length
+        )
+      : 0;
+
   const tahunSekarang =
-    new Date()
-      .getFullYear();
+    new Date().getFullYear();
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
       {/* Header */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 px-6 py-8 text-white shadow-xl">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 px-6 py-8 text-white shadow-xl sm:px-8">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-35"
@@ -403,12 +374,15 @@ export default async function AdminPembangunanPage({
           className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.05]"
         />
 
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-emerald-300/10 blur-[100px]"
+        />
+
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-              <HardHat
-                size={28}
-              />
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur">
+              <HardHat size={28} />
             </div>
 
             <div>
@@ -417,16 +391,16 @@ export default async function AdminPembangunanPage({
               </p>
 
               <h1 className="mt-2 text-2xl font-black sm:text-3xl">
-                Pembangunan Desa Keji
+                Kelola Pembangunan Desa
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola kegiatan,
-                lokasi, sumber dana,
-                anggaran, progres,
-                status, dokumentasi,
-                dan publikasi proyek
-                pembangunan desa.
+                Kelola nama kegiatan,
+                lokasi, anggaran,
+                progres, status
+                pelaksanaan, dan
+                dokumentasi proyek
+                pembangunan Desa Keji.
               </p>
             </div>
           </div>
@@ -435,18 +409,16 @@ export default async function AdminPembangunanPage({
             href="/pembangunan"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:bg-white/15"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/15"
           >
-            Lihat Pembangunan
+            Lihat Halaman Publik
 
-            <ExternalLink
-              size={16}
-            />
+            <ExternalLink size={16} />
           </Link>
         </div>
       </section>
 
-      {/* Pesan */}
+      {/* Pesan sukses */}
       {params.success && (
         <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
           <CheckCircle2
@@ -460,6 +432,7 @@ export default async function AdminPembangunanPage({
         </div>
       )}
 
+      {/* Pesan error */}
       {params.error && (
         <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
           <AlertCircle
@@ -473,33 +446,48 @@ export default async function AdminPembangunanPage({
         </div>
       )}
 
+      {/* Error database */}
+      {proyekResult.error && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+          <AlertCircle
+            size={20}
+            className="mt-0.5 shrink-0"
+          />
+
+          <div>
+            <p className="text-sm font-extrabold">
+              Data pembangunan gagal
+              dimuat
+            </p>
+
+            <p className="mt-1 text-xs font-semibold leading-5">
+              Pastikan tabel
+              proyek_pembangunan sudah
+              tersedia dan konfigurasi
+              Supabase benar.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Statistik */}
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total Proyek"
-          value={String(
+          value={formatAngka(
             daftarProyek.length
           )}
-          description={`${proyekAktif.length} proyek dipublikasikan`}
-          icon={BarChart3}
+          description={`${daftarAktif.length} proyek dipublikasikan`}
+          icon={Building2}
         />
 
         <StatCard
-          label="Sedang Berjalan"
-          value={String(
-            proyekBerjalan
+          label="Proyek Berjalan"
+          value={formatAngka(
+            jumlahBerjalan
           )}
-          description="Proyek aktif berstatus berjalan"
-          icon={TrendingUp}
-        />
-
-        <StatCard
-          label="Proyek Selesai"
-          value={String(
-            proyekSelesai
-          )}
-          description="Proyek aktif telah selesai"
-          icon={CheckCircle2}
+          description={`${jumlahSelesai} proyek telah selesai`}
+          icon={HardHat}
         />
 
         <StatCard
@@ -507,9 +495,16 @@ export default async function AdminPembangunanPage({
           value={formatRupiah(
             totalAnggaran
           )}
-          description="Akumulasi proyek aktif"
+          description="Akumulasi seluruh proyek"
           icon={CircleDollarSign}
           compact
+        />
+
+        <StatCard
+          label="Rata-rata Progres"
+          value={`${rataRataProgres}%`}
+          description="Berdasarkan seluruh proyek"
+          icon={TrendingUp}
         />
       </section>
 
@@ -519,55 +514,120 @@ export default async function AdminPembangunanPage({
         action={
           tambahProyekPembangunanAction
         }
-        encType="multipart/form-data"
         className="scroll-mt-24 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
       >
-        <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-5 sm:px-7">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
-              <HardHat
-                size={23}
-              />
-            </div>
+        <SectionHeader
+          eyebrow="Data Baru"
+          title="Tambah Proyek Pembangunan"
+          description="Masukkan informasi proyek pembangunan dan unggah dokumentasi dari perangkat."
+          icon={FilePlus2}
+        />
 
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-                Proyek Baru
-              </p>
-
-              <h2 className="mt-1 text-xl font-black text-slate-900">
-                Tambah Proyek
-                Pembangunan
-              </h2>
-
-              <p className="mt-1 text-sm font-medium text-slate-500">
-                Dokumentasi dapat
-                dipilih langsung dari
-                perangkat.
-              </p>
-            </div>
+        <div className="grid gap-5 p-6 sm:p-7 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <TextInput
+              idPrefix="tambah"
+              name="nama"
+              label="Nama Proyek"
+              placeholder="Contoh: Pembangunan Jalan Lingkungan"
+            />
           </div>
-        </div>
 
-        <div className="p-6 sm:p-7">
-          <PembangunanFormFields
+          <TextInput
             idPrefix="tambah"
-            defaultTahun={
-              tahunSekarang
-            }
-            defaultUrutan={
-              daftarProyek.length
-            }
+            name="lokasi"
+            label="Lokasi"
+            placeholder="Contoh: Dusun Suruhan"
           />
 
-          <div className="mt-6 flex justify-end">
+          <TextInput
+            idPrefix="tambah"
+            name="sumber_dana"
+            label="Sumber Dana"
+            placeholder="Contoh: Dana Desa"
+          />
+
+          <NumberInput
+            idPrefix="tambah"
+            name="tahun"
+            label="Tahun"
+            value={String(
+              tahunSekarang
+            )}
+            min={1900}
+            max={2200}
+            step="1"
+          />
+
+          <NumberInput
+            idPrefix="tambah"
+            name="anggaran"
+            label="Anggaran"
+            value="0"
+            min={0}
+            step="1"
+            placeholder="Contoh: 100000000"
+          />
+
+          <NumberInput
+            idPrefix="tambah"
+            name="progres"
+            label="Progres"
+            value="0"
+            min={0}
+            max={100}
+            step="1"
+            suffix="%"
+          />
+
+          <StatusSelect
+            idPrefix="tambah"
+            value="Perencanaan"
+          />
+
+          <NumberInput
+            idPrefix="tambah"
+            name="urutan"
+            label="Nomor Urutan"
+            value={String(
+              daftarProyek.length + 1
+            )}
+            min={0}
+            step="1"
+          />
+
+          <Checkbox
+            id="tambah-aktif"
+            name="aktif"
+            label="Publikasikan Proyek"
+            description="Proyek akan ditampilkan pada halaman publik Pembangunan."
+            checked
+          />
+
+          <div className="md:col-span-2">
+            <TextArea
+              idPrefix="tambah"
+              name="deskripsi"
+              label="Deskripsi Proyek"
+              placeholder="Masukkan penjelasan mengenai tujuan, ruang lingkup, dan hasil proyek pembangunan."
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <FileInput
+              id="tambah-gambar"
+              name="gambar"
+              label="Gambar Proyek"
+              required={false}
+            />
+          </div>
+
+          <div className="flex justify-end md:col-span-2">
             <button
               type="submit"
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
             >
-              <Save
-                size={17}
-              />
+              <Save size={17} />
 
               Tambah Proyek
             </button>
@@ -576,52 +636,24 @@ export default async function AdminPembangunanPage({
       </form>
 
       {/* Daftar proyek */}
-      <section
-        id="daftar-pembangunan"
-        className="scroll-mt-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
-      >
-        <div className="border-b border-slate-200 px-6 py-5 sm:px-7">
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-            Data Kegiatan
-          </p>
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <SectionHeader
+          eyebrow="Daftar Pembangunan"
+          title="Proyek Pembangunan Desa"
+          description={`${daftarProyek.length} proyek tersimpan di database.`}
+          icon={Building2}
+          variant="slate"
+        />
 
-          <h2 className="mt-1 text-xl font-black text-slate-900">
-            Daftar Proyek
-            Pembangunan
-          </h2>
-
-          <p className="mt-1 text-sm font-medium text-slate-500">
-            {daftarProyek.length}{' '}
-            proyek tersimpan dalam
-            database.
-          </p>
-        </div>
-
-        {daftarProyek.length ===
-        0 ? (
-          <div className="px-6 py-16 text-center">
-            <HardHat
-              size={48}
-              className="mx-auto text-slate-300"
-            />
-
-            <h3 className="mt-4 font-black text-slate-700">
-              Belum ada proyek
-              pembangunan
-            </h3>
-
-            <p className="mt-2 text-sm font-medium text-slate-500">
-              Tambahkan proyek melalui
-              formulir di atas.
-            </p>
-          </div>
+        {daftarProyek.length === 0 ? (
+          <EmptyState />
         ) : (
           <div className="grid gap-5 p-5 sm:p-7 xl:grid-cols-2">
             {daftarProyek.map(
-              (item) => (
-                <PembangunanAdminCard
-                  key={item.id}
-                  item={item}
+              (proyek) => (
+                <ProyekCard
+                  key={proyek.id}
+                  proyek={proyek}
                 />
               )
             )}
@@ -632,159 +664,138 @@ export default async function AdminPembangunanPage({
   );
 }
 
-function PembangunanAdminCard({
-  item,
+function ProyekCard({
+  proyek,
 }: {
-  item: ProyekPembangunan;
+  proyek: ProyekPembangunanAdmin;
 }) {
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
       {/* Gambar */}
-      <div className="relative aspect-[16/8] overflow-hidden bg-slate-200">
-        {item.gambar_url ? (
+      <div className="relative h-56 overflow-hidden bg-slate-200">
+        {proyek.gambar_url ? (
           <img
-            src={item.gambar_url}
-            alt={item.nama}
-            loading="lazy"
+            src={proyek.gambar_url}
+            alt={`Dokumentasi ${proyek.nama}`}
             className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-slate-400">
-            <ImageIcon
-              size={42}
-            />
+            <ImageIcon size={44} />
 
-            <p className="mt-2 text-xs font-bold">
-              Belum ada dokumentasi
+            <p className="mt-3 text-xs font-extrabold uppercase tracking-wider">
+              Belum ada gambar
             </p>
           </div>
         )}
 
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <span
-            className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold ${getStatusClass(
-              item.status
+            className={`rounded-full border px-3 py-1.5 text-[10px] font-extrabold backdrop-blur ${getStatusClass(
+              proyek.status
             )}`}
           >
-            {item.status}
+            {proyek.status}
           </span>
 
           <span
-            className={`rounded-full bg-white px-3 py-1.5 text-[10px] font-extrabold ${
-              item.aktif
-                ? 'text-emerald-700'
-                : 'text-amber-700'
+            className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold backdrop-blur ${
+              proyek.aktif
+                ? 'bg-emerald-700 text-white'
+                : 'bg-slate-800 text-white'
             }`}
           >
-            {item.aktif
+            {proyek.aktif
               ? 'Dipublikasikan'
               : 'Disembunyikan'}
           </span>
         </div>
+
+        <span className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-extrabold text-white backdrop-blur">
+          Urutan {proyek.urutan}
+        </span>
       </div>
 
-      {/* Informasi */}
+      {/* Isi */}
       <div className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-              Tahun {item.tahun}
+              Tahun {proyek.tahun}
             </p>
 
-            <h3 className="mt-2 text-xl font-black text-slate-900">
-              {item.nama}
+            <h3 className="mt-2 break-words text-xl font-black leading-7 text-slate-900">
+              {proyek.nama}
             </h3>
+
+            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-slate-500">
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin size={14} />
+
+                {proyek.lokasi}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5">
+                <Banknote size={14} />
+
+                {proyek.sumber_dana}
+              </span>
+            </div>
           </div>
 
-          <div className="rounded-2xl bg-emerald-700 px-4 py-3 text-right text-white">
+          <div className="shrink-0 rounded-2xl bg-emerald-700 px-4 py-3 text-right text-white">
             <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-200">
-              Progres
+              Anggaran
             </p>
 
-            <p className="mt-1 text-2xl font-black">
-              {item.progres}%
+            <p className="mt-1 text-sm font-black">
+              {formatRupiah(
+                proyek.anggaran
+              )}
             </p>
           </div>
         </div>
 
-        <p className="mt-3 line-clamp-3 text-sm font-medium leading-6 text-slate-500">
-          {item.deskripsi}
+        <p className="mt-5 text-sm font-medium leading-7 text-slate-600">
+          {proyek.deskripsi}
         </p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <MetaCard
-            label="Lokasi"
-            value={item.lokasi}
-            icon={MapPin}
-          />
+        {/* Progres */}
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              Progres Pembangunan
+            </p>
 
-          <MetaCard
-            label="Sumber Dana"
-            value={
-              item.sumber_dana
-            }
-            icon={
-              CircleDollarSign
-            }
-          />
-
-          <MetaCard
-            label="Anggaran"
-            value={formatRupiah(
-              item.anggaran
-            )}
-            icon={
-              CircleDollarSign
-            }
-          />
-
-          <MetaCard
-            label="Nomor Urutan"
-            value={String(
-              item.urutan
-            )}
-            icon={
-              BarChart3
-            }
-          />
-        </div>
-
-        <div className="mt-5">
-          <div className="mb-2 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            <span>
-              Progres Pekerjaan
-            </span>
-
-            <span>
-              {item.progres}%
-            </span>
+            <p className="text-sm font-black text-slate-900">
+              {proyek.progres}%
+            </p>
           </div>
 
-          <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-700 to-emerald-400"
+              className={`h-full rounded-full transition-all ${getProgressClass(
+                proyek.progres
+              )}`}
               style={{
-                width:
-                  `${Math.min(
-                    Math.max(
-                      item.progres,
-                      0
-                    ),
-                    100
-                  )}%`,
+                width: `${Math.min(
+                  Math.max(
+                    proyek.progres,
+                    0
+                  ),
+                  100
+                )}%`,
               }}
             />
           </div>
         </div>
 
         <p className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-slate-400">
-          <CalendarDays
-            size={14}
-          />
+          <CalendarDays size={14} />
 
           Diperbarui{' '}
           {formatTanggal(
-            item.updated_at
+            proyek.updated_at
           )}
         </p>
       </div>
@@ -799,14 +810,14 @@ function PembangunanAdminCard({
           <input
             type="hidden"
             name="id"
-            value={item.id}
+            value={proyek.id}
           />
 
           <input
             type="hidden"
             name="aktif"
             value={String(
-              !item.aktif
+              !proyek.aktif
             )}
           />
 
@@ -814,11 +825,13 @@ function PembangunanAdminCard({
             type="submit"
             className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-amber-100 px-3 text-xs font-extrabold text-amber-700 transition hover:bg-amber-200"
           >
-            <Power
-              size={15}
-            />
+            {proyek.aktif ? (
+              <EyeOff size={15} />
+            ) : (
+              <Eye size={15} />
+            )}
 
-            {item.aktif
+            {proyek.aktif
               ? 'Sembunyikan'
               : 'Publikasikan'}
           </button>
@@ -832,28 +845,24 @@ function PembangunanAdminCard({
           <input
             type="hidden"
             name="id"
-            value={item.id}
+            value={proyek.id}
           />
 
           <button
             type="submit"
             className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-red-100 px-3 text-xs font-extrabold text-red-700 transition hover:bg-red-200"
           >
-            <Trash2
-              size={15}
-            />
+            <Trash2 size={15} />
 
             Hapus
           </button>
         </form>
       </div>
 
-      {/* Edit */}
+      {/* Edit proyek */}
       <details className="border-t border-slate-200 bg-white">
-        <summary className="flex cursor-pointer list-none items-center justify-center gap-2 p-4 text-sm font-extrabold text-slate-700">
-          <Pencil
-            size={16}
-          />
+        <summary className="flex cursor-pointer list-none items-center justify-center gap-2 p-4 text-sm font-extrabold text-slate-700 transition hover:bg-slate-50">
+          <Pencil size={16} />
 
           Edit Proyek
         </summary>
@@ -862,28 +871,135 @@ function PembangunanAdminCard({
           action={
             ubahProyekPembangunanAction
           }
-          encType="multipart/form-data"
-          className="border-t border-slate-200 p-5"
+          className="grid gap-5 border-t border-slate-200 p-5 md:grid-cols-2"
         >
           <input
             type="hidden"
             name="id"
-            value={item.id}
+            value={proyek.id}
           />
 
-          <PembangunanFormFields
-            idPrefix={`edit-${item.id}`}
-            item={item}
+          <div className="md:col-span-2">
+            <TextInput
+              idPrefix={`edit-${proyek.id}`}
+              name="nama"
+              label="Nama Proyek"
+              value={proyek.nama}
+            />
+          </div>
+
+          <TextInput
+            idPrefix={`edit-${proyek.id}`}
+            name="lokasi"
+            label="Lokasi"
+            value={proyek.lokasi}
           />
 
-          <div className="mt-6 flex justify-end">
+          <TextInput
+            idPrefix={`edit-${proyek.id}`}
+            name="sumber_dana"
+            label="Sumber Dana"
+            value={proyek.sumber_dana}
+          />
+
+          <NumberInput
+            idPrefix={`edit-${proyek.id}`}
+            name="tahun"
+            label="Tahun"
+            value={String(
+              proyek.tahun
+            )}
+            min={1900}
+            max={2200}
+            step="1"
+          />
+
+          <NumberInput
+            idPrefix={`edit-${proyek.id}`}
+            name="anggaran"
+            label="Anggaran"
+            value={String(
+              proyek.anggaran
+            )}
+            min={0}
+            step="1"
+          />
+
+          <NumberInput
+            idPrefix={`edit-${proyek.id}`}
+            name="progres"
+            label="Progres"
+            value={String(
+              proyek.progres
+            )}
+            min={0}
+            max={100}
+            step="1"
+            suffix="%"
+          />
+
+          <StatusSelect
+            idPrefix={`edit-${proyek.id}`}
+            value={proyek.status}
+          />
+
+          <NumberInput
+            idPrefix={`edit-${proyek.id}`}
+            name="urutan"
+            label="Nomor Urutan"
+            value={String(
+              proyek.urutan
+            )}
+            min={0}
+            step="1"
+          />
+
+          <Checkbox
+            id={`edit-${proyek.id}-aktif`}
+            name="aktif"
+            label="Publikasikan Proyek"
+            description="Tampilkan proyek pada halaman publik."
+            checked={proyek.aktif}
+          />
+
+          <div className="md:col-span-2">
+            <TextArea
+              idPrefix={`edit-${proyek.id}`}
+              name="deskripsi"
+              label="Deskripsi Proyek"
+              value={proyek.deskripsi}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <FileInput
+              id={`edit-${proyek.id}-gambar`}
+              name="gambar"
+              label="Ganti Gambar Proyek"
+              description="Kosongkan bila gambar lama tetap digunakan."
+              required={false}
+            />
+          </div>
+
+          {proyek.gambar_url && (
+            <div className="md:col-span-2">
+              <Checkbox
+                id={`edit-${proyek.id}-hapus-gambar`}
+                name="hapus_gambar"
+                label="Hapus Gambar Lama"
+                description="Centang untuk menghapus gambar tanpa menggantinya."
+                checked={false}
+                variant="danger"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end md:col-span-2">
             <button
               type="submit"
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-800 px-6 text-sm font-extrabold text-white transition hover:bg-slate-900 sm:w-auto"
             >
-              <Save
-                size={17}
-              />
+              <Save size={17} />
 
               Simpan Perubahan
             </button>
@@ -894,239 +1010,46 @@ function PembangunanAdminCard({
   );
 }
 
-function PembangunanFormFields({
-  idPrefix,
-  item,
-  defaultTahun,
-  defaultUrutan = 0,
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  icon: Icon,
+  variant = 'emerald',
 }: {
-  idPrefix: string;
-  item?: ProyekPembangunan;
-  defaultTahun?: number;
-  defaultUrutan?: number;
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  variant?: 'emerald' | 'slate';
 }) {
-  return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <TextInput
-        idPrefix={idPrefix}
-        name="nama"
-        label="Nama Kegiatan"
-        value={
-          item?.nama ??
-          ''
-        }
-        placeholder="Contoh: Pembangunan Rabat Beton"
-      />
-
-      <TextInput
-        idPrefix={idPrefix}
-        name="lokasi"
-        label="Lokasi"
-        value={
-          item?.lokasi ??
-          ''
-        }
-        placeholder="Contoh: Dusun Suruhan"
-      />
-
-      <NumberInput
-        idPrefix={idPrefix}
-        name="tahun"
-        label="Tahun"
-        value={String(
-          item?.tahun ??
-            defaultTahun ??
-            ''
-        )}
-        min={1900}
-        max={2200}
-        step="1"
-      />
-
-      <TextInput
-        idPrefix={idPrefix}
-        name="sumber_dana"
-        label="Sumber Dana"
-        value={
-          item?.sumber_dana ??
-          ''
-        }
-        placeholder="Contoh: Dana Desa"
-      />
-
-      <NumberInput
-        idPrefix={idPrefix}
-        name="anggaran"
-        label="Anggaran"
-        value={String(
-          item?.anggaran ??
-            0
-        )}
-        min={0}
-        step="1"
-        placeholder="100000000"
-      />
-
-      <NumberInput
-        idPrefix={idPrefix}
-        name="progres"
-        label="Progres (%)"
-        value={String(
-          item?.progres ??
-            0
-        )}
-        min={0}
-        max={100}
-        step="1"
-      />
-
-      <SelectStatus
-        idPrefix={idPrefix}
-        value={
-          item?.status ??
-          'Perencanaan'
-        }
-      />
-
-      <NumberInput
-        idPrefix={idPrefix}
-        name="urutan"
-        label="Nomor Urutan"
-        value={String(
-          item?.urutan ??
-            defaultUrutan
-        )}
-        min={0}
-        step="1"
-      />
-
-      <div className="md:col-span-2">
-        <TextArea
-          idPrefix={idPrefix}
-          name="deskripsi"
-          label="Deskripsi Kegiatan"
-          value={
-            item?.deskripsi ??
-            ''
-          }
-          placeholder="Jelaskan tujuan, ruang lingkup, dan hasil kegiatan pembangunan."
-          rows={5}
-        />
-      </div>
-
-      <div className="md:col-span-2">
-        <FileUploadField
-          idPrefix={idPrefix}
-          item={item}
-        />
-      </div>
-
-      <div className="md:col-span-2">
-        <Checkbox
-          id={`${idPrefix}-aktif`}
-          name="aktif"
-          label="Publikasikan Proyek"
-          description="Proyek ditampilkan pada halaman publik Pembangunan Desa."
-          checked={
-            item?.aktif ??
-            true
-          }
-        />
-      </div>
-    </div>
-  );
-}
-
-function FileUploadField({
-  idPrefix,
-  item,
-}: {
-  idPrefix: string;
-  item?: ProyekPembangunan;
-}) {
-  const inputId =
-    `${idPrefix}-gambar_file`;
-
-  const removeId =
-    `${idPrefix}-hapus_gambar`;
+  const iconClass =
+    variant === 'emerald'
+      ? 'bg-emerald-700'
+      : 'bg-slate-800';
 
   return (
-    <div>
-      <label
-        htmlFor={inputId}
-        className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
-      >
-        Dokumentasi Gambar
-      </label>
-
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <UploadCloud
-              size={23}
-            />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <input
-              id={inputId}
-              name="gambar_file"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="block w-full text-sm font-semibold text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-700 file:px-4 file:py-2.5 file:text-xs file:font-extrabold file:text-white hover:file:bg-emerald-800"
-            />
-
-            <p className="mt-2 text-xs font-medium leading-5 text-slate-400">
-              Format JPG, PNG, atau WebP.
-              Ukuran maksimal 5 MB.
-            </p>
-          </div>
+    <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-5 sm:px-7">
+      <div className="flex items-start gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white ${iconClass}`}
+        >
+          <Icon size={23} />
         </div>
 
-        {item?.gambar_url && (
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">
-              Gambar Saat Ini
-            </p>
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+            {eyebrow}
+          </p>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <img
-                src={
-                  item.gambar_url
-                }
-                alt={
-                  item.nama
-                }
-                className="h-56 w-full object-cover"
-              />
-            </div>
+          <h2 className="mt-1 text-xl font-black text-slate-900">
+            {title}
+          </h2>
 
-            <label
-              htmlFor={removeId}
-              className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4"
-            >
-              <input
-                id={removeId}
-                type="checkbox"
-                name="hapus_gambar"
-                value="true"
-                className="mt-1 h-4 w-4 shrink-0 accent-red-600"
-              />
-
-              <span>
-                <span className="block text-sm font-extrabold text-red-700">
-                  Hapus gambar saat ini
-                </span>
-
-                <span className="mt-1 block text-xs font-medium leading-5 text-red-600/80">
-                  Centang apabila gambar
-                  ingin dihapus tanpa
-                  mengunggah gambar baru.
-                </span>
-              </span>
-            </label>
-          </div>
-        )}
+          <p className="mt-1 text-sm font-medium leading-6 text-slate-500">
+            {description}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -1156,56 +1079,23 @@ function StatCard({
           <p
             className={`mt-3 break-words font-black text-slate-900 ${
               compact
-                ? 'text-xl'
+                ? 'text-xl leading-7'
                 : 'text-4xl'
             }`}
           >
             {value}
           </p>
 
-          <p className="mt-2 text-xs font-semibold text-slate-500">
+          <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
             {description}
           </p>
         </div>
 
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-          <Icon
-            size={22}
-          />
+          <Icon size={22} />
         </div>
       </div>
     </article>
-  );
-}
-
-function MetaCard({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-}) {
-  return (
-    <div className="rounded-2xl bg-white p-4">
-      <div className="flex items-start gap-3">
-        <Icon
-          size={16}
-          className="mt-0.5 shrink-0 text-emerald-700"
-        />
-
-        <div className="min-w-0">
-          <p className="text-[9px] font-extrabold uppercase tracking-[0.13em] text-slate-400">
-            {label}
-          </p>
-
-          <p className="mt-1 break-words text-xs font-black leading-5 text-slate-700">
-            {value}
-          </p>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -1215,67 +1105,14 @@ function TextInput({
   label,
   value = '',
   placeholder,
-  required = true,
 }: {
   idPrefix: string;
   name: string;
   label: string;
   value?: string;
   placeholder?: string;
-  required?: boolean;
 }) {
-  const id =
-    `${idPrefix}-${name}`;
-
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
-      >
-        {label}
-
-        {required && (
-          <span className="ml-1 text-red-500">
-            *
-          </span>
-        )}
-      </label>
-
-      <input
-        id={id}
-        name={name}
-        type="text"
-        required={required}
-        defaultValue={value}
-        placeholder={placeholder}
-        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-      />
-    </div>
-  );
-}
-
-function NumberInput({
-  idPrefix,
-  name,
-  label,
-  value,
-  placeholder,
-  min,
-  max,
-  step,
-}: {
-  idPrefix: string;
-  name: string;
-  label: string;
-  value: string;
-  placeholder?: string;
-  min: number;
-  max?: number;
-  step: string;
-}) {
-  const id =
-    `${idPrefix}-${name}`;
+  const id = `${idPrefix}-${name}`;
 
   return (
     <div>
@@ -1293,11 +1130,8 @@ function NumberInput({
       <input
         id={id}
         name={name}
-        type="number"
+        type="text"
         required
-        min={min}
-        max={max}
-        step={step}
         defaultValue={value}
         placeholder={placeholder}
         className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
@@ -1306,15 +1140,76 @@ function NumberInput({
   );
 }
 
-function SelectStatus({
+function NumberInput({
+  idPrefix,
+  name,
+  label,
+  value,
+  min,
+  max,
+  step,
+  placeholder,
+  suffix,
+}: {
+  idPrefix: string;
+  name: string;
+  label: string;
+  value: string;
+  min: number;
+  max?: number;
+  step: string;
+  placeholder?: string;
+  suffix?: string;
+}) {
+  const id = `${idPrefix}-${name}`;
+
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
+      >
+        {label}
+
+        <span className="ml-1 text-red-500">
+          *
+        </span>
+      </label>
+
+      <div className="relative">
+        <input
+          id={id}
+          name={name}
+          type="number"
+          required
+          min={min}
+          max={max}
+          step={step}
+          defaultValue={value}
+          placeholder={placeholder}
+          className={`h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100 ${
+            suffix ? 'pr-11' : ''
+          }`}
+        />
+
+        {suffix && (
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-extrabold text-slate-400">
+            {suffix}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatusSelect({
   idPrefix,
   value,
 }: {
   idPrefix: string;
   value: StatusPembangunan;
 }) {
-  const id =
-    `${idPrefix}-status`;
+  const id = `${idPrefix}-status`;
 
   return (
     <div>
@@ -1355,19 +1250,16 @@ function TextArea({
   idPrefix,
   name,
   label,
-  value,
+  value = '',
   placeholder,
-  rows = 4,
 }: {
   idPrefix: string;
   name: string;
   label: string;
-  value: string;
+  value?: string;
   placeholder?: string;
-  rows?: number;
 }) {
-  const id =
-    `${idPrefix}-${name}`;
+  const id = `${idPrefix}-${name}`;
 
   return (
     <div>
@@ -1385,12 +1277,69 @@ function TextArea({
       <textarea
         id={id}
         name={name}
-        rows={rows}
+        rows={5}
         required
         defaultValue={value}
         placeholder={placeholder}
         className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-7 text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
+    </div>
+  );
+}
+
+function FileInput({
+  id,
+  name,
+  label,
+  description = 'Format JPG, PNG, atau WebP. Ukuran maksimal 5 MB.',
+  required,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  description?: string;
+  required: boolean;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
+      >
+        {label}
+
+        {required && (
+          <span className="ml-1 text-red-500">
+            *
+          </span>
+        )}
+      </label>
+
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center transition hover:border-emerald-400 hover:bg-emerald-50"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
+          <Upload size={22} />
+        </div>
+
+        <p className="mt-4 text-sm font-extrabold text-slate-700">
+          Pilih gambar dari perangkat
+        </p>
+
+        <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+          {description}
+        </p>
+
+        <input
+          id={id}
+          name={name}
+          type="file"
+          required={required}
+          accept="image/jpeg,image/png,image/webp"
+          className="mt-5 block w-full max-w-md text-xs font-semibold text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-700 file:px-4 file:py-2.5 file:text-xs file:font-extrabold file:text-white hover:file:bg-emerald-800"
+        />
+      </label>
     </div>
   );
 }
@@ -1401,17 +1350,29 @@ function Checkbox({
   label,
   description,
   checked,
+  variant = 'default',
 }: {
   id: string;
   name: string;
   label: string;
   description: string;
   checked: boolean;
+  variant?: 'default' | 'danger';
 }) {
+  const styles =
+    variant === 'danger'
+      ? 'border-red-200 bg-red-50'
+      : 'border-slate-200 bg-slate-50';
+
+  const iconStyles =
+    variant === 'danger'
+      ? 'accent-red-600'
+      : 'accent-emerald-700';
+
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+      className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 ${styles}`}
     >
       <input
         id={id}
@@ -1419,18 +1380,50 @@ function Checkbox({
         name={name}
         value="true"
         defaultChecked={checked}
-        className="mt-1 h-4 w-4 shrink-0 accent-emerald-700"
+        className={`mt-1 h-4 w-4 shrink-0 ${iconStyles}`}
       />
 
       <span>
-        <span className="block text-sm font-extrabold text-slate-700">
+        <span
+          className={`block text-sm font-extrabold ${
+            variant === 'danger'
+              ? 'text-red-800'
+              : 'text-slate-700'
+          }`}
+        >
           {label}
         </span>
 
-        <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">
+        <span
+          className={`mt-1 block text-xs font-medium leading-5 ${
+            variant === 'danger'
+              ? 'text-red-600'
+              : 'text-slate-500'
+          }`}
+        >
           {description}
         </span>
       </span>
     </label>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="px-6 py-16 text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+        <HardHat size={30} />
+      </div>
+
+      <h3 className="mt-5 text-lg font-black text-slate-800">
+        Belum ada proyek pembangunan
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-slate-500">
+        Tambahkan proyek melalui
+        formulir di atas agar data dapat
+        dikelola dan dipublikasikan.
+      </p>
+    </div>
   );
 }

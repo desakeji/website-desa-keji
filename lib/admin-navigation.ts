@@ -243,7 +243,7 @@ export const publicContentModules: AdminNavigationItem[] = [
     href: '/admin/desa-anti-korupsi',
     publicHref: '/desa-anti-korupsi',
     icon: ShieldCheck,
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'pengaduan',
