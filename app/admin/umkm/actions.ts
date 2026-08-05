@@ -18,6 +18,15 @@ import {
   supabaseAdmin,
 } from '@/lib/supabase-admin';
 
+const ADMIN_PATH =
+  '/admin/umkm';
+
+const SETTINGS_TABLE =
+  'paket_wisata_settings';
+
+const SETTINGS_KEY =
+  'utama';
+
 async function requireAdmin() {
   const supabase =
     await createClient();
@@ -181,12 +190,12 @@ function buildAdminUrl(
       [type]: message,
     });
 
-  return `/admin/umkm?${params.toString()}#${section}`;
+  return `${ADMIN_PATH}?${params.toString()}#${section}`;
 }
 
 function revalidateUmkm() {
   revalidatePath(
-    '/admin/umkm'
+    ADMIN_PATH
   );
 
   revalidatePath(
@@ -194,9 +203,196 @@ function revalidateUmkm() {
   );
 
   revalidatePath(
+    '/profil/sejarah'
+  );
+
+  revalidatePath(
+    '/desa-wisata/paket-wisata'
+  );
+
+  revalidatePath(
     '/admin'
   );
 }
+
+/* =========================================================
+   E-CATALOG UMKM
+========================================================= */
+
+interface EcatalogInput {
+  judul: string;
+  deskripsi: string;
+  url: string;
+  aktif: boolean;
+}
+
+function parseEcatalogInput(
+  formData: FormData
+): EcatalogInput {
+  return {
+    judul:
+      getString(
+        formData,
+        'ecatalog_judul'
+      ),
+
+    deskripsi:
+      getString(
+        formData,
+        'ecatalog_deskripsi'
+      ),
+
+    url:
+      getString(
+        formData,
+        'ecatalog_url'
+      ),
+
+    aktif:
+      getBoolean(
+        formData,
+        'ecatalog_aktif'
+      ),
+  };
+}
+
+function validateEcatalog(
+  input: EcatalogInput
+) {
+  if (
+    input.judul.length < 5
+  ) {
+    return 'Judul E-Catalog minimal terdiri dari 5 karakter.';
+  }
+
+  if (
+    input.deskripsi.length <
+    10
+  ) {
+    return 'Deskripsi E-Catalog minimal terdiri dari 10 karakter.';
+  }
+
+  if (
+    input.url &&
+    !isValidExternalUrl(
+      input.url
+    )
+  ) {
+    return 'URL E-Catalog harus berupa alamat http:// atau https:// yang valid.';
+  }
+
+  if (
+    input.aktif &&
+    !input.url
+  ) {
+    return 'URL E-Catalog wajib diisi sebelum E-Catalog diaktifkan.';
+  }
+
+  return null;
+}
+
+export async function simpanEcatalogUmkmAction(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const input =
+    parseEcatalogInput(
+      formData
+    );
+
+  const validationError =
+    validateEcatalog(
+      input
+    );
+
+  if (validationError) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        validationError,
+        'ecatalog-umkm'
+      )
+    );
+  }
+
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      SETTINGS_TABLE
+    )
+    .upsert(
+      {
+        setting_key:
+          SETTINGS_KEY,
+
+        ecatalog_judul:
+          input.judul,
+
+        ecatalog_deskripsi:
+          input.deskripsi,
+
+        ecatalog_url:
+          input.url ||
+          null,
+
+        ecatalog_aktif:
+          input.aktif,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      },
+      {
+        onConflict:
+          'setting_key',
+      }
+    );
+
+  if (error) {
+    console.error(
+      'Gagal menyimpan pengaturan E-Catalog UMKM:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildAdminUrl(
+        'error',
+        error.message,
+        'ecatalog-umkm'
+      )
+    );
+  }
+
+  revalidateUmkm();
+
+  redirect(
+    buildAdminUrl(
+      'success',
+      input.aktif
+        ? 'E-Catalog UMKM berhasil disimpan dan dipublikasikan.'
+        : 'Pengaturan E-Catalog UMKM berhasil disimpan.',
+      'ecatalog-umkm'
+    )
+  );
+}
+
+/* =========================================================
+   PRODUK UMKM
+========================================================= */
 
 interface ProdukInput {
   namaProduk: string;

@@ -226,6 +226,14 @@ const navItems: NavItem[] = [
         name: 'Peta & Informasi Kunjungan',
         href: '/desa-wisata/informasi-kunjungan',
       },
+      {
+        name: 'Video Tutorial',
+        href: '/desa-wisata/video-tutorial',
+      },
+      {
+        name: 'Panduan Pelayanan Wisata',
+        href: '/desa-wisata/panduan-pelayanan',
+      },
     ],
   },
   {

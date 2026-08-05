@@ -3,13 +3,15 @@
 'use client';
 
 import {
-  FormEvent,
   useMemo,
   useState,
+  type FormEvent,
 } from 'react';
 
 import {
   BadgeCheck,
+  ExternalLink,
+  FileText,
   MapPin,
   PackageSearch,
   Search,
@@ -19,13 +21,18 @@ import {
   UserRound,
 } from 'lucide-react';
 
-import type {
-  ProdukUmkm,
-} from '@/types/umkm';
+import type { ProdukUmkm } from '@/types/umkm';
+
+interface EcatalogUmkm {
+  judul: string;
+  deskripsi: string;
+  url: string;
+}
 
 interface LapakDesaClientProps {
   produk: ProdukUmkm[];
   kategori: string[];
+  ecatalog: EcatalogUmkm | null;
 }
 
 function formatRupiah(
@@ -52,16 +59,12 @@ function normalizeWhatsapp(
   let nomor =
     value.replace(/\D/g, '');
 
-  if (
-    nomor.startsWith('0')
-  ) {
+  if (nomor.startsWith('0')) {
     nomor =
       `62${nomor.slice(1)}`;
   }
 
-  if (
-    nomor.startsWith('8')
-  ) {
+  if (nomor.startsWith('8')) {
     nomor = `62${nomor}`;
   }
 
@@ -82,15 +85,16 @@ function getWhatsappUrl(
     return null;
   }
 
-  const pesan =
-    [
-      'Halo, saya mendapatkan informasi produk dari Website Desa Keji.',
-      '',
-      `Saya tertarik membeli: ${item.nama_produk}`,
-      `Harga: ${formatRupiah(item.harga)} / ${item.satuan}`,
-      '',
-      'Apakah produk masih tersedia?',
-    ].join('\n');
+  const pesan = [
+    'Halo, saya mendapatkan informasi produk dari Website Desa Keji.',
+    '',
+    `Saya tertarik membeli: ${item.nama_produk}`,
+    `Harga: ${formatRupiah(
+      item.harga
+    )} / ${item.satuan}`,
+    '',
+    'Apakah produk masih tersedia?',
+  ].join('\n');
 
   return `https://wa.me/${nomor}?text=${encodeURIComponent(
     pesan
@@ -100,6 +104,7 @@ function getWhatsappUrl(
 export default function LapakDesaClient({
   produk,
   kategori,
+  ecatalog,
 }: LapakDesaClientProps) {
   const [
     kategoriAktif,
@@ -126,6 +131,15 @@ export default function LapakDesaClient({
     setPencarian(
       inputPencarian.trim()
     );
+  }
+
+  function resetFilter() {
+    setKategoriAktif(
+      'Semua Kategori'
+    );
+
+    setInputPencarian('');
+    setPencarian('');
   }
 
   const produkTersaring =
@@ -204,30 +218,81 @@ export default function LapakDesaClient({
             </p>
           </div>
 
-          {/* Filter */}
+          {/* E-Catalog Produk UMKM */}
+          <section className="border-b border-slate-200 bg-gradient-to-r from-emerald-950 via-emerald-800 to-teal-700 p-5 text-white md:p-7">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+                  <FileText size={23} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-200">
+                    Katalog Digital UMKM
+                  </p>
+
+                  <h2 className="mt-2 text-xl font-black md:text-2xl">
+                    {ecatalog
+                      ? ecatalog.judul
+                      : 'E-Catalog Produk UMKM Desa Keji'}
+                  </h2>
+
+                  <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
+                    {ecatalog
+                      ? ecatalog.deskripsi
+                      : 'E-Catalog sedang disiapkan dan akan segera tersedia untuk masyarakat.'}
+                  </p>
+                </div>
+              </div>
+
+              {ecatalog ? (
+                <a
+                  href={ecatalog.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-extrabold text-emerald-900 shadow-lg transition hover:bg-emerald-50"
+                >
+                  <FileText size={17} />
+
+                  Buka E-Catalog
+
+                  <ExternalLink
+                    size={15}
+                  />
+                </a>
+              ) : (
+                <span className="inline-flex min-h-12 shrink-0 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-6 text-sm font-extrabold text-emerald-100">
+                  <FileText size={17} />
+
+                  E-Catalog Disiapkan
+                </span>
+              )}
+            </div>
+          </section>
+
+          {/* Filter Produk */}
           <form
             onSubmit={handleSubmit}
             className="grid gap-3 border-b border-slate-200 bg-slate-50/70 p-5 md:grid-cols-[minmax(230px,0.8fr)_minmax(260px,1fr)_auto] md:p-7"
           >
-            <label className="sr-only">
+            <label
+              htmlFor="kategori-umkm"
+              className="sr-only"
+            >
               Pilih kategori
             </label>
 
             <select
-              value={
-                kategoriAktif
-              }
-              onChange={(
-                event
-              ) =>
+              id="kategori-umkm"
+              value={kategoriAktif}
+              onChange={(event) =>
                 setKategoriAktif(
-                  event.target
-                    .value
+                  event.target.value
                 )
               }
-              className="h-13 w-full rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             >
-              <option>
+              <option value="Semua Kategori">
                 Semua Kategori
               </option>
 
@@ -254,22 +319,19 @@ export default function LapakDesaClient({
                 value={
                   inputPencarian
                 }
-                onChange={(
-                  event
-                ) =>
+                onChange={(event) =>
                   setInputPencarian(
-                    event.target
-                      .value
+                    event.target.value
                   )
                 }
                 placeholder="Cari produk atau penjual"
-                className="h-13 w-full rounded-xl border-2 border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </div>
 
             <button
               type="submit"
-              className="inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800"
             >
               <Search size={17} />
 
@@ -294,17 +356,7 @@ export default function LapakDesaClient({
                 'Semua Kategori') && (
               <button
                 type="button"
-                onClick={() => {
-                  setKategoriAktif(
-                    'Semua Kategori'
-                  );
-
-                  setInputPencarian(
-                    ''
-                  );
-
-                  setPencarian('');
-                }}
+                onClick={resetFilter}
                 className="w-fit text-xs font-extrabold text-emerald-700 transition hover:text-emerald-900"
               >
                 Hapus filter
@@ -312,7 +364,7 @@ export default function LapakDesaClient({
             )}
           </div>
 
-          {/* Daftar produk */}
+          {/* Daftar Produk */}
           <div className="p-5 md:p-7">
             {produkTersaring.length >
             0 ? (
@@ -362,7 +414,7 @@ function ProdukCard({
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl">
-      {/* Gambar produk */}
+      {/* Gambar Produk */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {item.gambar_url ? (
           <img
@@ -388,7 +440,7 @@ function ProdukCard({
         </span>
       </div>
 
-      {/* Informasi */}
+      {/* Informasi Produk */}
       <div className="flex flex-1 flex-col p-5">
         <h2 className="text-lg font-black leading-snug text-slate-900">
           {item.nama_produk}
@@ -445,7 +497,7 @@ function ProdukCard({
           </div>
         )}
 
-        {/* Tombol */}
+        {/* Tombol Produk */}
         <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
           {whatsappUrl ? (
             <a
@@ -472,24 +524,18 @@ function ProdukCard({
 
           {item.lokasi_url ? (
             <a
-              href={
-                item.lokasi_url
-              }
+              href={item.lokasi_url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-cyan-600 px-3 text-xs font-extrabold text-white transition hover:bg-cyan-700"
             >
-              <MapPin
-                size={15}
-              />
+              <MapPin size={15} />
 
               Lokasi
             </a>
           ) : (
             <span className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 text-xs font-extrabold text-slate-400">
-              <MapPin
-                size={15}
-              />
+              <MapPin size={15} />
 
               Lokasi
             </span>

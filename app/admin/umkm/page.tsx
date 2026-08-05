@@ -7,8 +7,9 @@ import {
   BadgeCheck,
   CheckCircle2,
   ExternalLink,
+  FileText,
   ImageIcon,
-  MapPin,
+  Link2,
   Package,
   Pencil,
   Power,
@@ -24,6 +25,7 @@ import {
 
 import {
   hapusProdukUmkmAction,
+  simpanEcatalogUmkmAction,
   tambahProdukUmkmAction,
   toggleAktifProdukUmkmAction,
   toggleVerifikasiProdukUmkmAction,
@@ -50,6 +52,27 @@ interface PageProps {
   }>;
 }
 
+interface EcatalogSettings {
+  ecatalog_judul: string;
+  ecatalog_deskripsi: string;
+  ecatalog_url: string | null;
+  ecatalog_aktif: boolean;
+  updated_at: string;
+}
+
+const fallbackEcatalog:
+  EcatalogSettings = {
+  ecatalog_judul:
+    'E-Catalog Produk UMKM Desa Keji',
+
+  ecatalog_deskripsi:
+    'Jelajahi katalog digital produk makanan, minuman, kerajinan, dan usaha masyarakat Desa Keji.',
+
+  ecatalog_url: null,
+  ecatalog_aktif: false,
+  updated_at: '',
+};
+
 function safeString(
   value: unknown
 ) {
@@ -65,6 +88,78 @@ function nullableString(
     safeString(value);
 
   return text || null;
+}
+
+function isExternalUrl(
+  value: string | null
+) {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const url =
+      new URL(value);
+
+    return (
+      url.protocol ===
+        'https:' ||
+      url.protocol ===
+        'http:'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function normalizeEcatalog(
+  value: unknown
+): EcatalogSettings {
+  if (
+    !value ||
+    typeof value !==
+      'object' ||
+    Array.isArray(value)
+  ) {
+    return fallbackEcatalog;
+  }
+
+  const row =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  return {
+    ecatalog_judul:
+      safeString(
+        row.ecatalog_judul
+      ) ||
+      fallbackEcatalog
+        .ecatalog_judul,
+
+    ecatalog_deskripsi:
+      safeString(
+        row.ecatalog_deskripsi
+      ) ||
+      fallbackEcatalog
+        .ecatalog_deskripsi,
+
+    ecatalog_url:
+      nullableString(
+        row.ecatalog_url
+      ),
+
+    ecatalog_aktif:
+      Boolean(
+        row.ecatalog_aktif
+      ),
+
+    updated_at:
+      safeString(
+        row.updated_at
+      ),
+  };
 }
 
 function normalizeProduk(
@@ -109,8 +204,7 @@ function normalizeProduk(
 
     harga:
       Number(
-        row.harga ??
-          0
+        row.harga ?? 0
       ),
 
     satuan:
@@ -160,8 +254,7 @@ function normalizeProduk(
 
     urutan:
       Number(
-        row.urutan ??
-          0
+        row.urutan ?? 0
       ),
 
     created_at:
@@ -239,6 +332,7 @@ export default async function AdminUmkmPage({
   const [
     params,
     produkResult,
+    ecatalogResult,
   ] = await Promise.all([
     searchParams,
 
@@ -277,6 +371,23 @@ export default async function AdminUmkmPage({
           ascending: false,
         }
       ),
+
+    supabaseAdmin
+      .from(
+        'paket_wisata_settings'
+      )
+      .select(`
+        ecatalog_judul,
+        ecatalog_deskripsi,
+        ecatalog_url,
+        ecatalog_aktif,
+        updated_at
+      `)
+      .eq(
+        'setting_key',
+        'utama'
+      )
+      .maybeSingle(),
   ]);
 
   if (
@@ -304,6 +415,31 @@ export default async function AdminUmkmPage({
     );
   }
 
+  if (
+    ecatalogResult.error
+  ) {
+    console.error(
+      'Gagal mengambil pengaturan E-Catalog:',
+      {
+        message:
+          ecatalogResult.error
+            .message,
+
+        code:
+          ecatalogResult.error
+            .code,
+
+        details:
+          ecatalogResult.error
+            .details,
+
+        hint:
+          ecatalogResult.error
+            .hint,
+      }
+    );
+  }
+
   const daftarProduk =
     (
       produkResult.data ??
@@ -318,6 +454,20 @@ export default async function AdminUmkmPage({
         ): item is ProdukUmkm =>
           item !== null
       );
+
+  const ecatalog =
+    normalizeEcatalog(
+      ecatalogResult.data
+    );
+
+  const ecatalogUrlValid =
+    isExternalUrl(
+      ecatalog.ecatalog_url
+    );
+
+  const ecatalogTayang =
+    ecatalog.ecatalog_aktif &&
+    ecatalogUrlValid;
 
   const produkAktif =
     daftarProduk.filter(
@@ -397,8 +547,9 @@ export default async function AdminUmkmPage({
                 Kelola produk, penjual,
                 harga, kategori, foto,
                 lokasi, nomor WhatsApp,
-                verifikasi, dan status
-                publikasi produk UMKM.
+                E-Catalog, verifikasi,
+                dan status publikasi
+                produk UMKM.
               </p>
             </div>
           </div>
@@ -420,29 +571,31 @@ export default async function AdminUmkmPage({
 
       {/* Pesan */}
       {params.success && (
-        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
-          <CheckCircle2
-            size={20}
-            className="mt-0.5 shrink-0"
-          />
-
-          <p className="text-sm font-semibold leading-6">
-            {params.success}
-          </p>
-        </div>
+        <Message
+          type="success"
+          text={params.success}
+        />
       )}
 
       {params.error && (
-        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-          <AlertCircle
-            size={20}
-            className="mt-0.5 shrink-0"
-          />
+        <Message
+          type="error"
+          text={params.error}
+        />
+      )}
 
-          <p className="text-sm font-semibold leading-6">
-            {params.error}
-          </p>
-        </div>
+      {produkResult.error && (
+        <Message
+          type="error"
+          text="Data produk UMKM gagal dimuat."
+        />
+      )}
+
+      {ecatalogResult.error && (
+        <Message
+          type="error"
+          text="Pengaturan E-Catalog gagal dimuat. Pastikan tabel paket_wisata_settings sudah tersedia."
+        />
       )}
 
       {/* Statistik */}
@@ -474,15 +627,205 @@ export default async function AdminUmkmPage({
 
         <StatCard
           label="Penjual dan Kategori"
-          value={
-            totalPenjual
-          }
+          value={totalPenjual}
           description={`${totalKategori} kategori produk`}
           icon={Users}
         />
       </section>
 
-      {/* Tambah produk */}
+      {/* Kelola E-Catalog */}
+      <form
+        id="ecatalog-umkm"
+        action={
+          simpanEcatalogUmkmAction
+        }
+        className="scroll-mt-24 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
+      >
+        <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-5 sm:px-7">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+                <FileText
+                  size={23}
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                  Katalog Digital
+                </p>
+
+                <h2 className="mt-1 text-xl font-black text-slate-900">
+                  Kelola E-Catalog UMKM
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                  E-Catalog ditampilkan
+                  pada halaman Lapak UMKM.
+                  URL dapat diganti kapan
+                  saja melalui formulir ini.
+                </p>
+              </div>
+            </div>
+
+            <span
+              className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-extrabold ${
+                ecatalogTayang
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              {ecatalogTayang ? (
+                <CheckCircle2
+                  size={15}
+                />
+              ) : (
+                <AlertCircle
+                  size={15}
+                />
+              )}
+
+              {ecatalogTayang
+                ? 'Tayang di Publik'
+                : 'Belum Tayang'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-6 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid gap-5">
+            <TextInput
+              idPrefix="ecatalog"
+              name="ecatalog_judul"
+              label="Judul E-Catalog"
+              value={
+                ecatalog.ecatalog_judul
+              }
+              placeholder="E-Catalog Produk UMKM Desa Keji"
+            />
+
+            <TextArea
+              idPrefix="ecatalog"
+              name="ecatalog_deskripsi"
+              label="Deskripsi E-Catalog"
+              value={
+                ecatalog.ecatalog_deskripsi
+              }
+              rows={4}
+            />
+
+            <TextInput
+              idPrefix="ecatalog"
+              name="ecatalog_url"
+              label="URL E-Catalog"
+              type="url"
+              value={
+                ecatalog.ecatalog_url ??
+                ''
+              }
+              placeholder="https://drive.google.com/... atau https://heyzine.com/..."
+              required={false}
+            />
+
+            <Checkbox
+              id="ecatalog-aktif"
+              name="ecatalog_aktif"
+              label="Publikasikan E-Catalog"
+              description="E-Catalog ditampilkan pada halaman Lapak UMKM apabila URL sudah valid."
+              checked={
+                ecatalog.ecatalog_aktif
+              }
+            />
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
+              >
+                <Save size={17} />
+
+                Simpan E-Catalog
+              </button>
+            </div>
+          </div>
+
+          {/* Pratinjau */}
+          <aside className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 text-white shadow-lg">
+            <div className="p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+                <FileText
+                  size={23}
+                />
+              </div>
+
+              <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-200">
+                Pratinjau E-Catalog
+              </p>
+
+              <h3 className="mt-2 text-xl font-black leading-7">
+                {
+                  ecatalog.ecatalog_judul
+                }
+              </h3>
+
+              <p className="mt-3 text-sm font-medium leading-7 text-emerald-50/80">
+                {
+                  ecatalog.ecatalog_deskripsi
+                }
+              </p>
+
+              <div className="mt-6 border-t border-white/10 pt-5">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-200">
+                  Status URL
+                </p>
+
+                <div className="mt-2 flex items-start gap-2">
+                  <Link2
+                    size={16}
+                    className="mt-0.5 shrink-0 text-emerald-200"
+                  />
+
+                  <p className="break-all text-xs font-semibold leading-5 text-emerald-50/80">
+                    {ecatalog.ecatalog_url ||
+                      'URL belum dimasukkan'}
+                  </p>
+                </div>
+              </div>
+
+              {ecatalogUrlValid ? (
+                <a
+                  href={
+                    ecatalog.ecatalog_url ??
+                    '#'
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
+                >
+                  Buka E-Catalog
+
+                  <ExternalLink
+                    size={15}
+                  />
+                </a>
+              ) : (
+                <span className="mt-6 inline-flex min-h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 text-sm font-extrabold text-emerald-100">
+                  URL Belum Tersedia
+                </span>
+              )}
+
+              <p className="mt-4 text-xs font-medium text-emerald-100/60">
+                Diperbarui:{' '}
+                {formatTanggal(
+                  ecatalog.updated_at
+                )}
+              </p>
+            </div>
+          </aside>
+        </div>
+      </form>
+
+      {/* Tambah Produk */}
       <form
         id="tambah-produk"
         action={
@@ -539,7 +882,7 @@ export default async function AdminUmkmPage({
         </div>
       </form>
 
-      {/* Daftar produk */}
+      {/* Daftar Produk */}
       <section
         id="produk-umkm"
         className="scroll-mt-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
@@ -602,7 +945,6 @@ function ProdukAdminCard({
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
       <div className="grid sm:grid-cols-[180px_minmax(0,1fr)]">
-        {/* Gambar */}
         <div className="aspect-[4/3] bg-slate-200 sm:aspect-auto">
           {produk.gambar_url ? (
             <img
@@ -628,7 +970,6 @@ function ProdukAdminCard({
           )}
         </div>
 
-        {/* Informasi */}
         <div className="min-w-0 p-5">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">
@@ -721,7 +1062,6 @@ function ProdukAdminCard({
         </div>
       </div>
 
-      {/* Aksi cepat */}
       <div className="grid gap-2 border-t border-slate-200 bg-white p-4 sm:grid-cols-3">
         <form
           action={
@@ -809,7 +1149,6 @@ function ProdukAdminCard({
         </form>
       </div>
 
-      {/* Edit */}
       <details className="border-t border-slate-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 p-4 text-sm font-extrabold text-slate-700">
           <Pencil size={16} />
@@ -1067,6 +1406,41 @@ function StatCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function Message({
+  type,
+  text,
+}: {
+  type: 'success' | 'error';
+  text: string;
+}) {
+  const success =
+    type === 'success';
+
+  const Icon =
+    success
+      ? CheckCircle2
+      : AlertCircle;
+
+  return (
+    <div
+      className={`flex items-start gap-3 rounded-2xl border p-4 ${
+        success
+          ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+          : 'border-red-200 bg-red-50 text-red-700'
+      }`}
+    >
+      <Icon
+        size={20}
+        className="mt-0.5 shrink-0"
+      />
+
+      <p className="text-sm font-semibold leading-6">
+        {text}
+      </p>
+    </div>
   );
 }
 

@@ -1,3 +1,5 @@
+// components/SidebarLayanan.tsx
+
 'use client';
 
 import {
@@ -7,18 +9,28 @@ import {
 } from 'react';
 
 import {
-  Info,
-  Send,
   CheckCircle2,
-  ShieldCheck,
-  RotateCcw,
   CircleAlert,
+  Info,
+  RotateCcw,
+  Send,
+  ShieldCheck,
 } from 'lucide-react';
 
 import type { PilihanLayanan } from '@/types/layanan';
 
 interface SidebarLayananProps {
   daftarLayanan: PilihanLayanan[];
+
+  /**
+   * Mengatur apakah SidebarLayanan memiliki
+   * posisi sticky sendiri.
+   *
+   * Gunakan sticky={false} apabila komponen
+   * dibungkus bersama sidebar lain dalam
+   * satu container sticky.
+   */
+  sticky?: boolean;
 }
 
 interface ApiResponse {
@@ -29,50 +41,35 @@ interface ApiResponse {
 
 export default function SidebarLayanan({
   daftarLayanan,
+  sticky = true,
 }: SidebarLayananProps) {
   const [nik, setNik] = useState('');
   const [noWa, setNoWa] = useState('');
-  const [layananId, setLayananId] = useState('');
+  const [layananId, setLayananId] =
+    useState('');
 
-  const [isNikVerified, setIsNikVerified] =
-    useState(false);
+  const [
+    isNikVerified,
+    setIsNikVerified,
+  ] = useState(false);
 
-  const [isVerifying, setIsVerifying] =
-    useState(false);
+  const [
+    isVerifying,
+    setIsVerifying,
+  ] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
 
   const [isSuccess, setIsSuccess] =
     useState(false);
 
-  const [errorMessage, setErrorMessage] =
-    useState('');
-
-  useEffect(() => {
-    if (!isSuccess) {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => {
-      resetForm();
-      setIsSuccess(false);
-    }, 5000);
-
-    return () => window.clearTimeout(timeout);
-  }, [isSuccess]);
-
-  const formatNik = (value: string) => {
-    return value.replace(/\D/g, '').slice(0, 16);
-  };
-
-  const maskNik = (value: string) => {
-    if (value.length !== 16) {
-      return value;
-    }
-
-    return `${value.slice(0, 4)}********${value.slice(-4)}`;
-  };
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState('');
 
   const resetForm = () => {
     setNik('');
@@ -80,6 +77,43 @@ export default function SidebarLayanan({
     setLayananId('');
     setIsNikVerified(false);
     setErrorMessage('');
+  };
+
+  useEffect(() => {
+    if (!isSuccess) {
+      return;
+    }
+
+    const timeout =
+      window.setTimeout(() => {
+        resetForm();
+        setIsSuccess(false);
+      }, 5000);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isSuccess]);
+
+  const formatNik = (
+    value: string
+  ) => {
+    return value
+      .replace(/\D/g, '')
+      .slice(0, 16);
+  };
+
+  const maskNik = (
+    value: string
+  ) => {
+    if (value.length !== 16) {
+      return value;
+    }
+
+    return `${value.slice(
+      0,
+      4
+    )}********${value.slice(-4)}`;
   };
 
   const handleVerifikasiNik = async (
@@ -93,6 +127,7 @@ export default function SidebarLayanan({
       setErrorMessage(
         'NIK harus terdiri dari tepat 16 angka.'
       );
+
       return;
     }
 
@@ -103,17 +138,25 @@ export default function SidebarLayanan({
         '/api/warga/verifikasi',
         {
           method: 'POST',
+
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type':
+              'application/json',
           },
-          body: JSON.stringify({ nik }),
+
+          body: JSON.stringify({
+            nik,
+          }),
         }
       );
 
       const result =
         (await response.json()) as ApiResponse;
 
-      if (!response.ok || !result.valid) {
+      if (
+        !response.ok ||
+        !result.valid
+      ) {
         throw new Error(
           result.message ??
             'NIK tidak dapat diverifikasi.'
@@ -145,33 +188,55 @@ export default function SidebarLayanan({
       setErrorMessage(
         'Verifikasi NIK terlebih dahulu.'
       );
+
       return;
     }
 
     if (!layananId) {
-      setErrorMessage('Pilih layanan terlebih dahulu.');
+      setErrorMessage(
+        'Pilih layanan terlebih dahulu.'
+      );
+
+      return;
+    }
+
+    if (!noWa.trim()) {
+      setErrorMessage(
+        'Nomor WhatsApp wajib diisi.'
+      );
+
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/permohonan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nik,
-          noWa,
-          layananId: Number(layananId),
-        }),
-      });
+      const response = await fetch(
+        '/api/permohonan',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+
+          body: JSON.stringify({
+            nik,
+            noWa: noWa.trim(),
+            layananId:
+              Number(layananId),
+          }),
+        }
+      );
 
       const result =
         (await response.json()) as ApiResponse;
 
-      if (!response.ok || !result.success) {
+      if (
+        !response.ok ||
+        !result.success
+      ) {
         throw new Error(
           result.message ??
             'Permohonan gagal dikirim.'
@@ -192,7 +257,14 @@ export default function SidebarLayanan({
   };
 
   return (
-    <div className="sticky top-24 overflow-hidden rounded-2xl border border-emerald-700 bg-emerald-800 shadow-lg">
+    <div
+      className={`overflow-hidden rounded-2xl border border-emerald-700 bg-emerald-800 shadow-lg ${
+        sticky
+          ? 'sticky top-24'
+          : 'relative'
+      }`}
+    >
+      {/* Header */}
       <div className="relative overflow-hidden bg-emerald-600 p-5 text-center">
         <h3 className="relative z-10 text-xl font-extrabold text-white">
           Layanan Cepat
@@ -201,20 +273,26 @@ export default function SidebarLayanan({
         <div className="absolute -bottom-8 -left-4 h-12 w-[120%] rotate-3 rounded-t-[50%] bg-emerald-800" />
       </div>
 
+      {/* Konten */}
       <div className="relative z-20 p-6">
+        {/* Informasi */}
         <div className="mb-6 flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-800 shadow-inner">
           <Info
             size={16}
             className="mt-0.5 shrink-0 text-emerald-600"
           />
 
-          <p>
-            Masukkan NIK yang terdaftar pada data warga
-            Desa Keji. Setelah terverifikasi, pilih layanan
-            yang ingin diajukan.
+          <p className="leading-5">
+            Masukkan NIK yang
+            terdaftar pada data warga
+            Desa Keji. Setelah
+            terverifikasi, pilih
+            layanan yang ingin
+            diajukan.
           </p>
         </div>
 
+        {/* Pesan error */}
         {errorMessage && (
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
             <CircleAlert
@@ -222,10 +300,13 @@ export default function SidebarLayanan({
               className="mt-0.5 shrink-0"
             />
 
-            <p>{errorMessage}</p>
+            <p className="leading-6">
+              {errorMessage}
+            </p>
           </div>
         )}
 
+        {/* Status berhasil */}
         {isSuccess ? (
           <div className="rounded-xl border border-emerald-100 bg-white px-6 py-10 text-center shadow-inner">
             <CheckCircle2
@@ -234,30 +315,36 @@ export default function SidebarLayanan({
             />
 
             <h4 className="mb-2 text-lg font-extrabold text-emerald-800">
-              Permohonan Berhasil Dikirim
+              Permohonan Berhasil
+              Dikirim
             </h4>
 
             <p className="text-sm font-medium leading-relaxed text-gray-600">
-              Permohonan sudah masuk ke sistem desa.
-              Admin akan menghubungi Anda melalui nomor
-              WhatsApp yang telah dimasukkan.
+              Permohonan sudah masuk
+              ke sistem desa. Admin
+              akan menghubungi Anda
+              melalui nomor WhatsApp
+              yang telah dimasukkan.
             </p>
           </div>
         ) : !isNikVerified ? (
+          /* Form verifikasi NIK */
           <form
-            onSubmit={handleVerifikasiNik}
+            onSubmit={
+              handleVerifikasiNik
+            }
             className="space-y-4"
           >
             <div>
               <label
-                htmlFor="nik"
+                htmlFor="sidebar-nik"
                 className="mb-1.5 block text-sm font-semibold text-white"
               >
                 NIK Warga
               </label>
 
               <input
-                id="nik"
+                id="sidebar-nik"
                 name="nik"
                 type="text"
                 inputMode="numeric"
@@ -266,15 +353,21 @@ export default function SidebarLayanan({
                 required
                 value={nik}
                 onChange={(event) => {
-                  setNik(formatNik(event.target.value));
+                  setNik(
+                    formatNik(
+                      event.target.value
+                    )
+                  );
+
                   setErrorMessage('');
                 }}
-                className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none transition focus:ring-2 focus:ring-amber-400"
                 placeholder="Masukkan 16 digit NIK"
               />
 
-              <p className="mt-1.5 text-xs text-emerald-100">
-                NIK digunakan untuk memeriksa status warga
+              <p className="mt-1.5 text-xs leading-5 text-emerald-100">
+                NIK digunakan untuk
+                memeriksa status warga
                 Desa Keji.
               </p>
             </div>
@@ -282,15 +375,19 @@ export default function SidebarLayanan({
             <button
               type="submit"
               disabled={
-                isVerifying || nik.length !== 16
+                isVerifying ||
+                nik.length !== 16
               }
               className={`flex w-full items-center justify-center gap-2 rounded-lg py-3 font-extrabold text-white shadow-md transition-all ${
-                isVerifying || nik.length !== 16
+                isVerifying ||
+                nik.length !== 16
                   ? 'cursor-not-allowed bg-gray-400'
                   : 'bg-amber-500 hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-lg'
               }`}
             >
-              <ShieldCheck size={17} />
+              <ShieldCheck
+                size={17}
+              />
 
               {isVerifying
                 ? 'Memverifikasi NIK...'
@@ -298,10 +395,12 @@ export default function SidebarLayanan({
             </button>
           </form>
         ) : (
+          /* Form permohonan */
           <form
             onSubmit={handleSubmit}
             className="space-y-4"
           >
+            {/* Status NIK */}
             <div className="rounded-lg border border-emerald-200 bg-white p-3">
               <div className="flex items-start gap-2">
                 <CheckCircle2
@@ -309,7 +408,7 @@ export default function SidebarLayanan({
                   className="mt-0.5 shrink-0 text-emerald-500"
                 />
 
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-emerald-800">
                     NIK terverifikasi
                   </p>
@@ -322,95 +421,127 @@ export default function SidebarLayanan({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex items-center gap-1 text-xs font-bold text-gray-500 transition hover:text-emerald-700"
+                  className="flex shrink-0 items-center gap-1 text-xs font-bold text-gray-500 transition hover:text-emerald-700"
                 >
-                  <RotateCcw size={13} />
+                  <RotateCcw
+                    size={13}
+                  />
+
                   Ganti
                 </button>
               </div>
             </div>
 
+            {/* Nomor WhatsApp */}
             <div>
               <label
-                htmlFor="no-wa"
+                htmlFor="sidebar-no-wa"
                 className="mb-1.5 block text-sm font-semibold text-white"
               >
                 Nomor WhatsApp
               </label>
 
               <input
-                id="no-wa"
+                id="sidebar-no-wa"
                 name="no-wa"
                 type="tel"
                 inputMode="tel"
+                autoComplete="tel"
                 required
                 value={noWa}
-                onChange={(event) =>
-                  setNoWa(event.target.value)
-                }
-                className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none focus:ring-2 focus:ring-amber-400"
+                onChange={(event) => {
+                  setNoWa(
+                    event.target.value
+                  );
+
+                  setErrorMessage('');
+                }}
+                className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none transition focus:ring-2 focus:ring-amber-400"
                 placeholder="Contoh: 081234567890"
               />
             </div>
 
+            {/* Pilihan layanan */}
             <div>
-  <div className="mb-1.5 flex items-center justify-between gap-3">
-    <label
-      htmlFor="layanan"
-      className="block text-sm font-semibold text-white"
-    >
-      Pilih Layanan
-    </label>
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <label
+                  htmlFor="sidebar-layanan"
+                  className="block text-sm font-semibold text-white"
+                >
+                  Pilih Layanan
+                </label>
 
-    <span className="rounded-full border border-emerald-300/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-emerald-100">
-      {daftarLayanan.length} pilihan
-    </span>
-  </div>
+                <span className="rounded-full border border-emerald-300/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-emerald-100">
+                  {daftarLayanan.length}{' '}
+                  pilihan
+                </span>
+              </div>
 
-  <select
-    id="layanan"
-    name="layanan"
-    required
-    value={layananId}
-    onChange={(event) => {
-      setLayananId(event.target.value);
-      setErrorMessage('');
-    }}
-    disabled={daftarLayanan.length === 0}
-    className="min-h-12 w-full rounded-xl border border-white/10 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-inner outline-none transition focus:ring-4 focus:ring-amber-400/30 disabled:cursor-not-allowed disabled:bg-slate-200"
-  >
-    <option value="" disabled>
-      {daftarLayanan.length === 0
-        ? 'Layanan belum tersedia'
-        : '-- Pilih Jenis Pelayanan --'}
-    </option>
+              <select
+                id="sidebar-layanan"
+                name="layanan"
+                required
+                value={layananId}
+                onChange={(event) => {
+                  setLayananId(
+                    event.target.value
+                  );
 
-    {daftarLayanan.map((layanan, index) => (
-      <option
-        key={layanan.id}
-        value={layanan.id}
-      >
-        {index + 1}. {layanan.nama}
-      </option>
-    ))}
-  </select>
+                  setErrorMessage('');
+                }}
+                disabled={
+                  daftarLayanan.length ===
+                  0
+                }
+                className="min-h-12 w-full rounded-xl border border-white/10 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-inner outline-none transition focus:ring-4 focus:ring-amber-400/30 disabled:cursor-not-allowed disabled:bg-slate-200"
+              >
+                <option
+                  value=""
+                  disabled
+                >
+                  {daftarLayanan.length ===
+                  0
+                    ? 'Layanan belum tersedia'
+                    : '-- Pilih Jenis Pelayanan --'}
+                </option>
 
-  <p className="mt-2 text-xs font-medium leading-5 text-emerald-100/80">
-    Pilih jenis pelayanan sesuai dokumen atau keperluan
-    administrasi yang akan diajukan.
-  </p>
-</div>
+                {daftarLayanan.map(
+                  (
+                    layanan,
+                    index
+                  ) => (
+                    <option
+                      key={layanan.id}
+                      value={layanan.id}
+                    >
+                      {index + 1}.{' '}
+                      {layanan.nama}
+                    </option>
+                  )
+                )}
+              </select>
 
+              <p className="mt-2 text-xs font-medium leading-5 text-emerald-100/80">
+                Pilih jenis pelayanan
+                sesuai dokumen atau
+                keperluan administrasi
+                yang akan diajukan.
+              </p>
+            </div>
+
+            {/* Tombol kirim */}
             <button
               type="submit"
               disabled={
                 isSubmitting ||
-                daftarLayanan.length === 0
+                daftarLayanan.length ===
+                  0
               }
               className={`mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-3 font-extrabold text-white shadow-md transition-all ${
                 isSubmitting ||
-                daftarLayanan.length === 0
-                  ? 'cursor-wait bg-gray-400'
+                daftarLayanan.length ===
+                  0
+                  ? 'cursor-not-allowed bg-gray-400'
                   : 'bg-amber-500 hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-lg'
               }`}
             >

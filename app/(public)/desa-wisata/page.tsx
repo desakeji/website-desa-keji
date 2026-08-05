@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import {
+  BookOpen,
   ArrowRight,
   BadgeCheck,
   CalendarDays,
@@ -21,6 +22,7 @@ import {
   TreePine,
   UsersRound,
   UtensilsCrossed,
+  PlayCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -95,6 +97,22 @@ const potensiWisata: PotensiWisata[] = [
     icon: Route,
     label: 'Panduan Wisata',
   },
+  {
+  title: 'Video Tutorial',
+  description:
+    'Tonton kumpulan video panduan dan edukasi untuk mendukung pelayanan, pengelolaan, dan pengembangan Desa Wisata Keji.',
+  href: '/desa-wisata/video-tutorial',
+  icon: PlayCircle,
+  label: 'Panduan Visual',
+},
+{
+  title: 'Panduan Pelayanan Wisata',
+  description:
+    'Akses Hospitality Pocket Book sebagai panduan pelayanan bagi pelaku dan pengelola wisata Desa Keji.',
+  href: '/desa-wisata/panduan-pelayanan',
+  icon: BookOpen,
+  label: 'Pocket Book',
+},
 ];
 
 const budayaDesa: BudayaDesa[] = [

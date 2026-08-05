@@ -1,161 +1,324 @@
 // app/(public)/profil/visi-misi/page.tsx
-import { Calendar, User, Eye, Target, ListChecks, CheckCircle2, ChevronRight } from 'lucide-react';
-import SidebarLayanan from '@/components/SidebarLayanan'; // Panggil komponen layanan
 
-export default function VisiMisiPage() {
-  
-  // Data Misi dan Tujuan yang sudah di-struktur-kan
-  const misiDanTujuan = [
-    {
-      id: 1,
-      bidang: "PEMBERDAYAAN",
-      tujuan: "Memperdayakan Semua Potensi yang ada di masyarakat yang meliputi:",
-      poin: [
-        "Pemberdayaan sumber daya manusia (SDM)",
-        "Pemberdayaan sumber daya alam (SDA)",
-        "Pemberdayaan ekonomi masyarakat",
-        "Pemberdayaan pemuda, Agama, seni budaya, dan olahraga"
-      ]
-    },
-    {
-      id: 2,
-      bidang: "PEMBINAAN",
-      tujuan: "Menciptakan kondisi masyarakat Desa Keji yang Aman, Tertib, Guyup, dan Rukun dalam kehidupan bermasyarakat, yang meliputi:",
-      poin: [
-        "Pembinaan Pendidikan dan keagamaan",
-        "Pembinaan kelembagaan masyarakat desa",
-        "Pembinaan kewilayahan (tilik dusun)"
-      ]
-    },
-    {
-      id: 3,
-      bidang: "PEMERINTAHAN",
-      tujuan: "Optimalisasi penyelenggaraan pemerintah Desa Keji, yang meliputi:",
-      poin: [
-        "Penyelenggaraan pemerintahan yang transparan dan akuntabel",
-        "Pelayanan kepada masyarakat yang prima. Yaitu Cepat, Tepat, dan Benar",
-        "Pelaksanaan pembangunan yang berkesinambungan dan mengedepankan partisipasi dan gotong royong masyarakat"
-      ]
-    },
-    {
-      id: 4,
-      bidang: "PEMBANGUNAN",
-      tujuan: "Bekerja sama dengan Pemerintah Daerah Kabupaten, Provinsi, dan Pusat dalam mewujudkan Pembangunan Infrastruktur di Desa Keji yang meliputi:",
-      poin: [
-        "Bankeu Kabupaten (Aspirasi APBD Kabupaten Semarang)",
-        "Bankeu Provinsi (Aspirasi APBD Provinsi Jawa Tengah)",
-        "Bankeu Pusat (Aspirasi APBN)"
-      ]
-    }
-  ];
+import {
+  Calendar,
+  ChevronRight,
+  Eye,
+  ListChecks,
+  Target,
+  User,
+} from 'lucide-react';
+
+import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
+
+import { supabaseAdmin } from '@/lib/supabase-admin';
+
+import type { PilihanLayanan } from '@/types/layanan';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface LayananDatabase {
+  id: number | string | null;
+  nama: string | null;
+  slug: string | null;
+}
+
+interface MisiDanTujuan {
+  id: number;
+  bidang: string;
+  tujuan: string;
+  poin: string[];
+}
+
+const misiDanTujuan: MisiDanTujuan[] = [
+  {
+    id: 1,
+    bidang: 'PEMBERDAYAAN',
+    tujuan:
+      'Memberdayakan semua potensi yang ada di masyarakat yang meliputi:',
+    poin: [
+      'Pemberdayaan sumber daya manusia (SDM)',
+      'Pemberdayaan sumber daya alam (SDA)',
+      'Pemberdayaan ekonomi masyarakat',
+      'Pemberdayaan pemuda, agama, seni budaya, dan olahraga',
+    ],
+  },
+  {
+    id: 2,
+    bidang: 'PEMBINAAN',
+    tujuan:
+      'Menciptakan kondisi masyarakat Desa Keji yang aman, tertib, guyup, dan rukun dalam kehidupan bermasyarakat, yang meliputi:',
+    poin: [
+      'Pembinaan pendidikan dan keagamaan',
+      'Pembinaan kelembagaan masyarakat desa',
+      'Pembinaan kewilayahan (tilik dusun)',
+    ],
+  },
+  {
+    id: 3,
+    bidang: 'PEMERINTAHAN',
+    tujuan:
+      'Optimalisasi penyelenggaraan Pemerintah Desa Keji, yang meliputi:',
+    poin: [
+      'Penyelenggaraan pemerintahan yang transparan dan akuntabel',
+      'Pelayanan kepada masyarakat yang prima, yaitu cepat, tepat, dan benar',
+      'Pelaksanaan pembangunan yang berkesinambungan dan mengedepankan partisipasi serta gotong royong masyarakat',
+    ],
+  },
+  {
+    id: 4,
+    bidang: 'PEMBANGUNAN',
+    tujuan:
+      'Bekerja sama dengan Pemerintah Daerah Kabupaten, Provinsi, dan Pusat dalam mewujudkan pembangunan infrastruktur di Desa Keji yang meliputi:',
+    poin: [
+      'Bankeu Kabupaten (Aspirasi APBD Kabupaten Semarang)',
+      'Bankeu Provinsi (Aspirasi APBD Provinsi Jawa Tengah)',
+      'Bankeu Pusat (Aspirasi APBN)',
+    ],
+  },
+];
+
+async function getDaftarLayanan(): Promise<PilihanLayanan[]> {
+  const { data, error } = await supabaseAdmin
+    .from('layanan')
+    .select(`
+      id,
+      nama,
+      slug
+    `)
+    .eq('aktif', true)
+    .order('urutan', {
+      ascending: true,
+    })
+    .order('nama', {
+      ascending: true,
+    });
+
+  if (error) {
+    console.error('Gagal mengambil daftar layanan pada halaman visi misi:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+
+    return [];
+  }
+
+  const layananDatabase = (data ?? []) as LayananDatabase[];
+
+  return layananDatabase
+    .map((layanan) => ({
+      id: Number(layanan.id),
+
+      nama: String(layanan.nama ?? '').trim(),
+
+      slug: String(layanan.slug ?? '').trim(),
+    }))
+    .filter(
+      (layanan) =>
+        Number.isInteger(layanan.id) &&
+        layanan.id > 0 &&
+        layanan.nama.length > 0 &&
+        layanan.slug.length > 0
+    );
+}
+
+export default async function VisiMisiPage() {
+  const daftarLayanan = await getDaftarLayanan();
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Teks Berjalan */}
-        <div className="bg-emerald-800 text-white text-sm font-medium px-4 py-2 rounded flex items-center gap-3 mb-6 shadow-sm overflow-hidden relative">
-          <div className="bg-emerald-600 px-3 py-1 rounded text-xs font-bold shrink-0 z-10 shadow-md">
+        <div className="relative mb-6 flex items-center gap-3 overflow-hidden rounded-xl bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm">
+          <div className="z-10 shrink-0 rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold shadow-md">
             Sekilas Info
           </div>
-          <style dangerouslySetInnerHTML={{__html: `
-            @keyframes scrolling-info { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-            .animate-scrolling-info { display: inline-block; animation: scrolling-info 20s linear infinite; white-space: nowrap; }
-          `}} />
-          <div className="overflow-hidden w-full flex-1">
-            <div className="animate-scrolling-info">
-              Untuk Permohonan Informasi Silahkan Masuk Ke Menu PPID Website ini. *** Visi & Misi Pemerintah Desa Keji Kecamatan Ungaran Barat Kabupaten Semarang ***
+
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes scrolling-visi-misi {
+                  0% {
+                    transform: translateX(100%);
+                  }
+
+                  100% {
+                    transform: translateX(-100%);
+                  }
+                }
+
+                .animate-scrolling-visi-misi {
+                  display: inline-block;
+                  white-space: nowrap;
+                  animation: scrolling-visi-misi 20s linear infinite;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                  .animate-scrolling-visi-misi {
+                    animation: none;
+                  }
+                }
+              `,
+            }}
+          />
+
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <div className="animate-scrolling-visi-misi">
+              Untuk permohonan informasi silakan masuk ke menu PPID website
+              ini. *** Visi dan Misi Pemerintah Desa Keji, Kecamatan Ungaran
+              Barat, Kabupaten Semarang ***
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* KOLOM KIRI: Konten Utama Visi Misi */}
-          <div className="lg:w-2/3 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-200">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-4 leading-tight">
+        <div className="flex flex-col gap-8 lg:flex-row">
+          {/* Konten Utama */}
+          <main className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 lg:w-2/3">
+            <h1 className="mb-4 text-2xl font-extrabold leading-tight text-gray-800 md:text-3xl">
               Visi dan Misi Pemerintah Desa
             </h1>
-            
-            {/* Meta Data */}
-            <div className="flex flex-wrap gap-4 text-xs font-semibold text-gray-500 mb-8 border-b border-gray-100 pb-4">
-              <span className="flex items-center gap-1.5"><Calendar size={14} className="text-emerald-500" /> 10 Juli 2026</span>
-              <span className="flex items-center gap-1.5"><User size={14} className="text-emerald-500" /> Admin Desa</span>
-              <span className="flex items-center gap-1.5"><Eye size={14} className="text-emerald-500" /> Dibaca 3.102 Kali</span>
+
+            {/* Metadata */}
+            <div className="mb-8 flex flex-wrap gap-4 border-b border-gray-100 pb-4 text-xs font-semibold text-gray-500">
+              <span className="flex items-center gap-1.5">
+                <Calendar
+                  size={14}
+                  className="text-emerald-500"
+                />
+
+                10 Juli 2026
+              </span>
+
+              <span className="flex items-center gap-1.5">
+                <User
+                  size={14}
+                  className="text-emerald-500"
+                />
+
+                Admin Desa
+              </span>
+
+              <span className="flex items-center gap-1.5">
+                <Eye
+                  size={14}
+                  className="text-emerald-500"
+                />
+
+                Informasi Publik
+              </span>
             </div>
 
-            {/* VISI SECTION */}
-            <div className="mb-12">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
-                  <Target size={28} strokeWidth={2.5} />
+            {/* Visi */}
+            <section className="mb-12">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-600">
+                  <Target
+                    size={28}
+                    strokeWidth={2.5}
+                  />
                 </div>
-                <h2 className="text-2xl font-black text-gray-800">Visi</h2>
+
+                <h2 className="text-2xl font-black text-gray-800">
+                  Visi
+                </h2>
               </div>
-              
-              <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-2xl p-8 shadow-lg text-center relative overflow-hidden border border-emerald-500">
-                <div className="absolute -top-10 -right-10 text-white/10">
-                  <Target size={150} strokeWidth={1} />
+
+              <div className="relative overflow-hidden rounded-2xl border border-emerald-500 bg-gradient-to-br from-emerald-600 to-emerald-800 p-8 text-center shadow-lg">
+                <div className="absolute -right-10 -top-10 text-white/10">
+                  <Target
+                    size={150}
+                    strokeWidth={1}
+                  />
                 </div>
-                <p className="text-white text-lg md:text-xl font-extrabold leading-relaxed relative z-10 drop-shadow-md tracking-wide uppercase">
-                  "BERSAMA MEMBANGUN DESA MELALUI TATA KELOLA PEMERINTAHAN YANG BERSIH, TRANSPARAN, AKUNTABEL, DAN PARTISIPATIF MENUJU DESA YANG MAJU, MANDIRI DAN BERBUDAYA BERLANDASKAN PERILAKU TERPUJI"
+
+                <p className="relative z-10 text-lg font-extrabold uppercase leading-relaxed tracking-wide text-white drop-shadow-md md:text-xl">
+                  &quot;Bersama membangun desa melalui tata kelola
+                  pemerintahan yang bersih, transparan, akuntabel, dan
+                  partisipatif menuju desa yang maju, mandiri, dan berbudaya
+                  berlandaskan perilaku terpuji.&quot;
                 </p>
               </div>
-            </div>
+            </section>
 
-            {/* MISI SECTION */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
-                  <ListChecks size={28} strokeWidth={2.5} />
+            {/* Misi */}
+            <section>
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-600">
+                  <ListChecks
+                    size={28}
+                    strokeWidth={2.5}
+                  />
                 </div>
-                <h2 className="text-2xl font-black text-gray-800">Misi dan Tujuan</h2>
+
+                <h2 className="text-2xl font-black text-gray-800">
+                  Misi dan Tujuan
+                </h2>
               </div>
-              
+
               <div className="space-y-6">
                 {misiDanTujuan.map((misi) => (
-                  <div key={misi.id} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    
+                  <article
+                    key={misi.id}
+                    className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm transition-shadow hover:shadow-md"
+                  >
                     {/* Header Misi */}
-                    <div className="bg-white border-b border-gray-200 p-4 md:px-6 flex items-start gap-4">
-                      <div className="bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-black text-lg shrink-0 shadow-sm mt-1">
+                    <div className="flex items-start gap-4 border-b border-gray-200 bg-white p-4 md:px-6">
+                      <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg font-black text-white shadow-sm">
                         {misi.id}
                       </div>
-                      <div>
-                        <h3 className="text-emerald-800 font-extrabold text-lg tracking-wide uppercase">
-                          MISI BIDANG {misi.bidang}
+
+                      <div className="min-w-0">
+                        <h3 className="text-lg font-extrabold uppercase tracking-wide text-emerald-800">
+                          Misi Bidang {misi.bidang}
                         </h3>
-                        <p className="text-gray-700 font-medium text-sm mt-1 leading-relaxed">
+
+                        <p className="mt-1 text-sm font-medium leading-relaxed text-gray-700">
                           {misi.tujuan}
                         </p>
                       </div>
                     </div>
 
-                    {/* Poin-poin Misi */}
-                    <div className="p-4 md:px-6 bg-emerald-50/30">
+                    {/* Poin Misi */}
+                    <div className="bg-emerald-50/30 p-4 md:px-6">
                       <ul className="space-y-3">
                         {misi.poin.map((poinItem, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <ChevronRight size={18} className="text-emerald-500 shrink-0 mt-0.5" />
-                            <span className="text-gray-700 font-medium text-sm leading-relaxed">
+                          <li
+                            key={`${misi.id}-${index}`}
+                            className="flex items-start gap-3"
+                          >
+                            <ChevronRight
+                              size={18}
+                              className="mt-0.5 shrink-0 text-emerald-500"
+                            />
+
+                            <span className="text-sm font-medium leading-relaxed text-gray-700">
                               {poinItem}
                             </span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
-            </div>
+            </section>
+          </main>
 
-          </div>
+          {/* Sidebar kanan */}
+          <aside className="min-w-0 lg:w-1/3">
+  <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+    <SidebarLayanan
+      daftarLayanan={daftarLayanan}
+      sticky={false}
+    />
 
-          {/* KOLOM KANAN: Panggil Komponen Layanan */}
-          <div className="lg:w-1/3">
-            <SidebarLayanan />
-          </div>
-
+    <SidebarTilikArkeji />
+  </div>
+</aside>
         </div>
       </div>
     </div>
