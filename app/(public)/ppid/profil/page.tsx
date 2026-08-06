@@ -1,5 +1,9 @@
 // app/(public)/ppid/profil/page.tsx
 
+import type {
+  Metadata,
+} from 'next';
+
 import {
   Building2,
   Clock3,
@@ -16,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import {
   getPpidSettings,
@@ -34,15 +39,32 @@ import type {
   ProfilPpid,
 } from '@/types/ppid';
 
+export const metadata: Metadata = {
+  title:
+    'Profil PPID Desa Keji | SIJI',
+
+  description:
+    'Profil, tugas, struktur organisasi, pengurus, dan pelayanan PPID Desa Keji.',
+};
+
 export const dynamic =
   'force-dynamic';
 
 export const revalidate = 0;
 
 interface LayananRow {
-  id: number;
-  nama: string;
-  slug: string;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
 }
 
 interface TugasPpid {
@@ -53,43 +75,43 @@ interface TugasPpid {
 
 const tugasPpid:
   TugasPpid[] = [
-    {
-      title:
-        'Pengumpulan Informasi',
+  {
+    title:
+      'Pengumpulan Informasi',
 
-      description:
-        'Menghimpun informasi dan dokumentasi dari setiap bagian Pemerintah Desa Keji.',
+    description:
+      'Menghimpun informasi dan dokumentasi dari setiap bagian Pemerintah Desa Keji.',
 
-      icon: FileSearch,
-    },
-    {
-      title:
-        'Pengelolaan Dokumen',
+    icon: FileSearch,
+  },
+  {
+    title:
+      'Pengelolaan Dokumen',
 
-      description:
-        'Menyimpan, menata, dan memutakhirkan dokumen informasi publik secara berkala.',
+    description:
+      'Menyimpan, menata, dan memutakhirkan dokumen informasi publik secara berkala.',
 
-      icon: FileCheck2,
-    },
-    {
-      title:
-        'Pelayanan Informasi',
+    icon: FileCheck2,
+  },
+  {
+    title:
+      'Pelayanan Informasi',
 
-      description:
-        'Memberikan informasi yang dibutuhkan masyarakat sesuai prosedur pelayanan.',
+    description:
+      'Memberikan informasi yang dibutuhkan masyarakat sesuai prosedur pelayanan.',
 
-      icon: Users,
-    },
-    {
-      title:
-        'Perlindungan Informasi',
+    icon: Users,
+  },
+  {
+    title:
+      'Perlindungan Informasi',
 
-      description:
-        'Menjaga informasi pribadi dan informasi yang dikecualikan berdasarkan ketentuan.',
+    description:
+      'Menjaga informasi pribadi dan informasi yang dikecualikan berdasarkan ketentuan.',
 
-      icon: ShieldCheck,
-    },
-  ];
+    icon: ShieldCheck,
+  },
+];
 
 const fallbackProfil:
   ProfilPpid = {
@@ -121,19 +143,20 @@ const fallbackProfil:
   updated_at: '',
 };
 
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
 function getSafeString(
   value: unknown,
   fallback: string
 ) {
-  if (
-    typeof value !==
-    'string'
-  ) {
-    return fallback;
-  }
-
   const text =
-    value.trim();
+    safeString(value);
 
   return text || fallback;
 }
@@ -141,93 +164,111 @@ function getSafeString(
 function getNullableString(
   value: unknown
 ) {
-  if (
-    typeof value !==
-    'string'
-  ) {
-    return null;
-  }
-
   const text =
-    value.trim();
+    safeString(value);
 
   return text || null;
 }
 
+function safeInteger(
+  value: unknown,
+  fallback = 0
+) {
+  const number =
+    Number(value);
+
+  if (
+    !Number.isInteger(
+      number
+    ) ||
+    number < 0
+  ) {
+    return fallback;
+  }
+
+  return number;
+}
+
 function normalizeProfil(
-  data:
-    | Record<
-        string,
-        unknown
-      >
-    | null
+  data: unknown
 ): ProfilPpid {
-  if (!data) {
+  if (
+    !data ||
+    typeof data !==
+      'object' ||
+    Array.isArray(data)
+  ) {
     return {
       ...fallbackProfil,
     };
   }
 
+  const row =
+    data as Record<
+      string,
+      unknown
+    >;
+
   return {
     id:
       getSafeString(
-        data.id,
+        row.id,
         fallbackProfil.id
       ),
 
     profil_key:
       getSafeString(
-        data.profil_key,
+        row.profil_key,
         fallbackProfil.profil_key
       ),
 
     judul:
       getSafeString(
-        data.judul,
+        row.judul,
         fallbackProfil.judul
       ),
 
     deskripsi:
       getSafeString(
-        data.deskripsi,
+        row.deskripsi,
         fallbackProfil.deskripsi
       ),
 
     email:
       getNullableString(
-        data.email
+        row.email
       ),
 
     telepon:
       getNullableString(
-        data.telepon
+        row.telepon
       ),
 
     alamat:
       getNullableString(
-        data.alamat
+        row.alamat
       ),
 
     jam_layanan:
       getNullableString(
-        data.jam_layanan
+        row.jam_layanan
       ),
 
     aktif:
-      typeof data.aktif ===
+      typeof row.aktif ===
       'boolean'
-        ? data.aktif
+        ? row.aktif
         : fallbackProfil.aktif,
 
     created_at:
       getSafeString(
-        data.created_at,
+        row.created_at,
         ''
       ),
 
     updated_at:
       getSafeString(
-        data.updated_at,
+        row.updated_at,
         ''
       ),
   };
@@ -243,71 +284,88 @@ function normalizePengurus(
   }
 
   return data
-    .map(
+    .map((item) => {
+      if (
+        !item ||
+        typeof item !==
+          'object' ||
+        Array.isArray(item)
+      ) {
+        return null;
+      }
+
+      const row =
+        item as Record<
+          string,
+          unknown
+        >;
+
+      const id =
+        safeString(
+          row.id
+        );
+
+      const nama =
+        safeString(
+          row.nama
+        );
+
+      if (
+        !id ||
+        !nama
+      ) {
+        return null;
+      }
+
+      const pengurus:
+        PengurusPpid = {
+        id,
+
+        nama,
+
+        jabatan_desa:
+          getSafeString(
+            row.jabatan_desa,
+            'Jabatan desa belum tersedia'
+          ),
+
+        jabatan_ppid:
+          getSafeString(
+            row.jabatan_ppid,
+            'Pengurus PPID'
+          ),
+
+        urutan:
+          safeInteger(
+            row.urutan
+          ),
+
+        aktif:
+          typeof row.aktif ===
+          'boolean'
+            ? row.aktif
+            : true,
+
+        created_at:
+          getSafeString(
+            row.created_at,
+            ''
+          ),
+
+        updated_at:
+          getSafeString(
+            row.updated_at,
+            ''
+          ),
+      };
+
+      return pengurus;
+    })
+    .filter(
       (
         item
-      ): PengurusPpid => {
-        const row =
-          item as Record<
-            string,
-            unknown
-          >;
-
-        return {
-          id:
-            getSafeString(
-              row.id,
-              ''
-            ),
-
-          nama:
-            getSafeString(
-              row.nama,
-              ''
-            ),
-
-          jabatan_desa:
-            getSafeString(
-              row.jabatan_desa,
-              ''
-            ),
-
-          jabatan_ppid:
-            getSafeString(
-              row.jabatan_ppid,
-              ''
-            ),
-
-          urutan:
-            Number(
-              row.urutan ??
-                0
-            ),
-
-          aktif:
-            typeof row.aktif ===
-            'boolean'
-              ? row.aktif
-              : true,
-
-          created_at:
-            getSafeString(
-              row.created_at,
-              ''
-            ),
-
-          updated_at:
-            getSafeString(
-              row.updated_at,
-              ''
-            ),
-        };
-      }
-    )
-    .filter(
-      (item) =>
-        item.id.length > 0 &&
-        item.nama.length > 0
+      ): item is PengurusPpid =>
+        item !== null
     );
 }
 
@@ -319,11 +377,10 @@ function getInitials(
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
-      .map(
-        (kata) =>
-          kata
-            .charAt(0)
-            .toUpperCase()
+      .map((kata) =>
+        kata
+          .charAt(0)
+          .toUpperCase()
       )
       .join('');
 
@@ -361,6 +418,18 @@ function formatTanggal(
         'Asia/Jakarta',
     }
   ).format(date);
+}
+
+function formatAngka(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    'id-ID'
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
 }
 
 export default async function ProfilPpidPage() {
@@ -421,6 +490,7 @@ export default async function ProfilPpidPage() {
         'urutan',
         {
           ascending: true,
+          nullsFirst: false,
         }
       )
       .order(
@@ -443,6 +513,13 @@ export default async function ProfilPpidPage() {
       )
       .order(
         'urutan',
+        {
+          ascending: true,
+          nullsFirst: false,
+        }
+      )
+      .order(
+        'nama',
         {
           ascending: true,
         }
@@ -526,12 +603,7 @@ export default async function ProfilPpidPage() {
 
   const profil =
     normalizeProfil(
-      profilResult.data as
-        | Record<
-            string,
-            unknown
-          >
-        | null
+      profilResult.data
     );
 
   const daftarPengurus =
@@ -541,30 +613,34 @@ export default async function ProfilPpidPage() {
 
   const daftarLayanan:
     PilihanLayanan[] = (
-      (layananResult.data ??
-        []) as LayananRow[]
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
     )
-      .map((item) => ({
-        id:
-          Number(
-            item.id
-          ),
+      .map((item) => {
+        const id =
+          Number(item.id);
 
-        nama:
-          String(
-            item.nama ??
-              ''
-          ).trim(),
+        const nama =
+          safeString(
+            item.nama
+          );
 
-        slug:
-          String(
-            item.slug ??
-              ''
-          ).trim(),
-      }))
+        const slug =
+          safeString(
+            item.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
       .filter(
         (item) =>
-          Number.isFinite(
+          Number.isInteger(
             item.id
           ) &&
           item.id > 0 &&
@@ -577,33 +653,61 @@ export default async function ProfilPpidPage() {
   const jumlahBidang =
     new Set(
       daftarPengurus
-        .map(
-          (item) =>
+        .map((item) =>
+          safeString(
             item.jabatan_ppid
+          )
         )
         .filter(Boolean)
     ).size;
 
-  /*
-   * Data dari profil_ppid menjadi
-   * prioritas. Jika kosong, gunakan
-   * data umum dari ppid_settings.
-   */
   const alamatPpid =
-    profil.alamat?.trim() ||
-    ppid.office_address;
+    safeString(
+      profil.alamat
+    ) ||
+    safeString(
+      ppid.office_address
+    ) ||
+    'Kantor Pemerintah Desa Keji';
 
   const emailPpid =
-    profil.email?.trim() ||
-    ppid.office_email;
+    safeString(
+      profil.email
+    ) ||
+    safeString(
+      ppid.office_email
+    ) ||
+    'Belum tersedia';
 
   const teleponPpid =
-    profil.telepon?.trim() ||
-    ppid.office_phone;
+    safeString(
+      profil.telepon
+    ) ||
+    safeString(
+      ppid.office_phone
+    ) ||
+    'Belum tersedia';
 
   const jamLayananPpid =
-    profil.jam_layanan?.trim() ||
-    ppid.office_hours;
+    safeString(
+      profil.jam_layanan
+    ) ||
+    safeString(
+      ppid.office_hours
+    ) ||
+    'Belum tersedia';
+
+  const namaKantor =
+    safeString(
+      ppid.office_name
+    ) ||
+    'PPID Desa Keji';
+
+  const labelHeader =
+    safeString(
+      ppid.header_label
+    ) ||
+    'Pejabat Pengelola Informasi dan Dokumentasi';
 
   const statusPpid =
     profil.aktif
@@ -613,48 +717,83 @@ export default async function ProfilPpidPage() {
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <Landmark
-              size={16}
-            />
+        {/* Header Halaman */}
+        <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
 
-            {ppid.header_label}
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.04]"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/[0.06] blur-2xl"
+          />
+
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <Landmark
+                size={24}
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+              {labelHeader}
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              {profil.judul}
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80 sm:text-base">
+              Profil, struktur organisasi,
+              tugas, pengurus, serta
+              pelayanan informasi publik{' '}
+              {namaKantor}.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <HeaderBadge
+                label={`${formatAngka(
+                  daftarPengurus.length
+                )} pengurus aktif`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  jumlahBidang
+                )} jabatan PPID`}
+              />
+
+              <HeaderBadge
+                label={`Status ${statusPpid}`}
+              />
+            </div>
           </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            {profil.judul}
-          </h1>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Profil, struktur organisasi,
-            tugas, pengurus, dan pelayanan
-            informasi publik{' '}
-            {ppid.office_name}.
-          </p>
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          <main className="min-w-0 space-y-6 lg:w-2/3">
-            {/* Hero */}
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-6 text-white shadow-xl shadow-emerald-950/10 md:p-8">
+          {/* Konten Utama */}
+          <main className="min-w-0 space-y-8 lg:w-2/3">
+            {/* Hero Profil */}
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 p-6 text-white shadow-xl sm:p-8">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-20"
                 style={{
-                  backgroundImage: `
-                    radial-gradient(
-                      circle,
-                      rgba(
-                        255,
-                        255,
-                        255,
-                        0.23
-                      ) 1.5px,
-                      transparent 1.5px
-                    )
-                  `,
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(255,255,255,0.23) 1px, transparent 1px)',
 
                   backgroundSize:
                     '26px 26px',
@@ -663,7 +802,7 @@ export default async function ProfilPpidPage() {
 
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[46px] border-white/[0.06]"
+                className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[46px] border-white/[0.05]"
               />
 
               <div className="relative">
@@ -673,19 +812,19 @@ export default async function ProfilPpidPage() {
                   />
                 </div>
 
-                <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-100">
-                  {ppid.office_name}
+                <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+                  {namaKantor}
                 </p>
 
-                <h2 className="mt-3 text-2xl font-black leading-tight md:text-3xl">
+                <h2 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
                   {profil.judul}
                 </h2>
 
-                <p className="mt-4 max-w-3xl whitespace-pre-line text-sm font-medium leading-7 text-emerald-50/90 md:text-base md:leading-8">
+                <p className="mt-4 max-w-3xl whitespace-pre-line text-sm font-medium leading-7 text-emerald-50/85 sm:text-base sm:leading-8">
                   {profil.deskripsi}
                 </p>
 
-                <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                <div className="mt-7 grid gap-4 sm:grid-cols-3">
                   <HeroStat
                     label="Pengurus Aktif"
                     value={
@@ -707,16 +846,14 @@ export default async function ProfilPpidPage() {
                     value={
                       statusPpid
                     }
-                    icon={
-                      ShieldCheck
-                    }
+                    icon={ShieldCheck}
                   />
                 </div>
               </div>
             </section>
 
             {/* Tentang PPID */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+            <section className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                   <Landmark
@@ -724,13 +861,13 @@ export default async function ProfilPpidPage() {
                   />
                 </div>
 
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
                     Tentang Kami
                   </p>
 
-                  <h2 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">
-                    {ppid.office_name}
+                  <h2 className="mt-2 text-xl font-black text-slate-900 sm:text-2xl">
+                    {namaKantor}
                   </h2>
 
                   <div className="mt-4 space-y-4 text-sm font-medium leading-7 text-slate-600">
@@ -775,26 +912,15 @@ export default async function ProfilPpidPage() {
               </div>
             </section>
 
-            {/* Tugas */}
+            {/* Tugas PPID */}
             <section>
-              <div className="mb-5">
-                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
-                  Tugas dan Fungsi
-                </p>
+              <SectionHeading
+                eyebrow="Tugas dan Fungsi"
+                title="Tugas Utama PPID"
+                description="Fungsi PPID dalam mendukung pengelolaan dan pelayanan informasi publik Desa Keji."
+              />
 
-                <h2 className="mt-2 text-2xl font-black text-slate-900">
-                  Tugas Utama PPID
-                </h2>
-
-                <p className="mt-2 text-sm font-medium leading-relaxed text-slate-500">
-                  Fungsi PPID dalam
-                  mendukung pelayanan
-                  informasi publik Desa
-                  Keji.
-                </p>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {tugasPpid.map(
                   (item) => (
                     <TugasCard
@@ -808,9 +934,9 @@ export default async function ProfilPpidPage() {
               </div>
             </section>
 
-            {/* Susunan organisasi */}
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white p-6 md:p-8">
+            {/* Susunan Organisasi */}
+            <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+              <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white p-6 sm:p-8">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md">
                     <Users
@@ -819,16 +945,16 @@ export default async function ProfilPpidPage() {
                   </div>
 
                   <div>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
                       Struktur Organisasi
                     </p>
 
-                    <h2 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">
+                    <h2 className="mt-2 text-xl font-black text-slate-900 sm:text-2xl">
                       Susunan PPID Desa
                       Keji
                     </h2>
 
-                    <p className="mt-2 text-sm font-medium text-slate-500">
+                    <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
                       Daftar pejabat dan
                       petugas pengelola
                       informasi publik.
@@ -839,45 +965,40 @@ export default async function ProfilPpidPage() {
 
               {daftarPengurus.length ===
               0 ? (
-                <div className="px-6 py-14 text-center">
-                  <Users
-                    size={46}
-                    className="mx-auto text-slate-300"
-                  />
-
-                  <h3 className="mt-4 font-black text-slate-700">
-                    Susunan pengurus
-                    belum tersedia
-                  </h3>
-
-                  <p className="mt-2 text-sm font-medium text-slate-500">
-                    Data pengurus PPID
-                    belum dimasukkan oleh
-                    administrator.
-                  </p>
-                </div>
+                <PengurusEmptyState />
               ) : (
                 <>
-                  {/* Desktop */}
+                  {/* Tampilan Desktop */}
                   <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[760px] border-collapse text-left">
                       <thead>
-                        <tr className="bg-slate-700 text-white">
-                          <th className="w-[70px] px-4 py-4 text-center text-xs font-extrabold uppercase">
+                        <tr className="bg-emerald-950 text-white">
+                          <th
+                            scope="col"
+                            className="w-[70px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                          >
                             No
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-extrabold uppercase">
+                          <th
+                            scope="col"
+                            className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider"
+                          >
                             Nama
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-extrabold uppercase">
+                          <th
+                            scope="col"
+                            className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider"
+                          >
                             Jabatan Desa
                           </th>
 
-                          <th className="px-5 py-4 text-xs font-extrabold uppercase">
-                            Jabatan dalam
-                            PPID
+                          <th
+                            scope="col"
+                            className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider"
+                          >
+                            Jabatan PPID
                           </th>
                         </tr>
                       </thead>
@@ -888,100 +1009,41 @@ export default async function ProfilPpidPage() {
                             pengurus,
                             index
                           ) => (
-                            <tr
+                            <PengurusTableRow
                               key={
                                 pengurus.id
                               }
-                              className="transition odd:bg-white even:bg-slate-50 hover:bg-emerald-50/60"
-                            >
-                              <td className="px-4 py-4 text-center text-sm font-semibold text-slate-500">
-                                {index +
-                                  1}
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-black text-emerald-700">
-                                    {getInitials(
-                                      pengurus.nama
-                                    )}
-                                  </div>
-
-                                  <p className="font-extrabold text-slate-800">
-                                    {
-                                      pengurus.nama
-                                    }
-                                  </p>
-                                </div>
-                              </td>
-
-                              <td className="px-5 py-4 text-sm font-semibold text-slate-600">
-                                {
-                                  pengurus.jabatan_desa
-                                }
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1.5 text-xs font-extrabold text-cyan-700">
-                                  {
-                                    pengurus.jabatan_ppid
-                                  }
-                                </span>
-                              </td>
-                            </tr>
+                              pengurus={
+                                pengurus
+                              }
+                              nomor={
+                                index + 1
+                              }
+                            />
                           )
                         )}
                       </tbody>
                     </table>
                   </div>
 
-                  {/* Mobile */}
+                  {/* Tampilan Mobile */}
                   <div className="grid gap-4 p-4 md:hidden">
                     {daftarPengurus.map(
                       (
                         pengurus,
                         index
                       ) => (
-                        <article
+                        <PengurusMobileCard
                           key={
                             pengurus.id
                           }
-                          className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-black text-emerald-700">
-                              {getInitials(
-                                pengurus.nama
-                              )}
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                                Pengurus{' '}
-                                {index +
-                                  1}
-                              </p>
-
-                              <h3 className="mt-1 font-black text-slate-800">
-                                {
-                                  pengurus.nama
-                                }
-                              </h3>
-
-                              <p className="mt-1 text-xs font-semibold text-slate-500">
-                                {
-                                  pengurus.jabatan_desa
-                                }
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 rounded-xl bg-cyan-100 px-4 py-3 text-xs font-extrabold leading-relaxed text-cyan-800">
-                            {
-                              pengurus.jabatan_ppid
-                            }
-                          </div>
-                        </article>
+                          pengurus={
+                            pengurus
+                          }
+                          nomor={
+                            index + 1
+                          }
+                        />
                       )
                     )}
                   </div>
@@ -990,18 +1052,30 @@ export default async function ProfilPpidPage() {
             </section>
 
             {/* Kontak */}
-            <section className="overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
-              <div className="border-b border-white/10 p-6 md:p-8">
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-xl">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-15"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(255,255,255,0.24) 1px, transparent 1px)',
+
+                  backgroundSize:
+                    '25px 25px',
+                }}
+              />
+
+              <div className="relative border-b border-white/10 p-6 sm:p-8">
                 <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-300">
                   Kontak dan Pelayanan
                 </p>
 
-                <h2 className="mt-2 text-xl font-black md:text-2xl">
+                <h2 className="mt-2 text-xl font-black sm:text-2xl">
                   Sekretariat{' '}
-                  {ppid.office_name}
+                  {namaKantor}
                 </h2>
 
-                <p className="mt-2 text-sm font-medium leading-6 text-slate-300">
+                <p className="mt-2 text-sm font-medium leading-7 text-emerald-50/75">
                   Hubungi atau kunjungi
                   sekretariat PPID untuk
                   memperoleh informasi
@@ -1009,7 +1083,7 @@ export default async function ProfilPpidPage() {
                 </p>
               </div>
 
-              <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+              <div className="relative grid gap-px bg-white/10 sm:grid-cols-2">
                 <ContactItem
                   icon={MapPin}
                   label="Alamat"
@@ -1045,19 +1119,34 @@ export default async function ProfilPpidPage() {
             </section>
           </main>
 
-          {/* Sidebar */}
+          {/* Sidebar Kanan */}
           <aside className="min-w-0 lg:w-1/3">
-            <div className="lg:sticky lg:top-24">
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
               <SidebarLayanan
                 daftarLayanan={
                   daftarLayanan
                 }
+                sticky={false}
               />
+
+              <SidebarTilikArkeji />
             </div>
           </aside>
         </div>
       </div>
     </div>
+  );
+}
+
+function HeaderBadge({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
+      {label}
+    </span>
   );
 }
 
@@ -1067,14 +1156,16 @@ function HeroStat({
   icon: Icon,
 }: {
   label: string;
-  value: number | string;
+  value:
+    | number
+    | string;
   icon: LucideIcon;
 }) {
   return (
     <article className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
       <Icon
         size={19}
-        className="text-emerald-100"
+        className="text-emerald-200"
       />
 
       <p className="mt-3 text-2xl font-black text-white">
@@ -1088,6 +1179,32 @@ function HeroStat({
   );
 }
 
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="max-w-3xl">
+      <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-2 text-2xl font-black text-slate-900">
+        {title}
+      </h2>
+
+      <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
 function TugasCard({
   item,
 }: {
@@ -1097,18 +1214,98 @@ function TugasCard({
     item.icon;
 
   return (
-    <article className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
+    <article className="group rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
-        <Icon size={23} />
+        <Icon
+          size={23}
+        />
       </div>
 
       <h3 className="mt-4 font-black text-slate-900">
         {item.title}
       </h3>
 
-      <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+      <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
         {item.description}
       </p>
+    </article>
+  );
+}
+
+function PengurusTableRow({
+  pengurus,
+  nomor,
+}: {
+  pengurus: PengurusPpid;
+  nomor: number;
+}) {
+  return (
+    <tr className="transition odd:bg-white even:bg-slate-50/80 hover:bg-emerald-50/70">
+      <td className="px-4 py-4 text-center text-sm font-semibold text-slate-500">
+        {nomor}
+      </td>
+
+      <td className="px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-black text-emerald-700">
+            {getInitials(
+              pengurus.nama
+            )}
+          </div>
+
+          <p className="font-extrabold text-slate-800">
+            {pengurus.nama}
+          </p>
+        </div>
+      </td>
+
+      <td className="px-5 py-4 text-sm font-semibold leading-6 text-slate-600">
+        {pengurus.jabatan_desa}
+      </td>
+
+      <td className="px-5 py-4">
+        <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
+          {pengurus.jabatan_ppid}
+        </span>
+      </td>
+    </tr>
+  );
+}
+
+function PengurusMobileCard({
+  pengurus,
+  nomor,
+}: {
+  pengurus: PengurusPpid;
+  nomor: number;
+}) {
+  return (
+    <article className="rounded-2xl border border-emerald-100 bg-slate-50 p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-black text-emerald-700">
+          {getInitials(
+            pengurus.nama
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-600">
+            Pengurus {nomor}
+          </p>
+
+          <h3 className="mt-1 font-black text-slate-800">
+            {pengurus.nama}
+          </h3>
+
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+            {pengurus.jabatan_desa}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl bg-emerald-100 px-4 py-3 text-xs font-extrabold leading-6 text-emerald-800">
+        {pengurus.jabatan_ppid}
+      </div>
     </article>
   );
 }
@@ -1123,14 +1320,16 @@ function ContactItem({
   value: string;
 }) {
   return (
-    <article className="bg-slate-900 p-5 md:p-6">
+    <article className="bg-emerald-950/80 p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
-          <Icon size={19} />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300">
+          <Icon
+            size={19}
+          />
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-200/70">
             {label}
           </p>
 
@@ -1140,5 +1339,28 @@ function ContactItem({
         </div>
       </div>
     </article>
+  );
+}
+
+function PengurusEmptyState() {
+  return (
+    <div className="px-6 py-14 text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-300">
+        <Users
+          size={34}
+        />
+      </div>
+
+      <h3 className="mt-5 font-black text-slate-800">
+        Susunan pengurus belum tersedia
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+        Data pengurus PPID belum
+        dimasukkan atau belum
+        dipublikasikan oleh
+        administrator.
+      </p>
+    </div>
   );
 }

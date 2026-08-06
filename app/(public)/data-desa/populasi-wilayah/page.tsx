@@ -12,9 +12,11 @@ import {
   Mars,
   Users,
   Venus,
+  type LucideIcon,
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import {
   supabaseAdmin,
@@ -45,9 +47,18 @@ interface WargaWilayahRow {
 }
 
 interface LayananRow {
-  id: number;
-  nama: string;
-  slug: string;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
 }
 
 interface ProfilDesaRow {
@@ -63,17 +74,44 @@ interface StatistikWilayah {
   perempuan: number;
 }
 
+interface KelompokDusun {
+  dusun: string;
+  rows: WargaWilayahRow[];
+}
+
 const URUTAN_DUSUN = [
   'Dusun Keji',
   'Dusun Suruhan',
   'Dusun Sitoyo',
 ];
 
-async function getAllWargaWilayah() {
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
+function normalizeNamaDusun(
+  value: unknown
+) {
+  const dusun =
+    safeString(value);
+
+  return (
+    dusun ||
+    'Wilayah Belum Diisi'
+  );
+}
+
+async function getAllWargaWilayah():
+  Promise<WargaWilayahRow[]> {
   const result:
     WargaWilayahRow[] = [];
 
   const pageSize = 1000;
+
   let from = 0;
 
   while (true) {
@@ -101,10 +139,13 @@ async function getAllWargaWilayah() {
         {
           message:
             error.message,
+
           code:
             error.code,
+
           details:
             error.details,
+
           hint:
             error.hint,
         }
@@ -114,8 +155,9 @@ async function getAllWargaWilayah() {
     }
 
     const rows =
-      (data ??
-        []) as WargaWilayahRow[];
+      (
+        data ?? []
+      ) as WargaWilayahRow[];
 
     result.push(...rows);
 
@@ -142,10 +184,13 @@ function hitungStatistik(
   let perempuan = 0;
 
   rows.forEach((row) => {
-    if (row.no_kk_hash) {
-      daftarKk.add(
+    const noKk =
+      safeString(
         row.no_kk_hash
       );
+
+    if (noKk) {
+      daftarKk.add(noKk);
     }
 
     if (
@@ -175,28 +220,86 @@ function hitungStatistik(
   };
 }
 
+function kelompokkanDusun(
+  rows: WargaWilayahRow[]
+): KelompokDusun[] {
+  const daftarNamaDusun = [
+    ...new Set(
+      rows.map((row) =>
+        normalizeNamaDusun(
+          row.dusun
+        )
+      )
+    ),
+  ];
+
+  const dusunUtama =
+    URUTAN_DUSUN.filter(
+      (dusun) =>
+        daftarNamaDusun.includes(
+          dusun
+        )
+    );
+
+  const dusunTambahan =
+    daftarNamaDusun
+      .filter(
+        (dusun) =>
+          !URUTAN_DUSUN.includes(
+            dusun
+          )
+      )
+      .sort((first, second) =>
+        first.localeCompare(
+          second,
+          'id-ID'
+        )
+      );
+
+  return [
+    ...dusunUtama,
+    ...dusunTambahan,
+  ].map((dusun) => ({
+    dusun,
+
+    rows: rows.filter(
+      (row) =>
+        normalizeNamaDusun(
+          row.dusun
+        ) === dusun
+    ),
+  }));
+}
+
 function formatAngka(
   value: number
 ) {
   return new Intl.NumberFormat(
     'id-ID'
-  ).format(value);
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
 }
 
 function formatKodeWilayah(
   value: string | null
 ) {
-  if (!value) {
+  const rawValue =
+    safeString(value);
+
+  if (!rawValue) {
     return '-';
   }
 
   const number =
-    Number(value);
+    Number(rawValue);
 
   if (
     Number.isNaN(number)
   ) {
-    return value;
+    return rawValue;
   }
 
   return String(number);
@@ -233,11 +336,17 @@ export default async function PopulasiWilayahPage() {
       .eq('aktif', true)
       .order('urutan', {
         ascending: true,
+        nullsFirst: false,
+      })
+      .order('nama', {
+        ascending: true,
       }),
 
     supabaseAdmin
       .from('profil_desa')
-      .select('tahun_data')
+      .select(`
+        tahun_data
+      `)
       .eq(
         'profil_key',
         'utama'
@@ -250,7 +359,23 @@ export default async function PopulasiWilayahPage() {
   ) {
     console.error(
       'Gagal mengambil layanan:',
-      layananResult.error.message
+      {
+        message:
+          layananResult.error
+            .message,
+
+        code:
+          layananResult.error
+            .code,
+
+        details:
+          layananResult.error
+            .details,
+
+        hint:
+          layananResult.error
+            .hint,
+      }
     );
   }
 
@@ -259,32 +384,74 @@ export default async function PopulasiWilayahPage() {
   ) {
     console.error(
       'Gagal mengambil tahun data:',
-      profilResult.error.message
+      {
+        message:
+          profilResult.error
+            .message,
+
+        code:
+          profilResult.error
+            .code,
+
+        details:
+          profilResult.error
+            .details,
+
+        hint:
+          profilResult.error
+            .hint,
+      }
     );
   }
 
   const daftarLayanan:
     PilihanLayanan[] = (
-      (layananResult.data ??
-        []) as LayananRow[]
-    ).map((layanan) => ({
-      id:
-        layanan.id,
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
+    )
+      .map((layanan) => {
+        const id =
+          Number(layanan.id);
 
-      nama:
-        layanan.nama,
+        const nama =
+          safeString(
+            layanan.nama
+          );
 
-      slug:
-        layanan.slug,
-    }));
+        const slug =
+          safeString(
+            layanan.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
+      .filter(
+        (layanan) =>
+          Number.isInteger(
+            layanan.id
+          ) &&
+          layanan.id > 0 &&
+          layanan.nama.length >
+            0 &&
+          layanan.slug.length >
+            0
+      );
+
+  const profilData =
+    profilResult.data as
+      | ProfilDesaRow
+      | null;
 
   const tahunData =
     Number(
-      (
-        profilResult.data as
-          | ProfilDesaRow
-          | null
-      )?.tahun_data ??
+      profilData
+        ?.tahun_data ??
         new Date().getFullYear()
     );
 
@@ -294,57 +461,90 @@ export default async function PopulasiWilayahPage() {
     );
 
   const kelompokDusun =
-    URUTAN_DUSUN.map(
-      (dusun) => ({
-        dusun,
-
-        rows:
-          wargaRows.filter(
-            (row) =>
-              row.dusun ===
-              dusun
-          ),
-      })
-    ).filter(
-      (group) =>
-        group.rows.length > 0
+    kelompokkanDusun(
+      wargaRows
     );
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <MapPinned
-              size={16}
-            />
+        {/* Header Halaman */}
+        <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
 
-            Data Desa
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.04]"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/[0.06] blur-2xl"
+          />
+
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <MapPinned
+                size={24}
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+              Data Desa Keji
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              Populasi Per Wilayah
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80 sm:text-base">
+              Informasi jumlah keluarga dan
+              penduduk berdasarkan dusun, RW,
+              dan RT di Desa Keji pada tahun{' '}
+              {tahunData}.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <HeaderBadge
+                label={`${formatAngka(
+                  statistikDesa.jumlahPenduduk
+                )} penduduk`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  statistikDesa.jumlahKk
+                )} kartu keluarga`}
+              />
+
+              <HeaderBadge
+                label={`${kelompokDusun.length} wilayah dusun`}
+              />
+            </div>
           </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Populasi Per Wilayah
-          </h1>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Informasi jumlah
-            keluarga dan penduduk
-            berdasarkan dusun, RW,
-            dan RT di Desa Keji.
-          </p>
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {/* Konten Utama */}
-          <main className="min-w-0 space-y-6 lg:w-2/3">
-            {/* Ringkasan */}
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <main className="min-w-0 space-y-7 lg:w-2/3">
+            {/* Ringkasan Statistik */}
+            <section className="grid gap-4 sm:grid-cols-2">
               <StatistikCard
                 label="Kartu Keluarga"
                 value={
                   statistikDesa.jumlahKk
                 }
+                description="KK terdata"
                 icon={Database}
               />
 
@@ -353,6 +553,7 @@ export default async function PopulasiWilayahPage() {
                 value={
                   statistikDesa.jumlahPenduduk
                 }
+                description="Warga aktif"
                 icon={Users}
               />
 
@@ -361,6 +562,7 @@ export default async function PopulasiWilayahPage() {
                 value={
                   statistikDesa.lakiLaki
                 }
+                description="Penduduk laki-laki"
                 icon={Mars}
               />
 
@@ -369,53 +571,64 @@ export default async function PopulasiWilayahPage() {
                 value={
                   statistikDesa.perempuan
                 }
+                description="Penduduk perempuan"
                 icon={Venus}
               />
             </section>
 
-            {/* Informasi */}
-            <section className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
-              <div className="flex items-start gap-3">
-                <Info
-                  size={21}
-                  className="mt-0.5 shrink-0 text-cyan-700"
-                />
+            {/* Informasi Data */}
+            <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
+                  <Info size={21} />
+                </div>
 
                 <div>
-                  <h2 className="font-extrabold text-cyan-900">
-                    Demografi Berdasarkan Wilayah
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Informasi Data
+                  </p>
+
+                  <h2 className="mt-1 font-black text-emerald-950">
+                    Demografi Berdasarkan
+                    Wilayah
                   </h2>
 
-                  <p className="mt-1 text-sm font-medium leading-relaxed text-cyan-800">
-                    Jumlah dan persentase
-                    penduduk berdasarkan
-                    wilayah RT di Desa Keji,
-                    tahun {tahunData}.
-                    Data dihitung otomatis
-                    dari database warga aktif.
+                  <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
+                    Jumlah penduduk dihitung
+                    secara otomatis dari data
+                    warga aktif. Jumlah kartu
+                    keluarga dihitung berdasarkan
+                    nomor KK terenkripsi yang
+                    tersimpan pada sistem.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Tabel */}
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-6 py-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-700">
+            {/* Tabel Populasi */}
+            <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+              <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-5 sm:px-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
                     <BarChart3
                       size={21}
                     />
                   </div>
 
                   <div>
-                    <h2 className="text-lg font-black text-slate-900">
-                      Demografi Berdasarkan Wilayah
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                      Rekapitulasi Wilayah
+                    </p>
+
+                    <h2 className="mt-1 text-lg font-black text-slate-900">
+                      Demografi Dusun, RW,
+                      dan RT
                     </h2>
 
-                    <p className="mt-1 text-xs font-medium text-slate-500">
-                      Rekap dusun, RW,
-                      dan RT.
+                    <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                      Tabel jumlah keluarga,
+                      penduduk, laki-laki, dan
+                      perempuan.
                     </p>
                   </div>
                 </div>
@@ -423,48 +636,68 @@ export default async function PopulasiWilayahPage() {
 
               {wargaRows.length ===
               0 ? (
-                <div className="px-6 py-14 text-center">
-                  <Users
-                    size={42}
-                    className="mx-auto text-slate-300"
-                  />
+                <div className="px-6 py-16 text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-300">
+                    <Users
+                      size={34}
+                    />
+                  </div>
 
-                  <h3 className="mt-4 font-extrabold text-slate-700">
+                  <h3 className="mt-5 font-black text-slate-800">
                     Data belum tersedia
                   </h3>
 
-                  <p className="mt-2 text-sm text-slate-500">
-                    Admin belum
-                    menambahkan data
-                    warga yang lengkap.
+                  <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+                    Data populasi akan tampil
+                    setelah administrator
+                    menambahkan data warga yang
+                    lengkap.
                   </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] border-collapse text-left">
+                  <table className="w-full min-w-[780px] border-collapse text-left">
                     <thead>
-                      <tr className="bg-slate-700 text-white">
-                        <th className="w-[70px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider">
+                      <tr className="bg-emerald-900 text-white">
+                        <th
+                          scope="col"
+                          className="w-[70px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                        >
                           No
                         </th>
 
-                        <th className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider"
+                        >
                           Wilayah
                         </th>
 
-                        <th className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                        >
                           KK
                         </th>
 
-                        <th className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider">
-                          L+P
+                        <th
+                          scope="col"
+                          className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                        >
+                          L + P
                         </th>
 
-                        <th className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                        >
                           L
                         </th>
 
-                        <th className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="w-[90px] px-4 py-4 text-center text-xs font-extrabold uppercase tracking-wider"
+                        >
                           P
                         </th>
                       </tr>
@@ -486,15 +719,12 @@ export default async function PopulasiWilayahPage() {
                               kelompok.rows
                                 .map(
                                   (row) =>
-                                    row.rw
+                                    safeString(
+                                      row.rw
+                                    )
                                 )
                                 .filter(
-                                  (
-                                    rw
-                                  ): rw is string =>
-                                    Boolean(
-                                      rw
-                                    )
+                                  Boolean
                                 )
                             ),
                           ].sort(
@@ -507,16 +737,14 @@ export default async function PopulasiWilayahPage() {
                                 kelompok.dusun
                               }
                             >
-                              {/* Dusun */}
+                              {/* Baris Dusun */}
                               <tr className="bg-emerald-100/80">
                                 <td className="px-4 py-4 text-center text-sm font-black text-emerald-900">
-                                  {
-                                    dusunIndex +
-                                    1
-                                  }
+                                  {dusunIndex +
+                                    1}
                                 </td>
 
-                                <td className="px-5 py-4 text-sm font-black uppercase text-emerald-950">
+                                <td className="px-5 py-4 text-sm font-black uppercase tracking-wide text-emerald-950">
                                   {
                                     kelompok.dusun
                                   }
@@ -526,28 +754,28 @@ export default async function PopulasiWilayahPage() {
                                   value={
                                     statistikDusun.jumlahKk
                                   }
-                                  bold
+                                  variant="dusun"
                                 />
 
                                 <DataCell
                                   value={
                                     statistikDusun.jumlahPenduduk
                                   }
-                                  bold
+                                  variant="dusun"
                                 />
 
                                 <DataCell
                                   value={
                                     statistikDusun.lakiLaki
                                   }
-                                  bold
+                                  variant="dusun"
                                 />
 
                                 <DataCell
                                   value={
                                     statistikDusun.perempuan
                                   }
-                                  bold
+                                  variant="dusun"
                                 />
                               </tr>
 
@@ -561,7 +789,9 @@ export default async function PopulasiWilayahPage() {
                                       (
                                         row
                                       ) =>
-                                        row.rw ===
+                                        safeString(
+                                          row.rw
+                                        ) ===
                                         rw
                                     );
 
@@ -578,15 +808,12 @@ export default async function PopulasiWilayahPage() {
                                             (
                                               row
                                             ) =>
-                                              row.rt
+                                              safeString(
+                                                row.rt
+                                              )
                                           )
                                           .filter(
-                                            (
-                                              rt
-                                            ): rt is string =>
-                                              Boolean(
-                                                rt
-                                              )
+                                            Boolean
                                           )
                                       ),
                                     ].sort(
@@ -597,8 +824,8 @@ export default async function PopulasiWilayahPage() {
                                     <Fragment
                                       key={`${kelompok.dusun}-${rw}`}
                                     >
-                                      {/* RW */}
-                                      <tr className="bg-slate-100">
+                                      {/* Baris RW */}
+                                      <tr className="bg-slate-100/90">
                                         <td className="px-4 py-3.5 text-center text-sm font-bold text-slate-500">
                                           {`${dusunIndex + 1}.${rwIndex + 1}`}
                                         </td>
@@ -645,7 +872,9 @@ export default async function PopulasiWilayahPage() {
                                               (
                                                 row
                                               ) =>
-                                                row.rt ===
+                                                safeString(
+                                                  row.rt
+                                                ) ===
                                                 rt
                                             );
 
@@ -657,7 +886,7 @@ export default async function PopulasiWilayahPage() {
                                           return (
                                             <tr
                                               key={`${kelompok.dusun}-${rw}-${rt}`}
-                                              className="bg-white transition hover:bg-emerald-50/50"
+                                              className="bg-white transition hover:bg-emerald-50/70"
                                             >
                                               <td className="px-4 py-3.5 text-center text-xs font-semibold text-slate-400">
                                                 {`${dusunIndex + 1}.${rwIndex + 1}.${rtIndex + 1}`}
@@ -708,10 +937,10 @@ export default async function PopulasiWilayahPage() {
                     </tbody>
 
                     <tfoot>
-                      <tr className="bg-slate-800 text-white">
+                      <tr className="bg-emerald-950 text-white">
                         <td
                           colSpan={2}
-                          className="px-5 py-4 text-sm font-black uppercase"
+                          className="px-5 py-4 text-sm font-black uppercase tracking-wide"
                         >
                           Total Desa Keji
                         </td>
@@ -720,28 +949,28 @@ export default async function PopulasiWilayahPage() {
                           value={
                             statistikDesa.jumlahKk
                           }
-                          footer
+                          variant="footer"
                         />
 
                         <DataCell
                           value={
                             statistikDesa.jumlahPenduduk
                           }
-                          footer
+                          variant="footer"
                         />
 
                         <DataCell
                           value={
                             statistikDesa.lakiLaki
                           }
-                          footer
+                          variant="footer"
                         />
 
                         <DataCell
                           value={
                             statistikDesa.perempuan
                           }
-                          footer
+                          variant="footer"
                         />
                       </tr>
                     </tfoot>
@@ -753,11 +982,16 @@ export default async function PopulasiWilayahPage() {
 
           {/* Sidebar Kanan */}
           <aside className="min-w-0 lg:w-1/3">
-            <SidebarLayanan
-              daftarLayanan={
-                daftarLayanan
-              }
-            />
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+              <SidebarLayanan
+                daftarLayanan={
+                  daftarLayanan
+                }
+                sticky={false}
+              />
+
+              <SidebarTilikArkeji />
+            </div>
           </aside>
         </div>
       </div>
@@ -765,18 +999,32 @@ export default async function PopulasiWilayahPage() {
   );
 }
 
+function HeaderBadge({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
+      {label}
+    </span>
+  );
+}
+
 function StatistikCard({
   label,
   value,
+  description,
   icon: Icon,
 }: {
   label: string;
   value: number;
-  icon: typeof Users;
+  description: string;
+  icon: LucideIcon;
 }) {
   return (
-    <article className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
+    <article className="group rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
             {label}
@@ -785,9 +1033,13 @@ function StatistikCard({
           <p className="mt-3 text-3xl font-black text-slate-900">
             {formatAngka(value)}
           </p>
+
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {description}
+          </p>
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
           <Icon size={21} />
         </div>
       </div>
@@ -797,22 +1049,28 @@ function StatistikCard({
 
 function DataCell({
   value,
-  bold = false,
-  footer = false,
+  variant = 'normal',
 }: {
   value: number;
-  bold?: boolean;
-  footer?: boolean;
+  variant?:
+    | 'normal'
+    | 'dusun'
+    | 'footer';
 }) {
+  const className = {
+    normal:
+      'font-semibold text-slate-600',
+
+    dusun:
+      'font-black text-emerald-950',
+
+    footer:
+      'font-black text-white',
+  }[variant];
+
   return (
     <td
-      className={`px-4 py-3.5 text-center text-sm ${
-        footer
-          ? 'font-black text-white'
-          : bold
-            ? 'font-black text-emerald-950'
-            : 'font-semibold text-slate-600'
-      }`}
+      className={`px-4 py-3.5 text-center text-sm ${className}`}
     >
       {formatAngka(value)}
     </td>

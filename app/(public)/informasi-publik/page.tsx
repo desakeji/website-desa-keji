@@ -1,5 +1,7 @@
 // app/(public)/informasi-publik/page.tsx
 
+import type { Metadata } from 'next';
+
 import Link from 'next/link';
 
 import {
@@ -13,6 +15,9 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
+
+import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import {
   INFORMASI_PUBLIK_DEFAULTS,
@@ -30,12 +35,16 @@ import type {
   InformasiPublikSettings,
 } from '@/types/informasi-publik';
 
+import type {
+  PilihanLayanan,
+} from '@/types/layanan';
+
 export const dynamic =
   'force-dynamic';
 
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title:
     'Informasi Publik | SIJI Desa Keji',
 
@@ -58,12 +67,36 @@ interface ApbdesTahunRow {
     | null;
 }
 
+interface LayananRow {
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
+}
+
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
 function normalizeSettings(
   data: unknown
 ): InformasiPublikSettings {
   if (
     !data ||
-    typeof data !== 'object' ||
+    typeof data !==
+      'object' ||
     Array.isArray(data)
   ) {
     return {
@@ -78,7 +111,9 @@ function normalizeSettings(
     >;
 
   const validEntries =
-    Object.entries(row).filter(
+    Object.entries(
+      row
+    ).filter(
       ([, value]) => {
         if (
           value === null ||
@@ -152,12 +187,25 @@ function getSafeText(
   return text || fallback;
 }
 
+function formatAngka(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    'id-ID'
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
+}
+
 export default async function InformasiPublikPage() {
   const [
     settingsResult,
     produkResult,
     informasiResult,
     apbdesResult,
+    layananResult,
   ] = await Promise.all([
     supabaseAdmin
       .from(
@@ -171,7 +219,9 @@ export default async function InformasiPublikPage() {
       .maybeSingle(),
 
     supabaseAdmin
-      .from('produk_hukum')
+      .from(
+        'produk_hukum'
+      )
       .select(
         'id',
         {
@@ -179,10 +229,7 @@ export default async function InformasiPublikPage() {
           head: true,
         }
       )
-      .eq(
-        'aktif',
-        true
-      ),
+      .eq('aktif', true),
 
     supabaseAdmin
       .from(
@@ -195,10 +242,7 @@ export default async function InformasiPublikPage() {
           head: true,
         }
       )
-      .eq(
-        'aktif',
-        true
-      ),
+      .eq('aktif', true),
 
     supabaseAdmin
       .from(
@@ -207,16 +251,26 @@ export default async function InformasiPublikPage() {
       .select(`
         tahun
       `)
-      .eq(
-        'aktif',
-        true
-      )
-      .order(
-        'tahun',
-        {
-          ascending: true,
-        }
-      ),
+      .eq('aktif', true)
+      .order('tahun', {
+        ascending: true,
+      }),
+
+    supabaseAdmin
+      .from('layanan')
+      .select(`
+        id,
+        nama,
+        slug
+      `)
+      .eq('aktif', true)
+      .order('urutan', {
+        ascending: true,
+        nullsFirst: false,
+      })
+      .order('nama', {
+        ascending: true,
+      }),
   ]);
 
   if (
@@ -319,20 +373,36 @@ export default async function InformasiPublikPage() {
     );
   }
 
-  /*
-   * Nilai null atau string kosong dari
-   * database tidak akan menimpa data
-   * bawaan.
-   */
+  if (
+    layananResult.error
+  ) {
+    console.error(
+      'Gagal mengambil daftar layanan:',
+      {
+        message:
+          layananResult.error
+            .message,
+
+        code:
+          layananResult.error
+            .code,
+
+        details:
+          layananResult.error
+            .details,
+
+        hint:
+          layananResult.error
+            .hint,
+      }
+    );
+  }
+
   const settings =
     normalizeSettings(
       settingsResult.data
     );
 
-  /*
-   * Link harus selalu berupa string
-   * internal yang valid.
-   */
   const ctaButtonHref =
     getSafeInternalHref(
       settings.cta_button_href,
@@ -364,11 +434,10 @@ export default async function InformasiPublikPage() {
         []
       ) as ApbdesTahunRow[]
     )
-      .map(
-        (item) =>
-          Number(
-            item.tahun
-          )
+      .map((item) =>
+        Number(
+          item.tahun
+        )
       )
       .filter(
         (
@@ -381,28 +450,31 @@ export default async function InformasiPublikPage() {
           tahun <= 2100
       );
 
-  const daftarTahun =
-    [
-      ...new Set<number>([
-        ...TAHUN_APBDES.map(
-          (tahun) =>
-            Number(tahun)
-        ),
+  const daftarTahun = [
+    ...new Set<number>([
+      ...TAHUN_APBDES.map(
+        (tahun) =>
+          Number(tahun)
+      ).filter(
+        (tahun) =>
+          Number.isInteger(
+            tahun
+          )
+      ),
 
-        ...tahunDatabase,
-      ]),
-    ].sort(
-      (a, b) =>
-        a - b
-    );
+      ...tahunDatabase,
+    ]),
+  ].sort(
+    (first, second) =>
+      first - second
+  );
 
   const tahunPertama =
     daftarTahun[0];
 
   const tahunTerakhir =
     daftarTahun[
-      daftarTahun.length -
-        1
+      daftarTahun.length - 1
     ];
 
   const rentangTahun =
@@ -414,6 +486,47 @@ export default async function InformasiPublikPage() {
             tahunPertama
           )
         : `${tahunPertama}–${tahunTerakhir}`;
+
+  const daftarLayanan:
+    PilihanLayanan[] = (
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
+    )
+      .map((layanan) => {
+        const id =
+          Number(
+            layanan.id
+          );
+
+        const nama =
+          safeString(
+            layanan.nama
+          );
+
+        const slug =
+          safeString(
+            layanan.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
+      .filter(
+        (layanan) =>
+          Number.isInteger(
+            layanan.id
+          ) &&
+          layanan.id > 0 &&
+          layanan.nama.length >
+            0 &&
+          layanan.slug.length >
+            0
+      );
 
   const menuInformasi:
     MenuInformasi[] = [
@@ -442,9 +555,9 @@ export default async function InformasiPublikPage() {
             .produk_hukum_label
         ),
 
-      icon:
-        Scale,
+      icon: Scale,
     },
+
     {
       title:
         getSafeText(
@@ -470,8 +583,7 @@ export default async function InformasiPublikPage() {
             .informasi_umum_label
         ),
 
-      icon:
-        Info,
+      icon: Info,
     },
   ];
 
@@ -501,7 +613,7 @@ export default async function InformasiPublikPage() {
           className="pointer-events-none absolute -bottom-44 -left-32 h-96 w-96 rounded-full bg-emerald-400/[0.08] blur-3xl"
         />
 
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.17em] text-emerald-100 backdrop-blur">
               <ShieldCheck
@@ -523,7 +635,7 @@ export default async function InformasiPublikPage() {
               )}
             </p>
 
-            <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">
+            <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
               {getSafeText(
                 settings.hero_title,
                 INFORMASI_PUBLIK_DEFAULTS
@@ -531,7 +643,7 @@ export default async function InformasiPublikPage() {
               )}
             </h1>
 
-            <p className="mt-6 max-w-3xl text-sm font-medium leading-7 text-emerald-50/85 md:text-base md:leading-8">
+            <p className="mt-6 max-w-3xl text-sm font-medium leading-7 text-emerald-50/85 sm:text-base sm:leading-8">
               {getSafeText(
                 settings.hero_description,
                 INFORMASI_PUBLIK_DEFAULTS
@@ -545,10 +657,12 @@ export default async function InformasiPublikPage() {
       {/* Ringkasan */}
       <section className="relative z-10 -mt-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10 sm:grid-cols-3">
+          <div className="grid overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-xl shadow-slate-900/10 sm:grid-cols-3">
             <SummaryItem
               icon={FileText}
-              value={`${totalDokumen} Dokumen`}
+              value={`${formatAngka(
+                totalDokumen
+              )} Dokumen`}
               label={getSafeText(
                 settings.summary_documents_label,
                 INFORMASI_PUBLIK_DEFAULTS
@@ -583,122 +697,127 @@ export default async function InformasiPublikPage() {
         </div>
       </section>
 
-      {/* Menu informasi */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow={getSafeText(
-              settings.menu_eyebrow,
-              INFORMASI_PUBLIK_DEFAULTS
-                .menu_eyebrow
-            )}
-            title={getSafeText(
-              settings.menu_title,
-              INFORMASI_PUBLIK_DEFAULTS
-                .menu_title
-            )}
-            description={getSafeText(
-              settings.menu_description,
-              INFORMASI_PUBLIK_DEFAULTS
-                .menu_description
-            )}
-          />
-
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {menuInformasi.map(
-              (item) => (
-                <InformasiCard
-                  key={item.href}
-                  item={item}
-                />
-              )
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* APBDes */}
-      <section className="border-y border-slate-200 bg-white py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <SectionHeading
-              eyebrow={getSafeText(
-                settings.apbdes_eyebrow,
-                INFORMASI_PUBLIK_DEFAULTS
-                  .apbdes_eyebrow
-              )}
-              title={getSafeText(
-                settings.apbdes_title,
-                INFORMASI_PUBLIK_DEFAULTS
-                  .apbdes_title
-              )}
-              description={getSafeText(
-                settings.apbdes_description,
-                INFORMASI_PUBLIK_DEFAULTS
-                  .apbdes_description
-              )}
-            />
-
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-              <Wallet size={27} />
-            </div>
-          </div>
-
-          {daftarTahun.length ===
-          0 ? (
-            <div className="mt-10 rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center">
-              <Wallet
-                size={42}
-                className="mx-auto text-amber-400"
+      {/* Layout utama */}
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          {/* Konten utama */}
+          <main className="min-w-0 space-y-12 lg:w-2/3">
+            {/* Menu informasi */}
+            <section>
+              <SectionHeading
+                eyebrow={getSafeText(
+                  settings.menu_eyebrow,
+                  INFORMASI_PUBLIK_DEFAULTS
+                    .menu_eyebrow
+                )}
+                title={getSafeText(
+                  settings.menu_title,
+                  INFORMASI_PUBLIK_DEFAULTS
+                    .menu_title
+                )}
+                description={getSafeText(
+                  settings.menu_description,
+                  INFORMASI_PUBLIK_DEFAULTS
+                    .menu_description
+                )}
               />
 
-              <h3 className="mt-4 font-black text-amber-900">
-                Data APBDes belum tersedia
-              </h3>
+              <div className="mt-7 grid gap-5">
+                {menuInformasi.map(
+                  (item) => (
+                    <InformasiCard
+                      key={
+                        item.href
+                      }
+                      item={item}
+                    />
+                  )
+                )}
+              </div>
+            </section>
 
-              <p className="mt-2 text-sm font-medium text-amber-700">
-                Belum ada tahun APBDes
-                yang dapat ditampilkan.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {daftarTahun.map(
-                (tahun) => (
-                  <ApbdesCard
-                    key={tahun}
-                    tahun={tahun}
+            {/* APBDes */}
+            <section className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <SectionHeading
+                  eyebrow={getSafeText(
+                    settings.apbdes_eyebrow,
+                    INFORMASI_PUBLIK_DEFAULTS
+                      .apbdes_eyebrow
+                  )}
+                  title={getSafeText(
+                    settings.apbdes_title,
+                    INFORMASI_PUBLIK_DEFAULTS
+                      .apbdes_title
+                  )}
+                  description={getSafeText(
+                    settings.apbdes_description,
+                    INFORMASI_PUBLIK_DEFAULTS
+                      .apbdes_description
+                  )}
+                />
+
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <Wallet
+                    size={27}
                   />
-                )
+                </div>
+              </div>
+
+              {daftarTahun.length ===
+              0 ? (
+                <div className="mt-8 rounded-3xl border border-dashed border-emerald-200 bg-emerald-50 px-6 py-12 text-center">
+                  <Wallet
+                    size={42}
+                    className="mx-auto text-emerald-300"
+                  />
+
+                  <h3 className="mt-4 font-black text-emerald-950">
+                    Data APBDes belum
+                    tersedia
+                  </h3>
+
+                  <p className="mt-2 text-sm font-medium text-emerald-700">
+                    Belum ada tahun APBDes
+                    yang dapat ditampilkan.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-8 grid gap-5 sm:grid-cols-2">
+                  {daftarTahun.map(
+                    (tahun) => (
+                      <ApbdesCard
+                        key={tahun}
+                        tahun={
+                          tahun
+                        }
+                      />
+                    )
+                  )}
+                </div>
               )}
-            </div>
-          )}
-        </div>
-      </section>
+            </section>
 
-      {/* Komitmen */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-xl md:p-10">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-[0.18]"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)',
+            {/* Komitmen */}
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 p-6 text-white shadow-xl sm:p-8">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 opacity-[0.18]"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)',
 
-                backgroundSize:
-                  '26px 26px',
-              }}
-            />
+                  backgroundSize:
+                    '26px 26px',
+                }}
+              />
 
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[50px] border-white/[0.05]"
-            />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[50px] border-white/[0.05]"
+              />
 
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-              <div>
+              <div className="relative">
                 <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-200">
                   {getSafeText(
                     settings.commitment_eyebrow,
@@ -707,7 +826,7 @@ export default async function InformasiPublikPage() {
                   )}
                 </p>
 
-                <h2 className="mt-3 text-3xl font-black leading-tight md:text-4xl">
+                <h2 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
                   {getSafeText(
                     settings.commitment_title,
                     INFORMASI_PUBLIK_DEFAULTS
@@ -715,97 +834,111 @@ export default async function InformasiPublikPage() {
                   )}
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-sm font-medium leading-7 text-emerald-50/85 md:text-base">
+                <p className="mt-4 text-sm font-medium leading-7 text-emerald-50/85">
                   {getSafeText(
                     settings.commitment_description,
                     INFORMASI_PUBLIK_DEFAULTS
                       .commitment_description
                   )}
                 </p>
+
+                <div className="mt-7 grid gap-3">
+                  <CommitmentItem
+                    title={getSafeText(
+                      settings.commitment_1_title,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_1_title
+                    )}
+                    description={getSafeText(
+                      settings.commitment_1_description,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_1_description
+                    )}
+                  />
+
+                  <CommitmentItem
+                    title={getSafeText(
+                      settings.commitment_2_title,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_2_title
+                    )}
+                    description={getSafeText(
+                      settings.commitment_2_description,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_2_description
+                    )}
+                  />
+
+                  <CommitmentItem
+                    title={getSafeText(
+                      settings.commitment_3_title,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_3_title
+                    )}
+                    description={getSafeText(
+                      settings.commitment_3_description,
+                      INFORMASI_PUBLIK_DEFAULTS
+                        .commitment_3_description
+                    )}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* CTA */}
+            <section className="rounded-3xl border border-emerald-100 bg-white p-6 text-center shadow-sm sm:p-8">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                <FileText
+                  size={27}
+                />
               </div>
 
-              <div className="grid gap-3">
-                <CommitmentItem
-                  title={getSafeText(
-                    settings.commitment_1_title,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_1_title
-                  )}
-                  description={getSafeText(
-                    settings.commitment_1_description,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_1_description
-                  )}
-                />
+              <h2 className="mt-5 text-2xl font-black text-slate-900">
+                {getSafeText(
+                  settings.cta_title,
+                  INFORMASI_PUBLIK_DEFAULTS
+                    .cta_title
+                )}
+              </h2>
 
-                <CommitmentItem
-                  title={getSafeText(
-                    settings.commitment_2_title,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_2_title
-                  )}
-                  description={getSafeText(
-                    settings.commitment_2_description,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_2_description
-                  )}
-                />
+              <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-500">
+                {getSafeText(
+                  settings.cta_description,
+                  INFORMASI_PUBLIK_DEFAULTS
+                    .cta_description
+                )}
+              </p>
 
-                <CommitmentItem
-                  title={getSafeText(
-                    settings.commitment_3_title,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_3_title
-                  )}
-                  description={getSafeText(
-                    settings.commitment_3_description,
-                    INFORMASI_PUBLIK_DEFAULTS
-                      .commitment_3_description
-                  )}
+              <Link
+                href={
+                  ctaButtonHref
+                }
+                className="mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-800"
+              >
+                {ctaButtonLabel}
+
+                <ArrowRight
+                  size={17}
                 />
-              </div>
+              </Link>
+            </section>
+          </main>
+
+          {/* Sidebar kanan */}
+          <aside className="min-w-0 lg:w-1/3">
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+              <SidebarLayanan
+                daftarLayanan={
+                  daftarLayanan
+                }
+                sticky={false}
+              />
+
+              <SidebarTilikArkeji />
             </div>
-          </div>
+          </aside>
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-slate-200 bg-white py-16">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <FileText
-              size={27}
-            />
-          </div>
-
-          <h2 className="mt-5 text-2xl font-black text-slate-900 md:text-3xl">
-            {getSafeText(
-              settings.cta_title,
-              INFORMASI_PUBLIK_DEFAULTS
-                .cta_title
-            )}
-          </h2>
-
-          <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-7 text-slate-500">
-            {getSafeText(
-              settings.cta_description,
-              INFORMASI_PUBLIK_DEFAULTS
-                .cta_description
-            )}
-          </p>
-
-          <Link
-            href={ctaButtonHref}
-            className="mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-800"
-          >
-            {ctaButtonLabel}
-
-            <ArrowRight
-              size={17}
-            />
-          </Link>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -820,12 +953,12 @@ function SummaryItem({
   label: string;
 }) {
   return (
-    <article className="flex items-center gap-4 border-b border-slate-200 p-6 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+    <article className="flex items-center gap-4 border-b border-emerald-100 p-6 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
         <Icon size={23} />
       </div>
 
-      <div>
+      <div className="min-w-0">
         <p className="text-lg font-black text-slate-900">
           {value}
         </p>
@@ -848,16 +981,16 @@ function SectionHeading({
   description: string;
 }) {
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-3xl">
       <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
         {eyebrow}
       </p>
 
-      <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+      <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
         {title}
       </h2>
 
-      <p className="mt-4 text-sm font-medium leading-7 text-slate-500 md:text-base">
+      <p className="mt-4 text-sm font-medium leading-7 text-slate-500">
         {description}
       </p>
     </div>
@@ -875,9 +1008,12 @@ function InformasiCard({
   return (
     <Link
       href={item.href}
-      className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl md:p-7"
+      className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl"
     >
-      <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-emerald-100 opacity-60 transition duration-300 group-hover:scale-125" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-emerald-100 opacity-60 transition duration-300 group-hover:scale-125"
+      />
 
       <div className="relative">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
@@ -917,12 +1053,14 @@ function ApbdesCard({
   return (
     <Link
       href={`/informasi-publik/apbdes/${tahun}`}
-      className="group overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white hover:shadow-xl"
+      className="group overflow-hidden rounded-3xl border border-emerald-100 bg-slate-50 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:bg-white hover:shadow-xl"
     >
-      <div className="border-b border-slate-200 bg-gradient-to-br from-emerald-900 to-emerald-700 p-6 text-white">
+      <div className="bg-gradient-to-br from-emerald-950 to-emerald-700 p-5 text-white">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-            <Wallet size={23} />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+            <Wallet
+              size={22}
+            />
           </div>
 
           <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-100">
@@ -930,7 +1068,7 @@ function ApbdesCard({
           </span>
         </div>
 
-        <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-200">
+        <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-200">
           Tahun Anggaran
         </p>
 
@@ -939,15 +1077,15 @@ function ApbdesCard({
         </h3>
       </div>
 
-      <div className="p-6">
+      <div className="p-5">
         <p className="text-sm font-medium leading-7 text-slate-500">
           Informasi anggaran,
           belanja, pembiayaan, dan
           realisasi APBDes Desa Keji
-          Tahun {tahun}.
+          tahun {tahun}.
         </p>
 
-        <span className="mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-emerald-700">
+        <span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-emerald-700">
           Lihat realisasi
 
           <ArrowRight

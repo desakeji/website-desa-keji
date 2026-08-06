@@ -19,7 +19,6 @@ import {
   Settings,
   ShieldCheck,
   ShoppingCart,
-  Sparkles,
   Target,
   Users,
   type LucideIcon,
@@ -109,8 +108,7 @@ export const sdgsMenu: AdminNavigationItem = {
   enabled: true,
 };
 
-export const publicContentModules:
-  AdminNavigationItem[] = [
+export const publicContentModules: AdminNavigationItem[] = [
   {
     id: 'beranda',
 
@@ -172,8 +170,7 @@ export const publicContentModules:
 
     href: '/admin/tilik-arkeji',
 
-    publicHref:
-      '/profil/tilik-arkeji',
+    publicHref: '/profil/tilik-arkeji',
 
     icon: Archive,
 
@@ -224,8 +221,7 @@ export const publicContentModules:
 
     href: '/admin/galeri',
 
-    publicHref:
-      '/data-desa/galeri',
+    publicHref: '/data-desa/galeri',
 
     icon: Images,
 
@@ -242,8 +238,7 @@ export const publicContentModules:
 
     href: '/admin/produk-hukum',
 
-    publicHref:
-      '/informasi-publik/produk-hukum',
+    publicHref: '/informasi-publik/produk-hukum',
 
     icon: ScrollText,
 
@@ -258,11 +253,9 @@ export const publicContentModules:
     description:
       'Kelola informasi umum, APBDes, dokumen publik, dan arsip informasi.',
 
-    href:
-      '/admin/informasi-publik',
+    href: '/admin/informasi-publik',
 
-    publicHref:
-      '/informasi-publik',
+    publicHref: '/informasi-publik',
 
     icon: Info,
 
@@ -279,8 +272,7 @@ export const publicContentModules:
 
     href: '/admin/ppid',
 
-    publicHref:
-      '/ppid/apa-itu-ppid',
+    publicHref: '/ppid/apa-itu-ppid',
 
     icon: FileText,
 
@@ -361,15 +353,15 @@ export const publicContentModules:
     label: 'Desa Cantik',
 
     description:
-      'Kelola data Desa Cantik berdasarkan tahun dan kelompok indikator.',
+      'Kelola sumber data, infografis, status publikasi, dokumen tahunan, dan data statistik Desa Cantik.',
 
     href: '/admin/desa-cantik',
 
     publicHref: '/desa-cantik',
 
-    icon: Sparkles,
+    icon: BarChart3,
 
-    enabled: false,
+    enabled: true,
   },
 
   {
@@ -397,11 +389,9 @@ export const publicContentModules:
     description:
       'Kelola dokumen tata laksana, pengawasan, pelayanan, partisipasi, dan kearifan lokal.',
 
-    href:
-      '/admin/desa-anti-korupsi',
+    href: '/admin/desa-anti-korupsi',
 
-    publicHref:
-      '/desa-anti-korupsi',
+    publicHref: '/desa-anti-korupsi',
 
     icon: ShieldCheck,
 
@@ -460,14 +450,10 @@ export const publicContentModules:
   },
 ];
 
-function getPublicModule(
-  id: string
-): AdminNavigationItem {
-  const module =
-    publicContentModules.find(
-      (item) =>
-        item.id === id
-    );
+function getPublicModule(id: string): AdminNavigationItem {
+  const module = publicContentModules.find(
+    (item) => item.id === id
+  );
 
   if (!module) {
     throw new Error(
@@ -478,8 +464,7 @@ function getPublicModule(
   return module;
 }
 
-export const adminMenuGroups:
-  AdminNavigationGroup[] = [
+export const adminMenuGroups: AdminNavigationGroup[] = [
   {
     label: 'Menu Utama',
 
@@ -489,116 +474,72 @@ export const adminMenuGroups:
   },
 
   {
-    label:
-      'Administrasi Warga',
+    label: 'Administrasi Warga',
 
     items: [
       dataWargaMenu,
 
       permohonanMenu,
 
-      getPublicModule(
-        'layanan'
-      ),
+      getPublicModule('layanan'),
 
-      getPublicModule(
-        'pengaduan'
-      ),
+      getPublicModule('pengaduan'),
     ],
   },
 
   {
-    label:
-      'Publikasi Desa',
+    label: 'Publikasi Desa',
 
     items: [
-      getPublicModule(
-        'beranda'
-      ),
+      getPublicModule('beranda'),
 
-      getPublicModule(
-        'berita'
-      ),
+      getPublicModule('berita'),
 
-      getPublicModule(
-        'galeri'
-      ),
+      getPublicModule('galeri'),
 
-      getPublicModule(
-        'produk-hukum'
-      ),
+      getPublicModule('produk-hukum'),
 
-      getPublicModule(
-        'informasi-publik'
-      ),
+      getPublicModule('informasi-publik'),
 
-      getPublicModule(
-        'ppid'
-      ),
+      getPublicModule('ppid'),
     ],
   },
 
   {
-    label:
-      'Data dan Pemerintahan',
+    label: 'Data dan Pemerintahan',
 
     items: [
-      getPublicModule(
-        'profil'
-      ),
+      getPublicModule('profil'),
 
-      getPublicModule(
-        'pemerintahan'
-      ),
+      getPublicModule('pemerintahan'),
 
-      getPublicModule(
-        'tilik-arkeji'
-      ),
+      getPublicModule('tilik-arkeji'),
 
-      getPublicModule(
-        'data-desa'
-      ),
+      getPublicModule('data-desa'),
 
       sdgsMenu,
 
-      getPublicModule(
-        'peta'
-      ),
+      getPublicModule('peta'),
 
-      getPublicModule(
-        'kontak'
-      ),
+      getPublicModule('kontak'),
     ],
   },
 
   {
-    label:
-      'Program dan Potensi',
+    label: 'Program dan Potensi',
 
     items: [
-      getPublicModule(
-        'umkm'
-      ),
+      getPublicModule('umkm'),
 
-      getPublicModule(
-        'pembangunan'
-      ),
+      getPublicModule('pembangunan'),
 
-      getPublicModule(
-        'idm'
-      ),
+      getPublicModule('idm'),
 
-      getPublicModule(
-        'desa-cantik'
-      ),
+      getPublicModule('desa-cantik'),
 
-      getPublicModule(
-        'desa-wisata'
-      ),
+      getPublicModule('desa-wisata'),
 
-      getPublicModule(
-        'anti-korupsi'
-      ),
+      getPublicModule('anti-korupsi'),
     ],
   },
 ];

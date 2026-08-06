@@ -1,46 +1,104 @@
 // app/(public)/umkm/page.tsx
 
+import type { Metadata } from 'next';
+
 import LapakDesaClient from '@/components/umkm/LapakDesaClient';
 
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 import type { ProdukUmkm } from '@/types/umkm';
 
-export const dynamic = 'force-dynamic';
+export const metadata: Metadata = {
+  title:
+    'Lapak dan E-Catalog UMKM Desa Keji | SIJI',
+
+  description:
+    'Temukan produk makanan, minuman, kerajinan, dan berbagai produk UMKM masyarakat Desa Keji.',
+};
+
+export const dynamic =
+  'force-dynamic';
+
 export const revalidate = 0;
 
+const ECATALOG_COVER_URL =
+  '/cover-ecatalog.png';
+
 interface EcatalogDatabase {
-  ecatalog_judul: string | null;
-  ecatalog_deskripsi: string | null;
-  ecatalog_url: string | null;
-  ecatalog_aktif: boolean | null;
+  ecatalog_judul:
+    | string
+    | null;
+
+  ecatalog_deskripsi:
+    | string
+    | null;
+
+  ecatalog_url:
+    | string
+    | null;
+
+  ecatalog_aktif:
+    | boolean
+    | null;
 }
 
 interface EcatalogUmkm {
   judul: string;
   deskripsi: string;
   url: string;
+  coverUrl: string;
 }
 
-function safeString(value: unknown) {
-  return String(value ?? '').trim();
+function safeString(
+  value: unknown
+): string {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
+function safeNumber(
+  value: unknown,
+  fallback = 0
+): number {
+  const number =
+    Number(value);
+
+  return Number.isFinite(
+    number
+  )
+    ? number
+    : fallback;
+}
+
+function normalizeOptionalString(
+  value: unknown
+): string | null {
+  const text =
+    safeString(value);
+
+  return text || null;
 }
 
 function normalizeExternalUrl(
   value: unknown
 ): string | null {
-  const rawUrl = safeString(value);
+  const rawUrl =
+    safeString(value);
 
   if (!rawUrl) {
     return null;
   }
 
   try {
-    const url = new URL(rawUrl);
+    const url =
+      new URL(rawUrl);
 
     if (
-      url.protocol !== 'https:' &&
-      url.protocol !== 'http:'
+      url.protocol !==
+        'https:' &&
+      url.protocol !==
+        'http:'
     ) {
       return null;
     }
@@ -51,89 +109,147 @@ function normalizeExternalUrl(
   }
 }
 
+function normalizePublicImageUrl(
+  value: unknown
+): string | null {
+  const rawUrl =
+    safeString(value);
+
+  if (!rawUrl) {
+    return null;
+  }
+
+  if (
+    rawUrl.startsWith('/') &&
+    !rawUrl.startsWith('//')
+  ) {
+    return rawUrl;
+  }
+
+  return normalizeExternalUrl(
+    rawUrl
+  );
+}
+
 function normalizeProduk(
-  row: Record<string, unknown>
+  row: Record<
+    string,
+    unknown
+  >
 ): ProdukUmkm {
   return {
-    id: String(row.id ?? ''),
+    id:
+      safeString(
+        row.id
+      ),
 
-    nama_produk: String(
-      row.nama_produk ?? ''
-    ).trim(),
+    nama_produk:
+      safeString(
+        row.nama_produk
+      ),
 
-    slug: String(
-      row.slug ?? ''
-    ).trim(),
+    slug:
+      safeString(
+        row.slug
+      ),
 
-    kategori: String(
-      row.kategori ?? 'Lainnya'
-    ).trim(),
+    kategori:
+      safeString(
+        row.kategori
+      ) ||
+      'Lainnya',
 
-    harga: Number(
-      row.harga ?? 0
-    ),
+    harga:
+      Math.max(
+        safeNumber(
+          row.harga
+        ),
+        0
+      ),
 
-    satuan: String(
-      row.satuan ?? 'pcs'
-    ).trim(),
+    satuan:
+      safeString(
+        row.satuan
+      ) ||
+      'pcs',
 
-    deskripsi: row.deskripsi
-      ? String(row.deskripsi)
-      : null,
+    deskripsi:
+      normalizeOptionalString(
+        row.deskripsi
+      ),
 
-    nama_penjual: String(
-      row.nama_penjual ?? ''
-    ).trim(),
+    nama_penjual:
+      safeString(
+        row.nama_penjual
+      ),
 
-    nomor_whatsapp: row.nomor_whatsapp
-      ? String(row.nomor_whatsapp)
-      : null,
+    nomor_whatsapp:
+      normalizeOptionalString(
+        row.nomor_whatsapp
+      ),
 
-    alamat: row.alamat
-      ? String(row.alamat)
-      : null,
+    alamat:
+      normalizeOptionalString(
+        row.alamat
+      ),
 
-    lokasi_url: row.lokasi_url
-      ? String(row.lokasi_url)
-      : null,
+    lokasi_url:
+      normalizeExternalUrl(
+        row.lokasi_url
+      ),
 
-    gambar_url: row.gambar_url
-      ? String(row.gambar_url)
-      : null,
+    gambar_url:
+      normalizePublicImageUrl(
+        row.gambar_url
+      ),
 
-    terverifikasi: Boolean(
-      row.terverifikasi
-    ),
+    terverifikasi:
+      Boolean(
+        row.terverifikasi
+      ),
 
-    aktif: Boolean(row.aktif),
+    aktif:
+      Boolean(
+        row.aktif
+      ),
 
-    urutan: Number(
-      row.urutan ?? 0
-    ),
+    urutan:
+      Math.max(
+        safeNumber(
+          row.urutan
+        ),
+        0
+      ),
 
-    created_at: String(
-      row.created_at ?? ''
-    ),
+    created_at:
+      safeString(
+        row.created_at
+      ),
 
-    updated_at: String(
-      row.updated_at ?? ''
-    ),
+    updated_at:
+      safeString(
+        row.updated_at
+      ),
   };
 }
 
 function normalizeEcatalog(
-  value: EcatalogDatabase | null
+  value:
+    | EcatalogDatabase
+    | null
 ): EcatalogUmkm | null {
   if (
     !value ||
-    value.ecatalog_aktif !== true
+    value.ecatalog_aktif !==
+      true
   ) {
     return null;
   }
 
-  const url = normalizeExternalUrl(
-    value.ecatalog_url
-  );
+  const url =
+    normalizeExternalUrl(
+      value.ecatalog_url
+    );
 
   if (!url) {
     return null;
@@ -144,15 +260,18 @@ function normalizeEcatalog(
       safeString(
         value.ecatalog_judul
       ) ||
-      'E-Catalog Produk UMKM Desa Keji',
+      'E-Catalog UMKM Desa Keji',
 
     deskripsi:
       safeString(
         value.ecatalog_deskripsi
       ) ||
-      'Akses katalog digital produk UMKM Desa Keji.',
+      'Jelajahi katalog digital yang memuat produk makanan, kerajinan, dan usaha lokal masyarakat Desa Keji.',
 
     url,
+
+    coverUrl:
+      ECATALOG_COVER_URL,
   };
 }
 
@@ -162,7 +281,9 @@ export default async function UmkmPage() {
     settingsResult,
   ] = await Promise.all([
     supabaseAdmin
-      .from('produk_umkm')
+      .from(
+        'produk_umkm'
+      )
       .select(`
         id,
         nama_produk,
@@ -182,94 +303,141 @@ export default async function UmkmPage() {
         created_at,
         updated_at
       `)
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('created_at', {
-        ascending: false,
-      }),
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'urutan',
+        {
+          ascending: true,
+          nullsFirst: false,
+        }
+      )
+      .order(
+        'created_at',
+        {
+          ascending: false,
+        }
+      ),
 
     supabaseAdmin
-      .from('paket_wisata_settings')
+      .from(
+        'paket_wisata_settings'
+      )
       .select(`
         ecatalog_judul,
         ecatalog_deskripsi,
         ecatalog_url,
         ecatalog_aktif
       `)
-      .eq('setting_key', 'utama')
+      .eq(
+        'setting_key',
+        'utama'
+      )
       .maybeSingle(),
   ]);
 
-  if (produkResult.error) {
+  if (
+    produkResult.error
+  ) {
     console.error(
       'Gagal mengambil produk UMKM:',
       {
         message:
-          produkResult.error.message,
+          produkResult.error
+            .message,
 
         code:
-          produkResult.error.code,
+          produkResult.error
+            .code,
 
         details:
-          produkResult.error.details,
+          produkResult.error
+            .details,
 
         hint:
-          produkResult.error.hint,
+          produkResult.error
+            .hint,
       }
     );
   }
 
-  if (settingsResult.error) {
+  if (
+    settingsResult.error
+  ) {
     console.error(
       'Gagal mengambil pengaturan E-Catalog UMKM:',
       {
         message:
-          settingsResult.error.message,
+          settingsResult.error
+            .message,
 
         code:
-          settingsResult.error.code,
+          settingsResult.error
+            .code,
 
         details:
-          settingsResult.error.details,
+          settingsResult.error
+            .details,
 
         hint:
-          settingsResult.error.hint,
+          settingsResult.error
+            .hint,
       }
     );
   }
 
-  const produk = (
-    (produkResult.data ??
-      []) as Record<
-      string,
-      unknown
-    >[]
-  )
-    .map(normalizeProduk)
-    .filter(
-      (item) =>
-        item.id.length > 0 &&
-        item.nama_produk.length > 0 &&
-        item.nama_penjual.length > 0
-    );
+  const produk =
+    (
+      (
+        produkResult.data ??
+        []
+      ) as Record<
+        string,
+        unknown
+      >[]
+    )
+      .map(
+        normalizeProduk
+      )
+      .filter(
+        (item) =>
+          item.id.length >
+            0 &&
+          item.nama_produk
+            .length >
+            0 &&
+          item.nama_penjual
+            .length >
+            0
+      );
 
-  const kategori = Array.from(
-    new Set(
-      produk
-        .map(
-          (item) =>
-            item.kategori
+  const kategori =
+    Array.from(
+      new Set(
+        produk
+          .map(
+            (item) =>
+              item.kategori
+          )
+          .filter(
+            (
+              item
+            ): item is string =>
+              item.length > 0
+          )
+      )
+    ).sort(
+      (
+        first,
+        second
+      ) =>
+        first.localeCompare(
+          second,
+          'id-ID'
         )
-        .filter(Boolean)
-    )
-  ).sort((a, b) =>
-    a.localeCompare(
-      b,
-      'id-ID'
-    )
-  );
+    );
 
   const ecatalog =
     normalizeEcatalog(
@@ -280,9 +448,15 @@ export default async function UmkmPage() {
 
   return (
     <LapakDesaClient
-      produk={produk}
-      kategori={kategori}
-      ecatalog={ecatalog}
+      produk={
+        produk
+      }
+      kategori={
+        kategori
+      }
+      ecatalog={
+        ecatalog
+      }
     />
   );
 }

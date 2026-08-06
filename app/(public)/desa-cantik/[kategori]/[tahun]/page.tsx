@@ -1,3 +1,5 @@
+// app/(public)/desa-cantik/[kategori]/[tahun]/page.tsx
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -13,6 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import DesaCantikInfografisPopup from '@/components/public/DesaCantikInfografisPopup';
 import DesaCantikKesehatan from '@/components/public/DesaCantikKesehatan';
 import DesaCantikPendidikan from '@/components/public/DesaCantikPendidikan';
 import DesaCantikPenduduk from '@/components/public/DesaCantikPenduduk';
@@ -27,25 +30,30 @@ import {
   isTahunDesaCantik,
   SUMBER_DATA_PENDUDUK_2025,
 } from '@/lib/desa-cantik';
+
 import {
   getDataKesehatan,
   SUMBER_DATA_KESEHATAN_2025,
   SUMBER_DATA_KESEHATAN_2026,
 } from '@/lib/desa-cantik-kesehatan';
+
 import {
   getDataPendidikan,
   SUMBER_DATA_PENDIDIKAN_2025,
   SUMBER_DATA_PENDIDIKAN_2026,
 } from '@/lib/desa-cantik-pendidikan';
+
 import {
   getDataPenduduk2026,
   SUMBER_DATA_PENDUDUK_2026,
 } from '@/lib/desa-cantik-penduduk-2026';
+
 import {
   getDataPerekonomian,
   SUMBER_DATA_PEREKONOMIAN_2025,
   SUMBER_DATA_PEREKONOMIAN_2026,
 } from '@/lib/desa-cantik-perekonomian';
+
 import {
   getDataPerumahan,
   SUMBER_DATA_PERUMAHAN_2025,
@@ -71,6 +79,40 @@ const ikonKategori: Record<KategoriDesaCantik, LucideIcon> = {
   kesehatan: HeartPulse,
   perumahan: Home,
   perekonomian: Landmark,
+};
+
+/*
+ * Pemetaan infografis berdasarkan kategori dan tahun.
+ * Semua file disimpan dalam public/desa-cantik.
+ */
+const INFOGRAFIS_DESA_CANTIK: Record<
+  KategoriDesaCantik,
+  Record<number, string>
+> = {
+  penduduk: {
+    2025: '/desa-cantik/penduduk%202025.png',
+    2026: '/desa-cantik/penduduk%202026.png',
+  },
+
+  pendidikan: {
+    2025: '/desa-cantik/pendidikan%202025.png',
+    2026: '/desa-cantik/pendidikan%202026.png',
+  },
+
+  kesehatan: {
+    2025: '/desa-cantik/kesehatan%202025.png',
+    2026: '/desa-cantik/kesehatan%202026.png',
+  },
+
+  perumahan: {
+    2025: '/desa-cantik/perumahan%202025.png',
+    2026: '/desa-cantik/perumahan%202026.png',
+  },
+
+  perekonomian: {
+    2025: '/desa-cantik/perekonomian%202025.png',
+    2026: '/desa-cantik/perekonomian%202026.png',
+  },
 };
 
 export function generateStaticParams() {
@@ -108,10 +150,10 @@ export default async function DesaCantikDetailPage({
 
   const Icon = ikonKategori[kategoriParam];
 
-  const dataPenduduk = getDataPenduduk(
-    kategoriParam,
-    tahun,
-  );
+  const infografisUrl =
+    INFOGRAFIS_DESA_CANTIK[kategoriParam]?.[tahun] ?? null;
+
+  const dataPenduduk = getDataPenduduk(kategoriParam, tahun);
 
   const dataPenduduk2026 = getDataPenduduk2026(
     kategoriParam,
@@ -174,10 +216,17 @@ export default async function DesaCantikDetailPage({
           Kembali ke Desa Cantik
         </Link>
 
+        {/* Hero */}
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-700 px-6 py-9 text-white shadow-xl md:px-10 md:py-12">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10" />
+          <div
+            aria-hidden="true"
+            className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10"
+          />
 
-          <div className="absolute -bottom-28 right-24 h-72 w-72 rounded-full bg-emerald-400/20" />
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-28 right-24 h-72 w-72 rounded-full bg-emerald-400/20"
+          />
 
           <div className="relative z-10">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -202,14 +251,13 @@ export default async function DesaCantikDetailPage({
           </div>
         </section>
 
+        {/* Navigasi kategori */}
         <nav className="mt-6 overflow-x-auto">
           <div className="flex min-w-max gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
             {KATEGORI_DESA_CANTIK.map((kategori) => {
-              const KategoriIcon =
-                ikonKategori[kategori.slug];
+              const KategoriIcon = ikonKategori[kategori.slug];
 
-              const isActive =
-                kategori.slug === kategoriParam;
+              const isActive = kategori.slug === kategoriParam;
 
               return (
                 <Link
@@ -229,29 +277,40 @@ export default async function DesaCantikDetailPage({
           </div>
         </nav>
 
+        {/* Pilihan tahun */}
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs font-extrabold uppercase tracking-wider text-slate-500">
             Pilih tahun:
           </span>
 
-          {TAHUN_DESA_CANTIK.map(
-            (pilihanTahun) => (
-              <Link
-                key={pilihanTahun}
-                href={`/desa-cantik/${kategoriParam}/${pilihanTahun}`}
-                className={`rounded-xl px-4 py-2 text-sm font-extrabold transition ${
-                  pilihanTahun === tahun
-                    ? 'bg-emerald-700 text-white shadow-sm'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-800'
-                }`}
-              >
-                {pilihanTahun}
-              </Link>
-            ),
-          )}
+          {TAHUN_DESA_CANTIK.map((pilihanTahun) => (
+            <Link
+              key={pilihanTahun}
+              href={`/desa-cantik/${kategoriParam}/${pilihanTahun}`}
+              className={`rounded-xl px-4 py-2 text-sm font-extrabold transition ${
+                pilihanTahun === tahun
+                  ? 'bg-emerald-700 text-white shadow-sm'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-800'
+              }`}
+            >
+              {pilihanTahun}
+            </Link>
+          ))}
         </div>
 
         <main className="mt-8 min-w-0 w-full">
+          {/* Popup infografis sesuai kategori dan tahun */}
+          {infografisUrl ? (
+            <DesaCantikInfografisPopup
+              key={`${kategoriParam}-${tahun}`}
+              src={infografisUrl}
+              title={`Infografis ${kategoriAktif.nama} Desa Keji Tahun ${tahun}`}
+              alt={`Infografis data ${kategoriAktif.nama.toLowerCase()} Desa Keji tahun ${tahun}`}
+              triggerLabel={`Lihat Infografis ${kategoriAktif.nama} ${tahun}`}
+              autoOpen
+            />
+          ) : null}
+
           {tampilkanPenduduk2026 ? (
             <DesaCantikPenduduk2026
               rows={dataPenduduk2026}
@@ -306,7 +365,7 @@ export default async function DesaCantikDetailPage({
             />
           ) : (
             <section className="rounded-3xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                 <Clock3 size={31} />
               </div>
 
@@ -319,11 +378,9 @@ export default async function DesaCantikDetailPage({
               </h2>
 
               <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-7 text-slate-600">
-                Data{' '}
-                {kategoriAktif.nama.toLowerCase()}{' '}
-                Desa Keji tahun {tahun} sedang dalam
-                proses penyusunan dan akan ditampilkan
-                setelah data selesai diverifikasi.
+                Data {kategoriAktif.nama.toLowerCase()} Desa Keji tahun{' '}
+                {tahun} sedang dalam proses penyusunan dan akan
+                ditampilkan setelah data selesai diverifikasi.
               </p>
 
               <Link

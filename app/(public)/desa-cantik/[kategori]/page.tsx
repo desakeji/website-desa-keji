@@ -1,8 +1,15 @@
-import { notFound, redirect } from 'next/navigation';
+// app/(public)/desa-cantik/[kategori]/page.tsx
 
-import { isKategoriDesaCantik } from '@/lib/desa-cantik';
+import {
+  notFound,
+  redirect,
+} from 'next/navigation';
 
-interface PageProps {
+import {
+  isKategoriDesaCantik,
+} from '@/lib/desa-cantik';
+
+interface DesaCantikKategoriPageProps {
   params: Promise<{
     kategori: string;
   }>;
@@ -10,12 +17,20 @@ interface PageProps {
 
 export default async function DesaCantikKategoriPage({
   params,
-}: PageProps) {
-  const { kategori } = await params;
+}: DesaCantikKategoriPageProps) {
+  const {
+    kategori,
+  } = await params;
 
-  if (!isKategoriDesaCantik(kategori)) {
+  if (
+    !isKategoriDesaCantik(
+      kategori
+    )
+  ) {
     notFound();
   }
 
-  redirect(`/desa-cantik/${kategori}/2025`);
+  redirect(
+    `/desa-cantik/${kategori}/2025`
+  );
 }

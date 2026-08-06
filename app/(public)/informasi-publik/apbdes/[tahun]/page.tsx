@@ -1,14 +1,20 @@
 // app/(public)/informasi-publik/apbdes/[tahun]/page.tsx
 
+import type {
+  Metadata,
+} from 'next';
+
 import Link from 'next/link';
 
 import {
   ArrowRight,
   BarChart3,
+  CircleAlert,
   Download,
   FileText,
   Landmark,
   PieChart,
+  ShieldCheck,
   WalletCards,
   type LucideIcon,
 } from 'lucide-react';
@@ -18,6 +24,7 @@ import {
 } from 'next/navigation';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import {
   supabaseAdmin,
@@ -48,9 +55,95 @@ interface PageProps {
 }
 
 interface LayananRow {
-  id: number;
-  nama: string;
-  slug: string;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
+}
+
+interface TahunApbdesRow {
+  tahun:
+    | number
+    | string
+    | null;
+}
+
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
+function safeNumber(
+  value: unknown,
+  fallback = 0
+) {
+  const number =
+    Number(value);
+
+  return Number.isFinite(
+    number
+  )
+    ? number
+    : fallback;
+}
+
+function isValidTahun(
+  value: number
+) {
+  return (
+    Number.isInteger(
+      value
+    ) &&
+    value >= 1900 &&
+    value <= 2100
+  );
+}
+
+function getSafePublicUrl(
+  value: unknown
+) {
+  const url =
+    safeString(value);
+
+  if (!url) {
+    return null;
+  }
+
+  if (
+    url.startsWith('/') &&
+    !url.startsWith('//')
+  ) {
+    return url;
+  }
+
+  try {
+    const parsedUrl =
+      new URL(url);
+
+    if (
+      parsedUrl.protocol !==
+        'https:' &&
+      parsedUrl.protocol !==
+        'http:'
+    ) {
+      return null;
+    }
+
+    return parsedUrl.toString();
+  } catch {
+    return null;
+  }
 }
 
 function formatRupiah(
@@ -60,18 +153,66 @@ function formatRupiah(
     'id-ID',
     {
       style: 'currency',
+
       currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+
+      minimumFractionDigits:
+        0,
+
+      maximumFractionDigits:
+        0,
     }
-  ).format(value);
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
 }
 
-function formatPersentase(
+function formatAngka(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    'id-ID'
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
+}
+
+function formatDesimal(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    'id-ID',
+    {
+      minimumFractionDigits:
+        0,
+
+      maximumFractionDigits:
+        2,
+    }
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
+}
+
+function hitungPersentase(
   realisasi: number,
   anggaran: number
 ) {
-  if (anggaran <= 0) {
+  if (
+    !Number.isFinite(
+      realisasi
+    ) ||
+    !Number.isFinite(
+      anggaran
+    ) ||
+    anggaran <= 0
+  ) {
     return 0;
   }
 
@@ -82,98 +223,102 @@ function formatPersentase(
 }
 
 function normalizeApbdes(
-  row: Record<
-    string,
-    unknown
-  >
-): ApbdesRealisasi {
+  value: unknown
+): ApbdesRealisasi | null {
+  if (
+    !value ||
+    typeof value !==
+      'object' ||
+    Array.isArray(value)
+  ) {
+    return null;
+  }
+
+  const row =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  const id =
+    safeString(row.id);
+
+  const tahun =
+    safeNumber(row.tahun);
+
+  if (
+    !id ||
+    !isValidTahun(tahun)
+  ) {
+    return null;
+  }
+
   return {
-    id:
-      String(
-        row.id ?? ''
-      ),
+    id,
 
     tahun:
-      Number(
-        row.tahun
-      ) as TahunApbdes,
+      tahun as TahunApbdes,
 
     judul:
-      String(
-        row.judul ??
-          ''
-      ),
+      safeString(
+        row.judul
+      ) ||
+      `Realisasi APBDes Desa Keji Tahun ${tahun}`,
 
     deskripsi:
-      row.deskripsi
-        ? String(
-            row.deskripsi
-          )
-        : null,
+      safeString(
+        row.deskripsi
+      ) || null,
 
     anggaran_pendapatan:
-      Number(
-        row.anggaran_pendapatan ??
-          0
+      safeNumber(
+        row.anggaran_pendapatan
       ),
 
     realisasi_pendapatan:
-      Number(
-        row.realisasi_pendapatan ??
-          0
+      safeNumber(
+        row.realisasi_pendapatan
       ),
 
     anggaran_belanja:
-      Number(
-        row.anggaran_belanja ??
-          0
+      safeNumber(
+        row.anggaran_belanja
       ),
 
     realisasi_belanja:
-      Number(
-        row.realisasi_belanja ??
-          0
+      safeNumber(
+        row.realisasi_belanja
       ),
 
     anggaran_pembiayaan:
-      Number(
-        row.anggaran_pembiayaan ??
-          0
+      safeNumber(
+        row.anggaran_pembiayaan
       ),
 
     realisasi_pembiayaan:
-      Number(
-        row.realisasi_pembiayaan ??
-          0
+      safeNumber(
+        row.realisasi_pembiayaan
       ),
 
     dokumen_url:
-      row.dokumen_url
-        ? String(
-            row.dokumen_url
-          )
-        : null,
+      safeString(
+        row.dokumen_url
+      ) || null,
 
     dokumen_path:
-      row.dokumen_path
-        ? String(
-            row.dokumen_path
-          )
-        : null,
+      safeString(
+        row.dokumen_path
+      ) || null,
 
     infografis_url:
-      row.infografis_url
-        ? String(
-            row.infografis_url
-          )
-        : null,
+      safeString(
+        row.infografis_url
+      ) || null,
 
     infografis_path:
-      row.infografis_path
-        ? String(
-            row.infografis_path
-          )
-        : null,
+      safeString(
+        row.infografis_path
+      ) || null,
 
     aktif:
       Boolean(
@@ -181,16 +326,45 @@ function normalizeApbdes(
       ),
 
     created_at:
-      String(
-        row.created_at ??
-          ''
+      safeString(
+        row.created_at
       ),
 
     updated_at:
-      String(
-        row.updated_at ??
-          ''
+      safeString(
+        row.updated_at
       ),
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const {
+    tahun: tahunParam,
+  } = await params;
+
+  const tahun =
+    Number(tahunParam);
+
+  if (
+    !isValidTahun(tahun)
+  ) {
+    return {
+      title:
+        'APBDes Desa Keji | SIJI',
+
+      description:
+        'Informasi transparansi APBDes Pemerintah Desa Keji.',
+    };
+  }
+
+  return {
+    title:
+      `Realisasi APBDes ${tahun} | SIJI Desa Keji`,
+
+    description:
+      `Informasi transparansi anggaran dan realisasi APBDes Desa Keji Tahun ${tahun}.`,
   };
 }
 
@@ -202,20 +376,20 @@ export default async function ApbdesPublicPage({
   } = await params;
 
   const tahun =
-    Number(
-      tahunParam
-    );
+    Number(tahunParam);
 
   if (
-    !TAHUN_APBDES.includes(
-      tahun as TahunApbdes
-    )
+    !/^\d{4}$/.test(
+      tahunParam
+    ) ||
+    !isValidTahun(tahun)
   ) {
     notFound();
   }
 
   const [
     apbdesResult,
+    tahunResult,
     layananResult,
   ] = await Promise.all([
     supabaseAdmin
@@ -252,6 +426,24 @@ export default async function ApbdesPublicPage({
       .maybeSingle(),
 
     supabaseAdmin
+      .from(
+        'apbdes_realisasi'
+      )
+      .select(`
+        tahun
+      `)
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'tahun',
+        {
+          ascending: true,
+        }
+      ),
+
+    supabaseAdmin
       .from('layanan')
       .select(`
         id,
@@ -264,6 +456,13 @@ export default async function ApbdesPublicPage({
       )
       .order(
         'urutan',
+        {
+          ascending: true,
+          nullsFirst: false,
+        }
+      )
+      .order(
+        'nama',
         {
           ascending: true,
         }
@@ -296,6 +495,31 @@ export default async function ApbdesPublicPage({
   }
 
   if (
+    tahunResult.error
+  ) {
+    console.error(
+      'Gagal mengambil daftar tahun APBDes:',
+      {
+        message:
+          tahunResult.error
+            .message,
+
+        code:
+          tahunResult.error
+            .code,
+
+        details:
+          tahunResult.error
+            .details,
+
+        hint:
+          tahunResult.error
+            .hint,
+      }
+    );
+  }
+
+  if (
     layananResult.error
   ) {
     console.error(
@@ -320,28 +544,78 @@ export default async function ApbdesPublicPage({
     );
   }
 
+  const data =
+    normalizeApbdes(
+      apbdesResult.data
+    );
+
+  const tahunDatabase =
+    (
+      (
+        tahunResult.data ??
+        []
+      ) as TahunApbdesRow[]
+    )
+      .map((item) =>
+        Number(
+          item.tahun
+        )
+      )
+      .filter(
+        (
+          item
+        ): item is number =>
+          isValidTahun(item)
+      );
+
+  const daftarTahun = [
+    ...new Set<number>([
+      ...TAHUN_APBDES.map(
+        (item) =>
+          Number(item)
+      ).filter(
+        isValidTahun
+      ),
+
+      ...tahunDatabase,
+
+      tahun,
+    ]),
+  ].sort(
+    (first, second) =>
+      first - second
+  );
+
   const daftarLayanan:
     PilihanLayanan[] = (
-      (layananResult.data ??
-        []) as LayananRow[]
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
     )
-      .map((item) => ({
-        id:
-          Number(item.id),
+      .map((item) => {
+        const id =
+          Number(item.id);
 
-        nama:
-          String(
-            item.nama ?? ''
-          ).trim(),
+        const nama =
+          safeString(
+            item.nama
+          );
 
-        slug:
-          String(
-            item.slug ?? ''
-          ).trim(),
-      }))
+        const slug =
+          safeString(
+            item.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
       .filter(
         (item) =>
-          Number.isFinite(
+          Number.isInteger(
             item.id
           ) &&
           item.id > 0 &&
@@ -351,16 +625,6 @@ export default async function ApbdesPublicPage({
             0
       );
 
-  const data =
-    apbdesResult.data
-      ? normalizeApbdes(
-          apbdesResult.data as Record<
-            string,
-            unknown
-          >
-        )
-      : null;
-
   const selisihRealisasi =
     data
       ? data.realisasi_pendapatan +
@@ -369,56 +633,114 @@ export default async function ApbdesPublicPage({
       : 0;
 
   /*
-   * Tahun 2026 menggunakan
-   * gambar lokal dari folder public.
-   *
-   * Tahun lain tetap memakai
-   * infografis dari Supabase.
+   * APBDes 2026 menggunakan
+   * infografis lokal pada folder
+   * public/images/anti-korupsi.
    */
   const infografisUrl =
-    tahun === 2026
-      ? '/images/anti-korupsi/APBDes-2026.png'
-      : data?.infografis_url ??
-        null;
+    getSafePublicUrl(
+      tahun === 2026
+        ? '/images/anti-korupsi/APBDes-2026.png'
+        : data?.infografis_url
+    );
+
+  const dokumenUrl =
+    getSafePublicUrl(
+      data?.dokumen_url
+    );
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header halaman */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
-            <Landmark
-              size={16}
-            />
+        {/* Header Halaman */}
+        <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
 
-            Informasi Publik
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.04]"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/[0.06] blur-2xl"
+          />
+
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <Landmark
+                size={24}
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+              Informasi Publik
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              Realisasi APBDes{' '}
+              {tahun}
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80 sm:text-base">
+              Informasi transparansi
+              anggaran dan realisasi
+              Anggaran Pendapatan dan
+              Belanja Desa Keji Tahun{' '}
+              {tahun}.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <HeaderBadge
+                label={`Tahun Anggaran ${tahun}`}
+              />
+
+              <HeaderBadge
+                label={
+                  data
+                    ? 'Data dipublikasikan'
+                    : 'Nominal belum tersedia'
+                }
+              />
+
+              {infografisUrl && (
+                <HeaderBadge
+                  label="Infografis tersedia"
+                />
+              )}
+            </div>
           </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Realisasi APBDes{' '}
-            {tahun}
-          </h1>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Informasi transparansi
-            anggaran dan realisasi
-            Anggaran Pendapatan dan
-            Belanja Desa Keji Tahun{' '}
-            {tahun}.
-          </p>
         </header>
 
-        {/* Navigasi tahun */}
-        <nav className="mb-6 flex flex-wrap gap-2">
-          {TAHUN_APBDES.map(
+        {/* Navigasi Tahun */}
+        <nav
+          aria-label="Navigasi tahun APBDes"
+          className="mb-8 flex flex-wrap gap-2"
+        >
+          {daftarTahun.map(
             (item) => (
               <Link
                 key={item}
                 href={`/informasi-publik/apbdes/${item}`}
+                aria-current={
+                  item === tahun
+                    ? 'page'
+                    : undefined
+                }
                 className={`rounded-xl px-4 py-2.5 text-sm font-extrabold transition ${
                   item === tahun
                     ? 'bg-emerald-700 text-white shadow-md'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-700'
+                    : 'border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50'
                 }`}
               >
                 APBDes {item}
@@ -428,22 +750,24 @@ export default async function ApbdesPublicPage({
         </nav>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          <main className="min-w-0 space-y-6 lg:w-2/3">
-            {/* Informasi belum tersedia */}
+          {/* Konten Utama */}
+          <main className="min-w-0 space-y-7 lg:w-2/3">
+            {/* Data Belum Tersedia */}
             {!data && (
-              <section className="rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center md:p-10">
-                <FileText
-                  size={44}
-                  className="mx-auto text-amber-400"
-                />
+              <section className="rounded-3xl border border-dashed border-emerald-200 bg-white px-6 py-12 text-center shadow-sm sm:px-8">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-300">
+                  <FileText
+                    size={34}
+                  />
+                </div>
 
-                <h2 className="mt-4 text-xl font-black text-amber-900">
+                <h2 className="mt-5 text-xl font-black text-slate-900">
                   Data nominal APBDes{' '}
                   {tahun} belum
                   dipublikasikan
                 </h2>
 
-                <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed text-amber-700">
+                <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-7 text-slate-500">
                   Pemerintah Desa Keji
                   belum mempublikasikan
                   rincian anggaran dan
@@ -452,143 +776,168 @@ export default async function ApbdesPublicPage({
                 </p>
 
                 {infografisUrl && (
-                  <p className="mt-3 text-xs font-bold text-amber-600">
+                  <p className="mt-3 text-xs font-bold text-emerald-700">
                     Infografis APBDes
-                    tetap dapat dilihat
-                    pada bagian di bawah.
+                    tetap tersedia pada
+                    bagian berikutnya.
                   </p>
                 )}
               </section>
             )}
 
-            {/* Data APBDes dari database */}
+            {/* Data APBDes */}
             {data && (
               <>
-                {/* Hero transparansi */}
-                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-700 p-6 text-white shadow-xl md:p-8">
+                {/* Hero Transparansi */}
+                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 p-6 text-white shadow-xl sm:p-8">
                   <div
+                    aria-hidden="true"
                     className="pointer-events-none absolute inset-0 opacity-20"
                     style={{
-                      backgroundImage: `
-                        radial-gradient(
-                          circle,
-                          rgba(
-                            255,
-                            255,
-                            255,
-                            0.24
-                          ) 1.5px,
-                          transparent 1.5px
-                        )
-                      `,
+                      backgroundImage:
+                        'radial-gradient(circle, rgba(255,255,255,0.24) 1px, transparent 1px)',
+
                       backgroundSize:
                         '25px 25px',
                     }}
                   />
 
-                  <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[48px] border-white/[0.06]" />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[48px] border-white/[0.05]"
+                  />
 
                   <div className="relative">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-100">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
                       Transparansi
                       Anggaran
                     </p>
 
-                    <h2 className="mt-3 text-2xl font-black leading-tight md:text-3xl">
+                    <h2 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
                       {data.judul}
                     </h2>
 
-                    <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-emerald-50/85">
+                    <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-emerald-50/80">
                       {data.deskripsi ??
                         'Informasi realisasi APBDes Desa Keji.'}
                     </p>
 
-                    <div className="mt-6 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                    <div className="mt-7 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
                       <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-100">
-                        Selisih
-                        Realisasi
+                        Selisih Realisasi
                       </p>
 
-                      <p className="mt-2 text-2xl font-black">
+                      <p className="mt-2 break-words text-2xl font-black sm:text-3xl">
                         {formatRupiah(
                           selisihRealisasi
                         )}
                       </p>
 
-                      <p className="mt-1 text-xs font-medium text-emerald-100/80">
-                        Pendapatan +
-                        pembiayaan neto −
+                      <p className="mt-2 text-xs font-medium leading-6 text-emerald-100/80">
+                        Realisasi
+                        pendapatan ditambah
+                        realisasi
+                        pembiayaan, kemudian
+                        dikurangi realisasi
                         belanja.
                       </p>
                     </div>
                   </div>
                 </section>
 
-                {/* Ringkasan anggaran */}
-                <section className="grid gap-5">
-                  <RealisasiCard
-                    title="Pendapatan Desa"
-                    icon={
-                      WalletCards
-                    }
-                    anggaran={
-                      data.anggaran_pendapatan
-                    }
-                    realisasi={
-                      data.realisasi_pendapatan
-                    }
-                  />
+                {/* Ringkasan Anggaran */}
+                <section>
+                  <div className="mb-6 flex items-start gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
+                      <BarChart3
+                        size={21}
+                      />
+                    </div>
 
-                  <RealisasiCard
-                    title="Belanja Desa"
-                    icon={BarChart3}
-                    anggaran={
-                      data.anggaran_belanja
-                    }
-                    realisasi={
-                      data.realisasi_belanja
-                    }
-                  />
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                        Ringkasan Anggaran
+                      </p>
 
-                  <RealisasiCard
-                    title="Pembiayaan Neto"
-                    icon={PieChart}
-                    anggaran={
-                      data.anggaran_pembiayaan
-                    }
-                    realisasi={
-                      data.realisasi_pembiayaan
-                    }
-                  />
+                      <h2 className="mt-1 text-2xl font-black text-slate-900">
+                        Anggaran dan
+                        Realisasi
+                      </h2>
+
+                      <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                        Perbandingan nilai
+                        anggaran dengan
+                        realisasi setiap
+                        komponen APBDes.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5">
+                    <RealisasiCard
+                      title="Pendapatan Desa"
+                      icon={
+                        WalletCards
+                      }
+                      anggaran={
+                        data.anggaran_pendapatan
+                      }
+                      realisasi={
+                        data.realisasi_pendapatan
+                      }
+                    />
+
+                    <RealisasiCard
+                      title="Belanja Desa"
+                      icon={BarChart3}
+                      anggaran={
+                        data.anggaran_belanja
+                      }
+                      realisasi={
+                        data.realisasi_belanja
+                      }
+                    />
+
+                    <RealisasiCard
+                      title="Pembiayaan Neto"
+                      icon={PieChart}
+                      anggaran={
+                        data.anggaran_pembiayaan
+                      }
+                      realisasi={
+                        data.realisasi_pembiayaan
+                      }
+                    />
+                  </div>
                 </section>
               </>
             )}
 
             {/* Infografis */}
             {infografisUrl && (
-              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 p-5 md:p-6">
-                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-600">
+              <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+                <div className="border-b border-emerald-100 p-5 sm:p-6">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
                     Transparansi
                     Anggaran
                   </p>
 
-                  <h2 className="mt-2 text-xl font-black text-slate-900 md:text-2xl">
+                  <h2 className="mt-2 text-xl font-black text-slate-900 sm:text-2xl">
                     Infografis APBDes
                     Desa Keji Tahun{' '}
                     {tahun}
                   </h2>
 
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-slate-500">
-                    Ringkasan Anggaran
-                    Pendapatan dan
-                    Belanja Desa Keji
-                    Tahun Anggaran{' '}
+                  <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                    Ringkasan visual
+                    Anggaran Pendapatan
+                    dan Belanja Desa
+                    Keji Tahun Anggaran{' '}
                     {tahun}.
                   </p>
                 </div>
 
-                <div className="bg-slate-100 p-3 sm:p-5">
+                <div className="bg-emerald-50 p-3 sm:p-5">
                   <a
                     href={
                       infografisUrl
@@ -602,19 +951,20 @@ export default async function ApbdesPublicPage({
                         infografisUrl
                       }
                       alt={`Infografis APBDes Desa Keji Tahun ${tahun}`}
+                      loading="lazy"
                       className="h-auto w-full object-contain"
                     />
                   </a>
                 </div>
 
-                <div className="border-t border-slate-100 p-5">
+                <div className="border-t border-emerald-100 p-5">
                   <a
                     href={
                       infografisUrl
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-extrabold text-emerald-700 transition hover:text-emerald-800"
+                    className="inline-flex items-center gap-2 text-sm font-extrabold text-emerald-700 transition hover:text-emerald-900"
                   >
                     Lihat infografis
                     ukuran penuh
@@ -628,36 +978,40 @@ export default async function ApbdesPublicPage({
             )}
 
             {/* Dokumen PDF */}
-            {data?.dokumen_url && (
-              <section className="flex flex-col gap-4 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-xl bg-emerald-700 p-3 text-white">
+            {dokumenUrl && (
+              <section className="flex flex-col gap-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
                     <FileText
-                      size={22}
+                      size={21}
                     />
                   </div>
 
                   <div>
-                    <h2 className="font-black text-emerald-900">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                      Dokumen Resmi
+                    </p>
+
+                    <h2 className="mt-1 font-black text-emerald-950">
                       Dokumen APBDes{' '}
                       {tahun}
                     </h2>
 
-                    <p className="mt-1 text-sm font-medium leading-relaxed text-emerald-700">
+                    <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
                       Buka dokumen resmi
                       APBDes dalam format
-                      PDF.
+                      digital.
                     </p>
                   </div>
                 </div>
 
                 <a
                   href={
-                    data.dokumen_url
+                    dokumenUrl
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-800"
                 >
                   <Download
                     size={17}
@@ -667,21 +1021,101 @@ export default async function ApbdesPublicPage({
                 </a>
               </section>
             )}
+
+            {/* Dokumen Tidak Tersedia */}
+            {data &&
+              !dokumenUrl && (
+                <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                      <CircleAlert
+                        size={21}
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                        Dokumen APBDes
+                      </p>
+
+                      <h2 className="mt-1 font-black text-slate-900">
+                        File Dokumen Belum
+                        Tersedia
+                      </h2>
+
+                      <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                        Data nominal telah
+                        dipublikasikan, tetapi
+                        file dokumen resmi
+                        belum ditambahkan oleh
+                        administrator.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+            {/* Sumber Informasi */}
+            <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <ShieldCheck
+                    size={21}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Transparansi Desa
+                  </p>
+
+                  <h2 className="mt-1 font-black text-slate-900">
+                    Informasi Anggaran
+                    Pemerintah Desa Keji
+                  </h2>
+
+                  <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                    Data yang ditampilkan
+                    merupakan informasi
+                    APBDes yang telah
+                    diaktifkan dan
+                    dipublikasikan melalui
+                    halaman administrator
+                    website Desa Keji.
+                  </p>
+                </div>
+              </div>
+            </section>
           </main>
 
-          {/* Sidebar layanan */}
+          {/* Sidebar Kanan */}
           <aside className="min-w-0 lg:w-1/3">
-            <div className="lg:sticky lg:top-24">
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
               <SidebarLayanan
                 daftarLayanan={
                   daftarLayanan
                 }
+                sticky={false}
               />
+
+              <SidebarTilikArkeji />
             </div>
           </aside>
         </div>
       </div>
     </div>
+  );
+}
+
+function HeaderBadge({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
+      {label}
+    </span>
   );
 }
 
@@ -696,34 +1130,40 @@ function RealisasiCard({
   anggaran: number;
   realisasi: number;
 }) {
-  const percentage =
-    formatPersentase(
+  const persentase =
+    hitungPersentase(
       realisasi,
       anggaran
     );
 
-  const width =
+  const progressWidth =
     Math.min(
       Math.max(
-        percentage,
+        persentase,
         0
       ),
       100
     );
 
+  const selisih =
+    anggaran -
+    realisasi;
+
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <article className="group rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:p-6">
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-          <Icon size={23} />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
+          <Icon
+            size={23}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-black text-slate-900">
+              <h3 className="text-lg font-black text-slate-900">
                 {title}
-              </h2>
+              </h3>
 
               <p className="mt-1 text-xs font-semibold text-slate-400">
                 Anggaran dibandingkan
@@ -731,15 +1171,9 @@ function RealisasiCard({
               </p>
             </div>
 
-            <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-700">
-              {new Intl.NumberFormat(
-                'id-ID',
-                {
-                  maximumFractionDigits:
-                    2,
-                }
-              ).format(
-                percentage
+            <span className="w-fit rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-black text-emerald-700">
+              {formatDesimal(
+                persentase
               )}
               %
             </span>
@@ -771,12 +1205,26 @@ function RealisasiCard({
             </div>
           </div>
 
+          <div className="mt-4 rounded-2xl border border-emerald-100 bg-white p-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                Selisih Anggaran
+              </p>
+
+              <p className="text-sm font-black text-slate-800">
+                {formatRupiah(
+                  selisih
+                )}
+              </p>
+            </div>
+          </div>
+
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-700 transition-all duration-700"
               style={{
                 width:
-                  `${width}%`,
+                  `${progressWidth}%`,
               }}
             />
           </div>
@@ -784,7 +1232,13 @@ function RealisasiCard({
           <div className="mt-2 flex justify-between text-[10px] font-bold text-slate-400">
             <span>0%</span>
 
-            <span>100%</span>
+            <span>
+              {persentase > 100
+                ? `${formatDesimal(
+                    persentase
+                  )}%`
+                : '100%'}
+            </span>
           </div>
         </div>
       </div>

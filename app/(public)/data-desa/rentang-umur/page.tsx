@@ -5,15 +5,15 @@ import {
   CircleAlert,
   Clock3,
   Database,
+  Info,
+  ShieldCheck,
   UserRoundCheck,
   Users,
-} from 'lucide-react';
-
-import type {
-  LucideIcon,
+  type LucideIcon,
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import RentangUmurCharts, {
   type StatistikRentangUmur,
@@ -44,9 +44,18 @@ interface WargaRentangUmurRow {
 }
 
 interface LayananRow {
-  id: number;
-  nama: string;
-  slug: string;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
 }
 
 interface ProfilDesaRow {
@@ -174,13 +183,21 @@ const DEFINISI_RENTANG:
   },
 ];
 
-async function getAllWargaRentangUmur(): Promise<
-  WargaRentangUmurRow[]
-> {
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
+async function getAllWargaRentangUmur():
+  Promise<WargaRentangUmurRow[]> {
   const result:
     WargaRentangUmurRow[] = [];
 
   const pageSize = 1000;
+
   let from = 0;
 
   while (true) {
@@ -205,10 +222,13 @@ async function getAllWargaRentangUmur(): Promise<
         {
           message:
             error.message,
+
           code:
             error.code,
+
           details:
             error.details,
+
           hint:
             error.hint,
         }
@@ -218,8 +238,9 @@ async function getAllWargaRentangUmur(): Promise<
     }
 
     const rows =
-      (data ??
-        []) as WargaRentangUmurRow[];
+      (
+        data ?? []
+      ) as WargaRentangUmurRow[];
 
     result.push(...rows);
 
@@ -236,33 +257,38 @@ async function getAllWargaRentangUmur(): Promise<
   return result;
 }
 
-function getTanggalJakarta(): TanggalSekarang {
+function getTanggalJakarta():
+  TanggalSekarang {
   const bagian =
     new Intl.DateTimeFormat(
       'en-US',
       {
         timeZone:
           'Asia/Jakarta',
+
         year: 'numeric',
+
         month: '2-digit',
+
         day: '2-digit',
       }
     ).formatToParts(
       new Date()
     );
 
-  const getValue = (
+  function getValue(
     type:
       | 'year'
       | 'month'
       | 'day'
-  ) =>
-    Number(
+  ) {
+    return Number(
       bagian.find(
         (item) =>
           item.type === type
       )?.value ?? 0
     );
+  }
 
   return {
     tahun:
@@ -276,26 +302,83 @@ function getTanggalJakarta(): TanggalSekarang {
   };
 }
 
-function hitungUmur(
-  tanggalLahir: string | null,
-  tanggalSekarang: TanggalSekarang
+function isTanggalLahirValid(
+  tahun: number,
+  bulan: number,
+  tanggal: number
 ) {
-  if (!tanggalLahir) {
+  if (
+    !Number.isInteger(tahun) ||
+    !Number.isInteger(bulan) ||
+    !Number.isInteger(tanggal) ||
+    tahun < 1800 ||
+    bulan < 1 ||
+    bulan > 12 ||
+    tanggal < 1 ||
+    tanggal > 31
+  ) {
+    return false;
+  }
+
+  const date =
+    new Date(
+      Date.UTC(
+        tahun,
+        bulan - 1,
+        tanggal
+      )
+    );
+
+  return (
+    date.getUTCFullYear() ===
+      tahun &&
+    date.getUTCMonth() ===
+      bulan - 1 &&
+    date.getUTCDate() ===
+      tanggal
+  );
+}
+
+function hitungUmur(
+  tanggalLahir:
+    string | null,
+
+  tanggalSekarang:
+    TanggalSekarang
+) {
+  const value =
+    safeString(
+      tanggalLahir
+    );
+
+  if (!value) {
     return null;
   }
 
-  const [
-    tahunLahir,
-    bulanLahir,
-    hariLahir,
-  ] = tanggalLahir
-    .split('-')
-    .map(Number);
+  const bagian =
+    value.split('-');
 
   if (
-    !tahunLahir ||
-    !bulanLahir ||
-    !hariLahir
+    bagian.length !== 3
+  ) {
+    return null;
+  }
+
+  const tahunLahir =
+    Number(bagian[0]);
+
+  const bulanLahir =
+    Number(bagian[1]);
+
+  const hariLahir =
+    Number(bagian[2]);
+
+  if (
+    !isTanggalLahirValid(
+      tahunLahir,
+      bulanLahir,
+      hariLahir
+    )
   ) {
     return null;
   }
@@ -339,9 +422,14 @@ function kelompokkanRentangUmur(
     DEFINISI_RENTANG.map(
       (rentang) => ({
         key: rentang.key,
-        label: rentang.label,
+
+        label:
+          rentang.label,
+
         jumlah: 0,
+
         lakiLaki: 0,
+
         perempuan: 0,
       })
     );
@@ -349,9 +437,14 @@ function kelompokkanRentangUmur(
   const belumMengisi:
     StatistikRentangUmur = {
     key: 'belum-mengisi',
-    label: 'Belum Mengisi',
+
+    label:
+      'Belum Mengisi',
+
     jumlah: 0,
+
     lakiLaki: 0,
+
     perempuan: 0,
   };
 
@@ -414,7 +507,11 @@ function formatAngka(
 ) {
   return new Intl.NumberFormat(
     'id-ID'
-  ).format(value);
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
 }
 
 export default async function RentangUmurPage() {
@@ -435,11 +532,17 @@ export default async function RentangUmurPage() {
       .eq('aktif', true)
       .order('urutan', {
         ascending: true,
+        nullsFirst: false,
+      })
+      .order('nama', {
+        ascending: true,
       }),
 
     supabaseAdmin
       .from('profil_desa')
-      .select('tahun_data')
+      .select(`
+        tahun_data
+      `)
       .eq(
         'profil_key',
         'utama'
@@ -454,13 +557,20 @@ export default async function RentangUmurPage() {
       'Gagal mengambil daftar layanan:',
       {
         message:
-          layananResult.error.message,
+          layananResult.error
+            .message,
+
         code:
-          layananResult.error.code,
+          layananResult.error
+            .code,
+
         details:
-          layananResult.error.details,
+          layananResult.error
+            .details,
+
         hint:
-          layananResult.error.hint,
+          layananResult.error
+            .hint,
       }
     );
   }
@@ -472,43 +582,54 @@ export default async function RentangUmurPage() {
       'Gagal mengambil tahun data:',
       {
         message:
-          profilResult.error.message,
+          profilResult.error
+            .message,
+
         code:
-          profilResult.error.code,
+          profilResult.error
+            .code,
+
         details:
-          profilResult.error.details,
+          profilResult.error
+            .details,
+
         hint:
-          profilResult.error.hint,
+          profilResult.error
+            .hint,
       }
     );
   }
 
   const daftarLayanan:
     PilihanLayanan[] = (
-      (layananResult.data ??
-        []) as LayananRow[]
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
     )
-      .map((layanan) => ({
-        id:
-          Number(
-            layanan.id
-          ),
+      .map((layanan) => {
+        const id =
+          Number(layanan.id);
 
-        nama:
-          String(
-            layanan.nama ??
-              ''
-          ).trim(),
+        const nama =
+          safeString(
+            layanan.nama
+          );
 
-        slug:
-          String(
-            layanan.slug ??
-              ''
-          ).trim(),
-      }))
+        const slug =
+          safeString(
+            layanan.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
       .filter(
         (layanan) =>
-          Number.isFinite(
+          Number.isInteger(
             layanan.id
           ) &&
           layanan.id > 0 &&
@@ -518,15 +639,26 @@ export default async function RentangUmurPage() {
             0
       );
 
-  const tahunData =
+  const profilData =
+    profilResult.data as
+      | ProfilDesaRow
+      | null;
+
+  const tahunDataRaw =
     Number(
-      (
-        profilResult.data as
-          | ProfilDesaRow
-          | null
-      )?.tahun_data ??
-        new Date().getFullYear()
+      profilData
+        ?.tahun_data
     );
+
+  const tahunData =
+    Number.isInteger(
+      tahunDataRaw
+    ) &&
+    tahunDataRaw >= 1900 &&
+    tahunDataRaw <= 2200
+      ? tahunDataRaw
+      : new Date()
+          .getFullYear();
 
   const statistik =
     kelompokkanRentangUmur(
@@ -550,17 +682,23 @@ export default async function RentangUmurPage() {
         'P'
     ).length;
 
-  const jumlahTanggalLahirTerisi =
-    wargaRows.filter(
-      (warga) =>
-        Boolean(
-          warga.tanggal_lahir
-        )
-    ).length;
+  const statistikBelumMengisi =
+    statistik.find(
+      (item) =>
+        item.key ===
+        'belum-mengisi'
+    );
 
   const belumMengisi =
-    totalPenduduk -
-    jumlahTanggalLahirTerisi;
+    statistikBelumMengisi
+      ?.jumlah ?? 0;
+
+  const jumlahTanggalLahirTerisi =
+    Math.max(
+      totalPenduduk -
+        belumMengisi,
+      0
+    );
 
   const kelompokTerbanyak =
     statistik
@@ -593,40 +731,86 @@ export default async function RentangUmurPage() {
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-700">
-            <CalendarDays
-              size={16}
-            />
+        {/* Header Halaman */}
+        <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
 
-            Data Desa
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.04]"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/[0.06] blur-2xl"
+          />
+
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <CalendarDays
+                size={24}
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+              Data Desa Keji
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              Data Rentang Umur
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80 sm:text-base">
+              Informasi persebaran umur
+              penduduk Desa Keji yang dihitung
+              secara otomatis berdasarkan
+              tanggal lahir warga aktif tahun{' '}
+              {tahunData}.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <HeaderBadge
+                label={`${formatAngka(
+                  totalPenduduk
+                )} penduduk`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  jumlahTanggalLahirTerisi
+                )} data lengkap`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  belumMengisi
+                )} belum lengkap`}
+              />
+            </div>
           </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Data Rentang Umur
-          </h1>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Informasi persebaran
-            umur penduduk Desa Keji
-            berdasarkan tanggal lahir
-            warga yang terdaftar pada
-            database desa.
-          </p>
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {/* Konten Utama */}
-          <main className="min-w-0 space-y-6 lg:w-2/3">
+          <main className="min-w-0 space-y-7 lg:w-2/3">
             {/* Statistik */}
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-4 sm:grid-cols-2">
               <StatistikCard
                 label="Total Penduduk"
                 value={formatAngka(
                   totalPenduduk
                 )}
-                description="Warga aktif"
+                description="Seluruh warga aktif"
                 icon={Users}
               />
 
@@ -635,7 +819,7 @@ export default async function RentangUmurPage() {
                 value={formatAngka(
                   jumlahTanggalLahirTerisi
                 )}
-                description="Data lengkap"
+                description="Data tanggal lahir valid"
                 icon={
                   UserRoundCheck
                 }
@@ -646,7 +830,7 @@ export default async function RentangUmurPage() {
                 value={formatAngka(
                   belumMengisi
                 )}
-                description="Tanggal lahir kosong"
+                description="Kosong atau tidak valid"
                 icon={CircleAlert}
               />
 
@@ -668,64 +852,160 @@ export default async function RentangUmurPage() {
               />
             </section>
 
-            {/* Informasi */}
-            <section className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
-              <div className="flex items-start gap-3">
-                <Database
-                  size={21}
-                  className="mt-0.5 shrink-0 text-cyan-700"
-                />
+            {/* Informasi Integrasi */}
+            <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm">
+                  <Database
+                    size={21}
+                  />
+                </div>
 
                 <div>
-                  <h2 className="font-extrabold text-cyan-900">
-                    Data Terintegrasi
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Informasi Sistem
+                  </p>
+
+                  <h2 className="mt-1 font-black text-emerald-950">
+                    Rentang Umur
+                    Terintegrasi
                   </h2>
 
-                  <p className="mt-1 text-sm font-medium leading-relaxed text-cyan-800">
-                    Rentang umur
-                    dihitung otomatis
-                    dari tanggal lahir
-                    warga aktif yang
-                    dimasukkan melalui
-                    halaman admin.
-                    Umur akan berubah
-                    secara otomatis
-                    sesuai tanggal
-                    berjalan tanpa
-                    perlu diperbarui
-                    secara manual.
+                  <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
+                    Rentang umur dihitung
+                    otomatis berdasarkan
+                    tanggal lahir warga aktif.
+                    Nilai umur akan menyesuaikan
+                    tanggal berjalan tanpa
+                    perlu diperbarui secara
+                    manual melalui halaman
+                    administrator.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Grafik */}
-            <RentangUmurCharts
-              data={statistik}
-              totalPenduduk={
-                totalPenduduk
-              }
-              totalLakiLaki={
-                totalLakiLaki
-              }
-              totalPerempuan={
-                totalPerempuan
-              }
-              tahunData={tahunData}
-            />
+            {/* Grafik dan Tabel */}
+            <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white p-4 shadow-sm sm:p-6">
+              <div className="mb-6 flex items-start gap-4 border-b border-emerald-100 pb-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
+                  <Clock3
+                    size={21}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Visualisasi Data
+                  </p>
+
+                  <h2 className="mt-1 text-lg font-black text-slate-900">
+                    Persebaran Rentang
+                    Umur Penduduk
+                  </h2>
+
+                  <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                    Perbandingan jumlah
+                    penduduk berdasarkan
+                    kelompok umur dan jenis
+                    kelamin.
+                  </p>
+                </div>
+              </div>
+
+              <RentangUmurCharts
+                data={statistik}
+                totalPenduduk={
+                  totalPenduduk
+                }
+                totalLakiLaki={
+                  totalLakiLaki
+                }
+                totalPerempuan={
+                  totalPerempuan
+                }
+                tahunData={
+                  tahunData
+                }
+              />
+            </section>
+
+            {/* Penjelasan Data */}
+            <section className="grid gap-4 sm:grid-cols-2">
+              <InformationCard
+                icon={CalendarDays}
+                title="Perhitungan Umur"
+                description="Umur dihitung berdasarkan tanggal lahir warga dan tanggal berjalan pada zona waktu Asia/Jakarta."
+              />
+
+              <InformationCard
+                icon={CircleAlert}
+                title="Data Belum Lengkap"
+                description="Tanggal lahir kosong atau tidak valid dikelompokkan ke dalam kategori Belum Mengisi."
+              />
+            </section>
+
+            {/* Privasi */}
+            <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <ShieldCheck
+                    size={21}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Sumber dan Privasi
+                  </p>
+
+                  <h2 className="mt-1 font-black text-slate-900">
+                    Data Administrasi
+                    Warga Desa Keji
+                  </h2>
+
+                  <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                    Halaman publik hanya
+                    menampilkan hasil
+                    pengelompokan umur. Tanggal
+                    lahir lengkap, nama, NIK,
+                    nomor KK, alamat, dan nomor
+                    WhatsApp warga tidak
+                    ditampilkan kepada publik.
+                  </p>
+                </div>
+              </div>
+            </section>
           </main>
 
-          {/* Sidebar */}
+          {/* Sidebar Kanan */}
           <aside className="min-w-0 lg:w-1/3">
-            <SidebarLayanan
-              daftarLayanan={
-                daftarLayanan
-              }
-            />
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+              <SidebarLayanan
+                daftarLayanan={
+                  daftarLayanan
+                }
+                sticky={false}
+              />
+
+              <SidebarTilikArkeji />
+            </div>
           </aside>
         </div>
       </div>
     </div>
+  );
+}
+
+function HeaderBadge({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
+      {label}
+    </span>
   );
 }
 
@@ -743,8 +1023,11 @@ function StatistikCard({
   smallValue?: boolean;
 }) {
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-cyan-100 bg-white p-5 shadow-sm">
-      <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-cyan-50" />
+    <article className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-emerald-50"
+      />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
@@ -752,7 +1035,7 @@ function StatistikCard({
             {label}
           </p>
 
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
             <Icon size={20} />
           </div>
         </div>
@@ -767,10 +1050,36 @@ function StatistikCard({
           {value}
         </p>
 
-        <p className="mt-1 text-xs font-bold text-cyan-700">
+        <p className="mt-2 text-xs font-semibold text-slate-500">
           {description}
         </p>
       </div>
+    </article>
+  );
+}
+
+function InformationCard({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="group rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:p-6">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
+        <Icon size={21} />
+      </div>
+
+      <h2 className="mt-4 font-black text-slate-900">
+        {title}
+      </h2>
+
+      <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+        {description}
+      </p>
     </article>
   );
 }

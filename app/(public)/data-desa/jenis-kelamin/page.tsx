@@ -6,15 +6,14 @@ import {
   Info,
   Mars,
   Scale,
+  ShieldCheck,
   Users,
   Venus,
-} from 'lucide-react';
-
-import type {
-  LucideIcon,
+  type LucideIcon,
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
+import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
 import JenisKelaminCharts, {
   type StatistikDusunJenisKelamin,
@@ -34,8 +33,14 @@ export const dynamic =
 export const revalidate = 0;
 
 interface WargaJenisKelaminRow {
-  id: string;
-  dusun: string | null;
+  id:
+    | string
+    | number
+    | null;
+
+  dusun:
+    | string
+    | null;
 
   jenis_kelamin:
     | 'L'
@@ -44,14 +49,24 @@ interface WargaJenisKelaminRow {
 }
 
 interface LayananRow {
-  id: number;
-  nama: string;
-  slug: string;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
 }
 
 interface ProfilDesaRow {
   tahun_data:
     | number
+    | string
     | null;
 }
 
@@ -61,13 +76,33 @@ const URUTAN_DUSUN = [
   'Dusun Sitoyo',
 ];
 
-async function getAllWargaJenisKelamin(): Promise<
-  WargaJenisKelaminRow[]
-> {
+function safeString(
+  value: unknown
+) {
+  return String(
+    value ?? ''
+  ).trim();
+}
+
+function normalizeNamaDusun(
+  value: unknown
+) {
+  const dusun =
+    safeString(value);
+
+  return (
+    dusun ||
+    'Wilayah Belum Diisi'
+  );
+}
+
+async function getAllWargaJenisKelamin():
+  Promise<WargaJenisKelaminRow[]> {
   const result:
     WargaJenisKelaminRow[] = [];
 
   const pageSize = 1000;
+
   let from = 0;
 
   while (true) {
@@ -96,10 +131,13 @@ async function getAllWargaJenisKelamin(): Promise<
         {
           message:
             error.message,
+
           code:
             error.code,
+
           details:
             error.details,
+
           hint:
             error.hint,
         }
@@ -109,8 +147,9 @@ async function getAllWargaJenisKelamin(): Promise<
     }
 
     const rows =
-      (data ??
-        []) as WargaJenisKelaminRow[];
+      (
+        data ?? []
+      ) as WargaJenisKelaminRow[];
 
     result.push(...rows);
 
@@ -132,16 +171,45 @@ function formatAngka(
 ) {
   return new Intl.NumberFormat(
     'id-ID'
-  ).format(value);
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
+}
+
+function formatDesimal(
+  value: number
+) {
+  return new Intl.NumberFormat(
+    'id-ID',
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }
+  ).format(
+    Number.isFinite(value)
+      ? value
+      : 0
+  );
 }
 
 function formatPersentase(
   value: number,
   total: number
 ) {
-  if (total === 0) {
+  if (
+    total <= 0 ||
+    !Number.isFinite(total)
+  ) {
     return '0,00%';
   }
+
+  const persentase =
+    (
+      value /
+      total
+    ) * 100;
 
   return `${new Intl.NumberFormat(
     'id-ID',
@@ -149,9 +217,50 @@ function formatPersentase(
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }
-  ).format(
-    (value / total) * 100
-  )}%`;
+  ).format(persentase)}%`;
+}
+
+function getUrutanDusun(
+  wargaRows:
+    WargaJenisKelaminRow[]
+) {
+  const daftarDusun = [
+    ...new Set(
+      wargaRows.map((warga) =>
+        normalizeNamaDusun(
+          warga.dusun
+        )
+      )
+    ),
+  ];
+
+  const dusunUtama =
+    URUTAN_DUSUN.filter(
+      (dusun) =>
+        daftarDusun.includes(
+          dusun
+        )
+    );
+
+  const dusunTambahan =
+    daftarDusun
+      .filter(
+        (dusun) =>
+          !URUTAN_DUSUN.includes(
+            dusun
+          )
+      )
+      .sort((first, second) =>
+        first.localeCompare(
+          second,
+          'id-ID'
+        )
+      );
+
+  return [
+    ...dusunUtama,
+    ...dusunTambahan,
+  ];
 }
 
 export default async function JenisKelaminPage() {
@@ -172,11 +281,17 @@ export default async function JenisKelaminPage() {
       .eq('aktif', true)
       .order('urutan', {
         ascending: true,
+        nullsFirst: false,
+      })
+      .order('nama', {
+        ascending: true,
       }),
 
     supabaseAdmin
       .from('profil_desa')
-      .select('tahun_data')
+      .select(`
+        tahun_data
+      `)
       .eq(
         'profil_key',
         'utama'
@@ -191,13 +306,20 @@ export default async function JenisKelaminPage() {
       'Gagal mengambil daftar layanan:',
       {
         message:
-          layananResult.error.message,
+          layananResult.error
+            .message,
+
         code:
-          layananResult.error.code,
+          layananResult.error
+            .code,
+
         details:
-          layananResult.error.details,
+          layananResult.error
+            .details,
+
         hint:
-          layananResult.error.hint,
+          layananResult.error
+            .hint,
       }
     );
   }
@@ -209,43 +331,54 @@ export default async function JenisKelaminPage() {
       'Gagal mengambil tahun data:',
       {
         message:
-          profilResult.error.message,
+          profilResult.error
+            .message,
+
         code:
-          profilResult.error.code,
+          profilResult.error
+            .code,
+
         details:
-          profilResult.error.details,
+          profilResult.error
+            .details,
+
         hint:
-          profilResult.error.hint,
+          profilResult.error
+            .hint,
       }
     );
   }
 
   const daftarLayanan:
     PilihanLayanan[] = (
-      (layananResult.data ??
-        []) as LayananRow[]
+      (
+        layananResult.data ??
+        []
+      ) as LayananRow[]
     )
-      .map((layanan) => ({
-        id:
-          Number(
-            layanan.id
-          ),
+      .map((layanan) => {
+        const id =
+          Number(layanan.id);
 
-        nama:
-          String(
-            layanan.nama ??
-              ''
-          ).trim(),
+        const nama =
+          safeString(
+            layanan.nama
+          );
 
-        slug:
-          String(
-            layanan.slug ??
-              ''
-          ).trim(),
-      }))
+        const slug =
+          safeString(
+            layanan.slug
+          );
+
+        return {
+          id,
+          nama,
+          slug,
+        };
+      })
       .filter(
         (layanan) =>
-          Number.isFinite(
+          Number.isInteger(
             layanan.id
           ) &&
           layanan.id > 0 &&
@@ -255,15 +388,26 @@ export default async function JenisKelaminPage() {
             0
       );
 
-  const tahunData =
+  const profilData =
+    profilResult.data as
+      | ProfilDesaRow
+      | null;
+
+  const tahunDataRaw =
     Number(
-      (
-        profilResult.data as
-          | ProfilDesaRow
-          | null
-      )?.tahun_data ??
-        new Date().getFullYear()
+      profilData
+        ?.tahun_data
     );
+
+  const tahunData =
+    Number.isInteger(
+      tahunDataRaw
+    ) &&
+    tahunDataRaw >= 1900 &&
+    tahunDataRaw <= 2200
+      ? tahunDataRaw
+      : new Date()
+          .getFullYear();
 
   const totalPenduduk =
     wargaRows.length;
@@ -283,23 +427,32 @@ export default async function JenisKelaminPage() {
     ).length;
 
   const belumMengisi =
-    wargaRows.filter(
-      (warga) =>
-        warga.jenis_kelamin !==
-          'L' &&
-        warga.jenis_kelamin !==
-          'P'
-    ).length;
+    Math.max(
+      totalPenduduk -
+        lakiLaki -
+        perempuan,
+      0
+    );
+
+  const dataTerisi =
+    lakiLaki +
+    perempuan;
+
+  const daftarDusun =
+    getUrutanDusun(
+      wargaRows
+    );
 
   const statistikDusun:
     StatistikDusunJenisKelamin[] =
-    URUTAN_DUSUN.map(
+    daftarDusun.map(
       (dusun) => {
         const wargaDusun =
           wargaRows.filter(
             (warga) =>
-              warga.dusun ===
-              dusun
+              normalizeNamaDusun(
+                warga.dusun
+              ) === dusun
           );
 
         const lakiLakiDusun =
@@ -318,6 +471,7 @@ export default async function JenisKelaminPage() {
 
         return {
           dusun,
+
           total:
             wargaDusun.length,
 
@@ -328,9 +482,12 @@ export default async function JenisKelaminPage() {
             perempuanDusun,
 
           belumMengisi:
-            wargaDusun.length -
-            lakiLakiDusun -
-            perempuanDusun,
+            Math.max(
+              wargaDusun.length -
+                lakiLakiDusun -
+                perempuanDusun,
+              0
+            ),
         };
       }
     );
@@ -340,47 +497,105 @@ export default async function JenisKelaminPage() {
       ? (
           lakiLaki /
           perempuan
-        ) *
-        100
+        ) * 100
+      : 0;
+
+  const kelengkapanData =
+    totalPenduduk > 0
+      ? (
+          dataTerisi /
+          totalPenduduk
+        ) * 100
       : 0;
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-cyan-700">
-            <Scale size={16} />
-            Data Desa
+        {/* Header Halaman */}
+        <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)',
+
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/[0.04]"
+          />
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-emerald-400/[0.06] blur-2xl"
+          />
+
+          <div className="relative">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <Scale
+                size={24}
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+              Data Desa Keji
+            </p>
+
+            <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              Data Jenis Kelamin
+            </h1>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80 sm:text-base">
+              Informasi komposisi
+              penduduk laki-laki dan
+              perempuan Desa Keji
+              berdasarkan data warga
+              aktif tahun {tahunData}.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <HeaderBadge
+                label={`${formatAngka(
+                  totalPenduduk
+                )} penduduk`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  lakiLaki
+                )} laki-laki`}
+              />
+
+              <HeaderBadge
+                label={`${formatAngka(
+                  perempuan
+                )} perempuan`}
+              />
+
+              <HeaderBadge
+                label={`${daftarDusun.length} wilayah dusun`}
+              />
+            </div>
           </div>
-
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-            Data Jenis Kelamin
-          </h1>
-
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
-            Informasi komposisi
-            penduduk laki-laki dan
-            perempuan Desa Keji
-            berdasarkan data warga
-            aktif yang dikelola oleh
-            Pemerintah Desa Keji.
-          </p>
         </header>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {/* Konten Utama */}
-          <main className="min-w-0 space-y-6 lg:w-2/3">
+          <main className="min-w-0 space-y-7 lg:w-2/3">
             {/* Statistik */}
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-4 sm:grid-cols-2">
               <StatistikCard
                 label="Total Penduduk"
                 value={formatAngka(
                   totalPenduduk
                 )}
-                description="Warga aktif"
+                description="Seluruh warga aktif"
                 icon={Users}
-                iconClassName="bg-cyan-100 text-cyan-700"
               />
 
               <StatistikCard
@@ -393,7 +608,6 @@ export default async function JenisKelaminPage() {
                   totalPenduduk
                 )}
                 icon={Mars}
-                iconClassName="bg-sky-100 text-sky-700"
               />
 
               <StatistikCard
@@ -406,7 +620,6 @@ export default async function JenisKelaminPage() {
                   totalPenduduk
                 )}
                 icon={Venus}
-                iconClassName="bg-pink-100 text-pink-700"
               />
 
               <StatistikCard
@@ -416,36 +629,39 @@ export default async function JenisKelaminPage() {
                 )}
                 description="Data perlu dilengkapi"
                 icon={CircleAlert}
-                iconClassName="bg-slate-100 text-slate-600"
               />
             </section>
 
-            {/* Informasi */}
-            <section className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5">
-              <div className="flex items-start gap-3">
-                <Database
-                  size={21}
-                  className="mt-0.5 shrink-0 text-cyan-700"
-                />
+            {/* Informasi Integrasi */}
+            <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm">
+                  <Database
+                    size={21}
+                  />
+                </div>
 
                 <div>
-                  <h2 className="font-extrabold text-cyan-900">
-                    Data Terintegrasi
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Informasi Sistem
+                  </p>
+
+                  <h2 className="mt-1 font-black text-emerald-950">
+                    Data Jenis Kelamin
+                    Terintegrasi
                   </h2>
 
-                  <p className="mt-1 text-sm font-medium leading-relaxed text-cyan-800">
+                  <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
                     Statistik dihitung
-                    otomatis dari kolom
-                    jenis kelamin pada
-                    database warga
+                    otomatis dari data warga
                     aktif. Penambahan,
-                    perubahan, atau
-                    penonaktifan data
-                    warga melalui
-                    halaman admin akan
-                    langsung
-                    memengaruhi grafik
-                    dan tabel ini.
+                    perubahan, maupun
+                    penonaktifan data warga
+                    melalui halaman
+                    administrator akan
+                    langsung memengaruhi
+                    ringkasan, grafik, dan
+                    tabel pada halaman ini.
                   </p>
                 </div>
               </div>
@@ -453,99 +669,176 @@ export default async function JenisKelaminPage() {
 
             {/* Ringkasan Rasio */}
             <section className="grid gap-4 sm:grid-cols-2">
-              <article className="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
-                    <Scale size={22} />
-                  </div>
+              <SummaryCard
+                icon={Scale}
+                label="Rasio Jenis Kelamin"
+                value={
+                  formatDesimal(
+                    rasioJenisKelamin
+                  )
+                }
+                description="Jumlah laki-laki untuk setiap 100 penduduk perempuan."
+              />
 
-                  <div>
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                      Rasio Jenis Kelamin
-                    </p>
-
-                    <p className="mt-2 text-2xl font-black text-slate-900">
-                      {perempuan > 0
-                        ? new Intl.NumberFormat(
-                            'id-ID',
-                            {
-                              maximumFractionDigits: 2,
-                            }
-                          ).format(
-                            rasioJenisKelamin
-                          )
-                        : '0'}
-                    </p>
-
-                    <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
-                      Jumlah laki-laki
-                      untuk setiap 100
-                      penduduk perempuan.
-                    </p>
-                  </div>
-                </div>
-              </article>
-
-              <article className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                    <Info size={22} />
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                      Kelengkapan Data
-                    </p>
-
-                    <p className="mt-2 text-2xl font-black text-slate-900">
-                      {formatPersentase(
-                        lakiLaki +
-                          perempuan,
-                        totalPenduduk
-                      )}
-                    </p>
-
-                    <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
-                      Persentase warga
-                      yang data jenis
-                      kelaminnya sudah
-                      terisi.
-                    </p>
-                  </div>
-                </div>
-              </article>
+              <SummaryCard
+                icon={Info}
+                label="Kelengkapan Data"
+                value={`${formatDesimal(
+                  kelengkapanData
+                )}%`}
+                description="Persentase warga dengan data jenis kelamin yang sudah terisi."
+              />
             </section>
 
             {/* Grafik dan Tabel */}
-            <JenisKelaminCharts
-              tahunData={tahunData}
-              totalPenduduk={
-                totalPenduduk
-              }
-              lakiLaki={lakiLaki}
-              perempuan={
-                perempuan
-              }
-              belumMengisi={
-                belumMengisi
-              }
-              statistikDusun={
-                statistikDusun
-              }
-            />
+            <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white p-4 shadow-sm sm:p-6">
+              <div className="mb-6 flex items-start gap-4 border-b border-emerald-100 pb-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
+                  <Scale
+                    size={21}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Visualisasi Data
+                  </p>
+
+                  <h2 className="mt-1 text-lg font-black text-slate-900">
+                    Statistik Jenis
+                    Kelamin Penduduk
+                  </h2>
+
+                  <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                    Perbandingan penduduk
+                    laki-laki dan perempuan
+                    berdasarkan wilayah
+                    dusun.
+                  </p>
+                </div>
+              </div>
+
+              <JenisKelaminCharts
+                tahunData={
+                  tahunData
+                }
+                totalPenduduk={
+                  totalPenduduk
+                }
+                lakiLaki={
+                  lakiLaki
+                }
+                perempuan={
+                  perempuan
+                }
+                belumMengisi={
+                  belumMengisi
+                }
+                statistikDusun={
+                  statistikDusun
+                }
+              />
+            </section>
+
+            {/* Sumber Data */}
+            <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <ShieldCheck
+                    size={21}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                    Sumber dan Privasi
+                  </p>
+
+                  <h2 className="mt-1 font-black text-slate-900">
+                    Data Administrasi
+                    Warga Desa Keji
+                  </h2>
+
+                  <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+                    Halaman publik hanya
+                    menampilkan jumlah dan
+                    persentase penduduk.
+                    Identitas pribadi seperti
+                    nama, NIK, nomor KK,
+                    alamat, tanggal lahir, dan
+                    nomor WhatsApp tidak
+                    ditampilkan kepada
+                    publik.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Catatan Data */}
+            {belumMengisi > 0 && (
+              <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-700 shadow-sm">
+                    <CircleAlert
+                      size={21}
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                      Catatan Data
+                    </p>
+
+                    <h2 className="mt-1 font-black text-emerald-950">
+                      Data Jenis Kelamin
+                      Belum Lengkap
+                    </h2>
+
+                    <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
+                      Sebanyak{' '}
+                      {formatAngka(
+                        belumMengisi
+                      )}{' '}
+                      warga belum memiliki
+                      data jenis kelamin yang
+                      lengkap dan perlu
+                      diperbarui melalui
+                      halaman administrator.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
           </main>
 
-          {/* Sidebar Layanan */}
+          {/* Sidebar Kanan */}
           <aside className="min-w-0 lg:w-1/3">
-            <SidebarLayanan
-              daftarLayanan={
-                daftarLayanan
-              }
-            />
+            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+              <SidebarLayanan
+                daftarLayanan={
+                  daftarLayanan
+                }
+                sticky={false}
+              />
+
+              <SidebarTilikArkeji />
+            </div>
           </aside>
         </div>
       </div>
     </div>
+  );
+}
+
+function HeaderBadge({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
+      {label}
+    </span>
   );
 }
 
@@ -554,17 +847,18 @@ function StatistikCard({
   value,
   description,
   icon: Icon,
-  iconClassName,
 }: {
   label: string;
   value: string;
   description: string;
   icon: LucideIcon;
-  iconClassName: string;
 }) {
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-cyan-100 bg-white p-5 shadow-sm">
-      <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-cyan-50" />
+    <article className="group relative overflow-hidden rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-emerald-50"
+      />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
@@ -572,9 +866,7 @@ function StatistikCard({
             {label}
           </p>
 
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconClassName}`}
-          >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
             <Icon size={20} />
           </div>
         </div>
@@ -583,9 +875,45 @@ function StatistikCard({
           {value}
         </p>
 
-        <p className="mt-1 text-xs font-bold text-cyan-700">
+        <p className="mt-2 text-xs font-semibold text-slate-500">
           {description}
         </p>
+      </div>
+    </article>
+  );
+}
+
+function SummaryCard({
+  icon: Icon,
+  label,
+  value,
+  description,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  description: string;
+}) {
+  return (
+    <article className="group rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:shadow-md sm:p-6">
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
+          <Icon size={22} />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+            {label}
+          </p>
+
+          <p className="mt-2 text-2xl font-black text-slate-900">
+            {value}
+          </p>
+
+          <p className="mt-2 text-xs font-semibold leading-6 text-slate-500">
+            {description}
+          </p>
+        </div>
       </div>
     </article>
   );
