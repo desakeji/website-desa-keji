@@ -391,6 +391,192 @@ export async function simpanEcatalogUmkmAction(
 }
 
 /* =========================================================
+   PANDUAN SUKSES BERJUALAN
+========================================================= */
+
+interface PanduanUmkmInput {
+  judul: string;
+  deskripsi: string;
+  gambarUrl: string;
+  aktif: boolean;
+}
+
+function parsePanduanUmkmInput(
+  formData: FormData
+): PanduanUmkmInput {
+  return {
+    judul:
+      getString(
+        formData,
+        'panduan_umkm_judul'
+      ),
+
+    deskripsi:
+      getString(
+        formData,
+        'panduan_umkm_deskripsi'
+      ),
+
+    gambarUrl:
+      getString(
+        formData,
+        'panduan_umkm_gambar_url'
+      ),
+
+    aktif:
+      getBoolean(
+        formData,
+        'panduan_umkm_aktif'
+      ),
+  };
+}
+
+function validatePanduanUmkm(
+  input: PanduanUmkmInput
+) {
+  if (
+    input.judul.length < 5
+  ) {
+    return 'Judul panduan minimal terdiri dari 5 karakter.';
+  }
+
+  if (
+    input.judul.length > 160
+  ) {
+    return 'Judul panduan maksimal terdiri dari 160 karakter.';
+  }
+
+  if (
+    input.deskripsi.length < 10
+  ) {
+    return 'Deskripsi panduan minimal terdiri dari 10 karakter.';
+  }
+
+  if (
+    input.deskripsi.length > 1000
+  ) {
+    return 'Deskripsi panduan maksimal terdiri dari 1000 karakter.';
+  }
+
+  if (
+    input.gambarUrl &&
+    !isValidImageUrl(
+      input.gambarUrl
+    )
+  ) {
+    return 'URL atau path gambar panduan tidak valid.';
+  }
+
+  if (
+    input.aktif &&
+    !input.gambarUrl
+  ) {
+    return 'Gambar panduan wajib diisi sebelum panduan dipublikasikan.';
+  }
+
+  return null;
+}
+
+export async function simpanPanduanUmkmAction(
+  formData: FormData
+) {
+  await requireAdmin();
+
+  const input =
+    parsePanduanUmkmInput(
+      formData
+    );
+
+  const validationError =
+    validatePanduanUmkm(
+      input
+    );
+
+  if (validationError) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        validationError,
+        'panduan-umkm'
+      )
+    );
+  }
+
+  const {
+    error,
+  } = await supabaseAdmin
+    .from(
+      SETTINGS_TABLE
+    )
+    .upsert(
+      {
+        setting_key:
+          SETTINGS_KEY,
+
+        panduan_umkm_judul:
+          input.judul,
+
+        panduan_umkm_deskripsi:
+          input.deskripsi,
+
+        panduan_umkm_gambar_url:
+          input.gambarUrl ||
+          null,
+
+        panduan_umkm_aktif:
+          input.aktif,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      },
+      {
+        onConflict:
+          'setting_key',
+      }
+    );
+
+  if (error) {
+    console.error(
+      'Gagal menyimpan Panduan UMKM:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    redirect(
+      buildAdminUrl(
+        'error',
+        error.message,
+        'panduan-umkm'
+      )
+    );
+  }
+
+  revalidateUmkm();
+
+  redirect(
+    buildAdminUrl(
+      'success',
+      input.aktif
+        ? 'Panduan Sukses Berjualan berhasil disimpan dan dipublikasikan.'
+        : 'Panduan Sukses Berjualan berhasil disimpan.',
+      'panduan-umkm'
+    )
+  );
+}
+
+/* =========================================================
    PRODUK UMKM
 ========================================================= */
 

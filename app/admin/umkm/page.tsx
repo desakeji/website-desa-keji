@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FileText,
   ImageIcon,
+  Lightbulb,
   Link2,
   Package,
   Pencil,
@@ -26,11 +27,14 @@ import {
 import {
   hapusProdukUmkmAction,
   simpanEcatalogUmkmAction,
+  simpanPanduanUmkmAction,
   tambahProdukUmkmAction,
   toggleAktifProdukUmkmAction,
   toggleVerifikasiProdukUmkmAction,
   ubahProdukUmkmAction,
 } from '@/app/admin/umkm/actions';
+
+import UmkmVideoTutorialAdmin from '@/components/admin/UmkmVideoTutorialAdmin';
 
 import {
   supabaseAdmin,
@@ -43,7 +47,12 @@ import type {
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface PageProps {
   searchParams: Promise<{
@@ -54,11 +63,42 @@ interface PageProps {
 
 interface EcatalogSettings {
   ecatalog_judul: string;
-  ecatalog_deskripsi: string;
-  ecatalog_url: string | null;
-  ecatalog_aktif: boolean;
-  updated_at: string;
+
+  ecatalog_deskripsi:
+    string;
+
+  ecatalog_url:
+    | string
+    | null;
+
+  ecatalog_aktif:
+    boolean;
+
+  updated_at:
+    string;
 }
+
+interface PanduanUmkmSettings {
+  panduan_umkm_judul:
+    string;
+
+  panduan_umkm_deskripsi:
+    string;
+
+  panduan_umkm_gambar_url:
+    | string
+    | null;
+
+  panduan_umkm_aktif:
+    boolean;
+
+  updated_at:
+    string;
+}
+
+/* =========================================================
+   FALLBACK
+========================================================= */
 
 const fallbackEcatalog:
   EcatalogSettings = {
@@ -68,10 +108,37 @@ const fallbackEcatalog:
   ecatalog_deskripsi:
     'Jelajahi katalog digital produk makanan, minuman, kerajinan, dan usaha masyarakat Desa Keji.',
 
-  ecatalog_url: null,
-  ecatalog_aktif: false,
-  updated_at: '',
+  ecatalog_url:
+    null,
+
+  ecatalog_aktif:
+    false,
+
+  updated_at:
+    '',
 };
+
+const fallbackPanduanUmkm:
+  PanduanUmkmSettings = {
+  panduan_umkm_judul:
+    'Panduan Sukses Berjualan',
+
+  panduan_umkm_deskripsi:
+    'Pelajari langkah sederhana dalam menata display produk agar lebih menarik serta memberikan pelayanan yang ramah dan profesional kepada konsumen.',
+
+  panduan_umkm_gambar_url:
+    '/images/umkm/Panduan Sukses Berjualan.png',
+
+  panduan_umkm_aktif:
+    true,
+
+  updated_at:
+    '',
+};
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function safeString(
   value: unknown
@@ -91,7 +158,9 @@ function nullableString(
 }
 
 function isExternalUrl(
-  value: string | null
+  value:
+    | string
+    | null
 ) {
   if (!value) {
     return false;
@@ -111,6 +180,10 @@ function isExternalUrl(
     return false;
   }
 }
+
+/* =========================================================
+   NORMALIZE E-CATALOG
+========================================================= */
 
 function normalizeEcatalog(
   value: unknown
@@ -162,6 +235,72 @@ function normalizeEcatalog(
   };
 }
 
+/* =========================================================
+   NORMALIZE PANDUAN
+========================================================= */
+
+function normalizePanduanUmkm(
+  value: unknown
+): PanduanUmkmSettings {
+  if (
+    !value ||
+    typeof value !==
+      'object' ||
+    Array.isArray(value)
+  ) {
+    return fallbackPanduanUmkm;
+  }
+
+  const row =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  return {
+    panduan_umkm_judul:
+      safeString(
+        row.panduan_umkm_judul
+      ) ||
+      fallbackPanduanUmkm
+        .panduan_umkm_judul,
+
+    panduan_umkm_deskripsi:
+      safeString(
+        row.panduan_umkm_deskripsi
+      ) ||
+      fallbackPanduanUmkm
+        .panduan_umkm_deskripsi,
+
+    panduan_umkm_gambar_url:
+      nullableString(
+        row.panduan_umkm_gambar_url
+      ) ||
+      fallbackPanduanUmkm
+        .panduan_umkm_gambar_url,
+
+    panduan_umkm_aktif:
+      row.panduan_umkm_aktif ===
+      null ||
+      row.panduan_umkm_aktif ===
+      undefined
+        ? fallbackPanduanUmkm
+            .panduan_umkm_aktif
+        : Boolean(
+            row.panduan_umkm_aktif
+          ),
+
+    updated_at:
+      safeString(
+        row.updated_at
+      ),
+  };
+}
+
+/* =========================================================
+   NORMALIZE PRODUK
+========================================================= */
+
 function normalizeProduk(
   value: unknown
 ): ProdukUmkm | null {
@@ -200,17 +339,20 @@ function normalizeProduk(
     kategori:
       safeString(
         row.kategori
-      ) || 'Lainnya',
+      ) ||
+      'Lainnya',
 
     harga:
       Number(
-        row.harga ?? 0
+        row.harga ??
+          0
       ),
 
     satuan:
       safeString(
         row.satuan
-      ) || 'pcs',
+      ) ||
+      'pcs',
 
     deskripsi:
       nullableString(
@@ -254,7 +396,8 @@ function normalizeProduk(
 
     urutan:
       Number(
-        row.urutan ?? 0
+        row.urutan ??
+          0
       ),
 
     created_at:
@@ -278,16 +421,27 @@ function normalizeProduk(
   return produk;
 }
 
+/* =========================================================
+   FORMATTERS
+========================================================= */
+
 function formatRupiah(
   value: number
 ) {
   return new Intl.NumberFormat(
     'id-ID',
     {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      style:
+        'currency',
+
+      currency:
+        'IDR',
+
+      minimumFractionDigits:
+        0,
+
+      maximumFractionDigits:
+        0,
     }
   ).format(
     Number.isFinite(value)
@@ -317,14 +471,24 @@ function formatTanggal(
   return new Intl.DateTimeFormat(
     'id-ID',
     {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+      day:
+        '2-digit',
+
+      month:
+        'long',
+
+      year:
+        'numeric',
+
       timeZone:
         'Asia/Jakarta',
     }
   ).format(date);
 }
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function AdminUmkmPage({
   searchParams,
@@ -332,63 +496,76 @@ export default async function AdminUmkmPage({
   const [
     params,
     produkResult,
-    ecatalogResult,
-  ] = await Promise.all([
-    searchParams,
+    settingsResult,
+  ] =
+    await Promise.all([
+      searchParams,
 
-    supabaseAdmin
-      .from(
-        'produk_umkm'
-      )
-      .select(`
-        id,
-        nama_produk,
-        slug,
-        kategori,
-        harga,
-        satuan,
-        deskripsi,
-        nama_penjual,
-        nomor_whatsapp,
-        alamat,
-        lokasi_url,
-        gambar_url,
-        terverifikasi,
-        aktif,
-        urutan,
-        created_at,
-        updated_at
-      `)
-      .order(
-        'urutan',
-        {
-          ascending: true,
-        }
-      )
-      .order(
-        'created_at',
-        {
-          ascending: false,
-        }
-      ),
+      supabaseAdmin
+        .from(
+          'produk_umkm'
+        )
+        .select(`
+          id,
+          nama_produk,
+          slug,
+          kategori,
+          harga,
+          satuan,
+          deskripsi,
+          nama_penjual,
+          nomor_whatsapp,
+          alamat,
+          lokasi_url,
+          gambar_url,
+          terverifikasi,
+          aktif,
+          urutan,
+          created_at,
+          updated_at
+        `)
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
+          }
+        )
+        .order(
+          'created_at',
+          {
+            ascending:
+              false,
+          }
+        ),
 
-    supabaseAdmin
-      .from(
-        'paket_wisata_settings'
-      )
-      .select(`
-        ecatalog_judul,
-        ecatalog_deskripsi,
-        ecatalog_url,
-        ecatalog_aktif,
-        updated_at
-      `)
-      .eq(
-        'setting_key',
-        'utama'
-      )
-      .maybeSingle(),
-  ]);
+      supabaseAdmin
+        .from(
+          'paket_wisata_settings'
+        )
+        .select(`
+          ecatalog_judul,
+          ecatalog_deskripsi,
+          ecatalog_url,
+          ecatalog_aktif,
+
+          panduan_umkm_judul,
+          panduan_umkm_deskripsi,
+          panduan_umkm_gambar_url,
+          panduan_umkm_aktif,
+
+          updated_at
+        `)
+        .eq(
+          'setting_key',
+          'utama'
+        )
+        .maybeSingle(),
+    ]);
+
+  /* =======================================================
+     ERRORS
+  ======================================================= */
 
   if (
     produkResult.error
@@ -416,29 +593,33 @@ export default async function AdminUmkmPage({
   }
 
   if (
-    ecatalogResult.error
+    settingsResult.error
   ) {
     console.error(
-      'Gagal mengambil pengaturan E-Catalog:',
+      'Gagal mengambil pengaturan UMKM:',
       {
         message:
-          ecatalogResult.error
+          settingsResult.error
             .message,
 
         code:
-          ecatalogResult.error
+          settingsResult.error
             .code,
 
         details:
-          ecatalogResult.error
+          settingsResult.error
             .details,
 
         hint:
-          ecatalogResult.error
+          settingsResult.error
             .hint,
       }
     );
   }
+
+  /* =======================================================
+     DATA
+  ======================================================= */
 
   const daftarProduk =
     (
@@ -457,7 +638,12 @@ export default async function AdminUmkmPage({
 
   const ecatalog =
     normalizeEcatalog(
-      ecatalogResult.data
+      settingsResult.data
+    );
+
+  const panduanUmkm =
+    normalizePanduanUmkm(
+      settingsResult.data
     );
 
   const ecatalogUrlValid =
@@ -468,6 +654,14 @@ export default async function AdminUmkmPage({
   const ecatalogTayang =
     ecatalog.ecatalog_aktif &&
     ecatalogUrlValid;
+
+  const panduanTayang =
+    panduanUmkm
+      .panduan_umkm_aktif &&
+    Boolean(
+      panduanUmkm
+        .panduan_umkm_gambar_url
+    );
 
   const produkAktif =
     daftarProduk.filter(
@@ -507,7 +701,10 @@ export default async function AdminUmkmPage({
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
-      {/* Header */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 px-6 py-8 text-white shadow-xl">
         <div
           aria-hidden="true"
@@ -544,12 +741,15 @@ export default async function AdminUmkmPage({
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola produk, penjual,
-                harga, kategori, foto,
-                lokasi, nomor WhatsApp,
-                E-Catalog, verifikasi,
-                dan status publikasi
-                produk UMKM.
+                Kelola E-Catalog,
+                Panduan Sukses
+                Berjualan, video
+                tutorial, produk,
+                penjual, harga,
+                kategori, foto,
+                lokasi, WhatsApp,
+                verifikasi, dan
+                publikasi UMKM.
               </p>
             </div>
           </div>
@@ -569,18 +769,25 @@ export default async function AdminUmkmPage({
         </div>
       </section>
 
-      {/* Pesan */}
+      {/* =====================================================
+          PESAN
+      ===================================================== */}
+
       {params.success && (
         <Message
           type="success"
-          text={params.success}
+          text={
+            params.success
+          }
         />
       )}
 
       {params.error && (
         <Message
           type="error"
-          text={params.error}
+          text={
+            params.error
+          }
         />
       )}
 
@@ -591,14 +798,17 @@ export default async function AdminUmkmPage({
         />
       )}
 
-      {ecatalogResult.error && (
+      {settingsResult.error && (
         <Message
           type="error"
-          text="Pengaturan E-Catalog gagal dimuat. Pastikan tabel paket_wisata_settings sudah tersedia."
+          text="Pengaturan UMKM gagal dimuat. Pastikan kolom E-Catalog dan Panduan UMKM sudah tersedia."
         />
       )}
 
-      {/* Statistik */}
+      {/* =====================================================
+          STATISTIK
+      ===================================================== */}
+
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total Produk"
@@ -611,7 +821,9 @@ export default async function AdminUmkmPage({
 
         <StatCard
           label="Produk Aktif"
-          value={produkAktif}
+          value={
+            produkAktif
+          }
           description="Tampil pada halaman publik"
           icon={CheckCircle2}
         />
@@ -627,13 +839,18 @@ export default async function AdminUmkmPage({
 
         <StatCard
           label="Penjual dan Kategori"
-          value={totalPenjual}
+          value={
+            totalPenjual
+          }
           description={`${totalKategori} kategori produk`}
           icon={Users}
         />
       </section>
 
-      {/* Kelola E-Catalog */}
+      {/* =====================================================
+          E-CATALOG
+      ===================================================== */}
+
       <form
         id="ecatalog-umkm"
         action={
@@ -663,7 +880,8 @@ export default async function AdminUmkmPage({
                   E-Catalog ditampilkan
                   pada halaman Lapak UMKM.
                   URL dapat diganti kapan
-                  saja melalui formulir ini.
+                  saja melalui formulir
+                  ini.
                 </p>
               </div>
             </div>
@@ -699,7 +917,8 @@ export default async function AdminUmkmPage({
               name="ecatalog_judul"
               label="Judul E-Catalog"
               value={
-                ecatalog.ecatalog_judul
+                ecatalog
+                  .ecatalog_judul
               }
               placeholder="E-Catalog Produk UMKM Desa Keji"
             />
@@ -709,7 +928,8 @@ export default async function AdminUmkmPage({
               name="ecatalog_deskripsi"
               label="Deskripsi E-Catalog"
               value={
-                ecatalog.ecatalog_deskripsi
+                ecatalog
+                  .ecatalog_deskripsi
               }
               rows={4}
             />
@@ -720,7 +940,8 @@ export default async function AdminUmkmPage({
               label="URL E-Catalog"
               type="url"
               value={
-                ecatalog.ecatalog_url ??
+                ecatalog
+                  .ecatalog_url ??
                 ''
               }
               placeholder="https://drive.google.com/... atau https://heyzine.com/..."
@@ -733,7 +954,8 @@ export default async function AdminUmkmPage({
               label="Publikasikan E-Catalog"
               description="E-Catalog ditampilkan pada halaman Lapak UMKM apabila URL sudah valid."
               checked={
-                ecatalog.ecatalog_aktif
+                ecatalog
+                  .ecatalog_aktif
               }
             />
 
@@ -742,7 +964,9 @@ export default async function AdminUmkmPage({
                 type="submit"
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
               >
-                <Save size={17} />
+                <Save
+                  size={17}
+                />
 
                 Simpan E-Catalog
               </button>
@@ -750,6 +974,7 @@ export default async function AdminUmkmPage({
           </div>
 
           {/* Pratinjau */}
+
           <aside className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 text-white shadow-lg">
             <div className="p-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
@@ -764,13 +989,15 @@ export default async function AdminUmkmPage({
 
               <h3 className="mt-2 text-xl font-black leading-7">
                 {
-                  ecatalog.ecatalog_judul
+                  ecatalog
+                    .ecatalog_judul
                 }
               </h3>
 
               <p className="mt-3 text-sm font-medium leading-7 text-emerald-50/80">
                 {
-                  ecatalog.ecatalog_deskripsi
+                  ecatalog
+                    .ecatalog_deskripsi
                 }
               </p>
 
@@ -786,7 +1013,8 @@ export default async function AdminUmkmPage({
                   />
 
                   <p className="break-all text-xs font-semibold leading-5 text-emerald-50/80">
-                    {ecatalog.ecatalog_url ||
+                    {ecatalog
+                      .ecatalog_url ||
                       'URL belum dimasukkan'}
                   </p>
                 </div>
@@ -795,7 +1023,8 @@ export default async function AdminUmkmPage({
               {ecatalogUrlValid ? (
                 <a
                   href={
-                    ecatalog.ecatalog_url ??
+                    ecatalog
+                      .ecatalog_url ??
                     '#'
                   }
                   target="_blank"
@@ -817,7 +1046,8 @@ export default async function AdminUmkmPage({
               <p className="mt-4 text-xs font-medium text-emerald-100/60">
                 Diperbarui:{' '}
                 {formatTanggal(
-                  ecatalog.updated_at
+                  ecatalog
+                    .updated_at
                 )}
               </p>
             </div>
@@ -825,7 +1055,225 @@ export default async function AdminUmkmPage({
         </div>
       </form>
 
-      {/* Tambah Produk */}
+      {/* =====================================================
+          PANDUAN SUKSES BERJUALAN
+      ===================================================== */}
+
+      <form
+        id="panduan-umkm"
+        action={
+          simpanPanduanUmkmAction
+        }
+        className="scroll-mt-24 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
+      >
+        <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-5 sm:px-7">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+                <Lightbulb
+                  size={23}
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                  Edukasi UMKM
+                </p>
+
+                <h2 className="mt-1 text-xl font-black text-slate-900">
+                  Kelola Panduan Sukses
+                  Berjualan
+                </h2>
+
+                <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                  Atur judul,
+                  deskripsi, gambar,
+                  dan status publikasi
+                  panduan yang tampil
+                  tepat di bawah
+                  E-Catalog.
+                </p>
+              </div>
+            </div>
+
+            <span
+              className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-extrabold ${
+                panduanTayang
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              {panduanTayang ? (
+                <CheckCircle2
+                  size={15}
+                />
+              ) : (
+                <AlertCircle
+                  size={15}
+                />
+              )}
+
+              {panduanTayang
+                ? 'Tayang di Publik'
+                : 'Belum Tayang'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-6 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_340px]">
+          {/* Form */}
+
+          <div className="grid gap-5">
+            <TextInput
+              idPrefix="panduan"
+              name="panduan_umkm_judul"
+              label="Judul Panduan"
+              value={
+                panduanUmkm
+                  .panduan_umkm_judul
+              }
+              placeholder="Panduan Sukses Berjualan"
+            />
+
+            <TextArea
+              idPrefix="panduan"
+              name="panduan_umkm_deskripsi"
+              label="Deskripsi Panduan"
+              value={
+                panduanUmkm
+                  .panduan_umkm_deskripsi
+              }
+              rows={5}
+            />
+
+            <TextInput
+              idPrefix="panduan"
+              name="panduan_umkm_gambar_url"
+              label="URL atau Path Gambar"
+              value={
+                panduanUmkm
+                  .panduan_umkm_gambar_url ??
+                ''
+              }
+              placeholder="/images/umkm/Panduan Sukses Berjualan.png"
+            />
+
+            <p className="-mt-2 text-xs font-medium leading-5 text-slate-400">
+              Bisa menggunakan path dari
+              folder public seperti
+              /images/umkm/Panduan Sukses
+              Berjualan.png atau URL
+              gambar https://...
+            </p>
+
+            <Checkbox
+              id="panduan-aktif"
+              name="panduan_umkm_aktif"
+              label="Publikasikan Panduan"
+              description="Jika aktif, Panduan Sukses Berjualan akan tampil pada halaman publik tepat di bawah E-Catalog."
+              checked={
+                panduanUmkm
+                  .panduan_umkm_aktif
+              }
+            />
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
+              >
+                <Save
+                  size={17}
+                />
+
+                Simpan Panduan
+              </button>
+            </div>
+          </div>
+
+          {/* Preview */}
+
+          <aside className="overflow-hidden rounded-3xl border border-emerald-100 bg-slate-50 shadow-sm">
+            <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-950 via-emerald-800 to-teal-700 px-5 py-4 text-white">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-200">
+                Pratinjau
+              </p>
+
+              <h3 className="mt-1 font-black">
+                Panduan UMKM
+              </h3>
+            </div>
+
+            {panduanUmkm
+              .panduan_umkm_gambar_url ? (
+              <div className="bg-gradient-to-br from-[#f8dec9] via-[#fff0e4] to-emerald-50 p-5">
+                <div className="mx-auto w-full max-w-[230px] overflow-hidden rounded-2xl bg-white shadow-lg">
+                  <img
+                    src={
+                      panduanUmkm
+                        .panduan_umkm_gambar_url
+                    }
+                    alt={
+                      panduanUmkm
+                        .panduan_umkm_judul
+                    }
+                    className="h-auto w-full object-contain"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-[250px] flex-col items-center justify-center bg-slate-100 text-slate-400">
+                <ImageIcon
+                  size={38}
+                />
+
+                <p className="mt-2 text-xs font-bold">
+                  Belum ada gambar
+                </p>
+              </div>
+            )}
+
+            <div className="p-5">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                Edukasi Pelaku UMKM
+              </p>
+
+              <h3 className="mt-2 text-lg font-black leading-6 text-slate-900">
+                {
+                  panduanUmkm
+                    .panduan_umkm_judul
+                }
+              </h3>
+
+              <p className="mt-2 line-clamp-5 text-xs font-medium leading-6 text-slate-500">
+                {
+                  panduanUmkm
+                    .panduan_umkm_deskripsi
+                }
+              </p>
+
+              <p className="mt-4 text-[11px] font-semibold text-slate-400">
+                Diperbarui:{' '}
+                {formatTanggal(
+                  panduanUmkm
+                    .updated_at
+                )}
+              </p>
+            </div>
+          </aside>
+        </div>
+      </form>
+
+      {/* =====================================================
+          VIDEO TUTORIAL
+      ===================================================== */}
+
+      <UmkmVideoTutorialAdmin />
+
+      {/* =====================================================
+          TAMBAH PRODUK
+      ===================================================== */}
+
       <form
         id="tambah-produk"
         action={
@@ -853,7 +1301,8 @@ export default async function AdminUmkmPage({
               <p className="mt-1 text-sm font-medium text-slate-500">
                 Slug dapat dikosongkan.
                 Sistem akan membuat slug
-                otomatis dari nama produk.
+                otomatis dari nama
+                produk.
               </p>
             </div>
           </div>
@@ -882,7 +1331,10 @@ export default async function AdminUmkmPage({
         </div>
       </form>
 
-      {/* Daftar Produk */}
+      {/* =====================================================
+          DAFTAR PRODUK
+      ===================================================== */}
+
       <section
         id="produk-umkm"
         className="scroll-mt-24 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
@@ -925,8 +1377,12 @@ export default async function AdminUmkmPage({
             {daftarProduk.map(
               (produk) => (
                 <ProdukAdminCard
-                  key={produk.id}
-                  produk={produk}
+                  key={
+                    produk.id
+                  }
+                  produk={
+                    produk
+                  }
                 />
               )
             )}
@@ -937,10 +1393,15 @@ export default async function AdminUmkmPage({
   );
 }
 
+/* =========================================================
+   PRODUCT ADMIN CARD
+========================================================= */
+
 function ProdukAdminCard({
   produk,
 }: {
-  produk: ProdukUmkm;
+  produk:
+    ProdukUmkm;
 }) {
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
@@ -1000,7 +1461,9 @@ function ProdukAdminCard({
           </div>
 
           <h3 className="mt-3 text-xl font-black text-slate-900">
-            {produk.nama_produk}
+            {
+              produk.nama_produk
+            }
           </h3>
 
           <p className="mt-2 text-lg font-black text-emerald-700">
@@ -1035,7 +1498,9 @@ function ProdukAdminCard({
                 />
 
                 <span>
-                  {produk.alamat}
+                  {
+                    produk.alamat
+                  }
                 </span>
               </p>
             )}
@@ -1047,13 +1512,15 @@ function ProdukAdminCard({
               />
 
               <span>
-                Slug: {produk.slug}
+                Slug:{' '}
+                {produk.slug}
               </span>
             </p>
           </div>
 
           <p className="mt-4 text-[11px] font-semibold text-slate-400">
-            Urutan {produk.urutan} ·
+            Urutan{' '}
+            {produk.urutan} ·
             Diperbarui{' '}
             {formatTanggal(
               produk.updated_at
@@ -1071,7 +1538,9 @@ function ProdukAdminCard({
           <input
             type="hidden"
             name="id"
-            value={produk.id}
+            value={
+              produk.id
+            }
           />
 
           <input
@@ -1086,7 +1555,9 @@ function ProdukAdminCard({
             type="submit"
             className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-amber-100 px-3 text-xs font-extrabold text-amber-700 transition hover:bg-amber-200"
           >
-            <Power size={15} />
+            <Power
+              size={15}
+            />
 
             {produk.aktif
               ? 'Nonaktifkan'
@@ -1102,7 +1573,9 @@ function ProdukAdminCard({
           <input
             type="hidden"
             name="id"
-            value={produk.id}
+            value={
+              produk.id
+            }
           />
 
           <input
@@ -1135,14 +1608,18 @@ function ProdukAdminCard({
           <input
             type="hidden"
             name="id"
-            value={produk.id}
+            value={
+              produk.id
+            }
           />
 
           <button
             type="submit"
             className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-red-100 px-3 text-xs font-extrabold text-red-700 transition hover:bg-red-200"
           >
-            <Trash2 size={15} />
+            <Trash2
+              size={15}
+            />
 
             Hapus
           </button>
@@ -1151,7 +1628,9 @@ function ProdukAdminCard({
 
       <details className="border-t border-slate-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 p-4 text-sm font-extrabold text-slate-700">
-          <Pencil size={16} />
+          <Pencil
+            size={16}
+          />
 
           Edit Produk
         </summary>
@@ -1165,12 +1644,16 @@ function ProdukAdminCard({
           <input
             type="hidden"
             name="id"
-            value={produk.id}
+            value={
+              produk.id
+            }
           />
 
           <ProdukFormFields
             idPrefix={`edit-${produk.id}`}
-            produk={produk}
+            produk={
+              produk
+            }
           />
 
           <div className="mt-6 flex justify-end">
@@ -1178,7 +1661,9 @@ function ProdukAdminCard({
               type="submit"
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-800 px-6 text-sm font-extrabold text-white transition hover:bg-slate-900 sm:w-auto"
             >
-              <Save size={17} />
+              <Save
+                size={17}
+              />
 
               Simpan Perubahan
             </button>
@@ -1189,30 +1674,44 @@ function ProdukAdminCard({
   );
 }
 
+/* =========================================================
+   PRODUCT FORM
+========================================================= */
+
 function ProdukFormFields({
   idPrefix,
   produk,
   defaultUrutan = 0,
 }: {
-  idPrefix: string;
-  produk?: ProdukUmkm;
-  defaultUrutan?: number;
+  idPrefix:
+    string;
+
+  produk?:
+    ProdukUmkm;
+
+  defaultUrutan?:
+    number;
 }) {
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="nama_produk"
         label="Nama Produk"
         value={
-          produk?.nama_produk ??
+          produk
+            ?.nama_produk ??
           ''
         }
         placeholder="Contoh: Tethek Melek"
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="slug"
         label="Slug"
         value={
@@ -1224,7 +1723,9 @@ function ProdukFormFields({
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="kategori"
         label="Kategori"
         value={
@@ -1235,7 +1736,9 @@ function ProdukFormFields({
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="satuan"
         label="Satuan"
         value={
@@ -1246,7 +1749,9 @@ function ProdukFormFields({
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="harga"
         label="Harga"
         type="number"
@@ -1258,7 +1763,9 @@ function ProdukFormFields({
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="urutan"
         label="Nomor Urutan"
         type="number"
@@ -1271,11 +1778,14 @@ function ProdukFormFields({
 
       <div className="md:col-span-2">
         <TextArea
-          idPrefix={idPrefix}
+          idPrefix={
+            idPrefix
+          }
           name="deskripsi"
           label="Deskripsi Produk"
           value={
-            produk?.deskripsi ??
+            produk
+              ?.deskripsi ??
             ''
           }
           required={false}
@@ -1284,22 +1794,28 @@ function ProdukFormFields({
       </div>
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="nama_penjual"
         label="Nama Penjual"
         value={
-          produk?.nama_penjual ??
+          produk
+            ?.nama_penjual ??
           ''
         }
         placeholder="Nama pemilik UMKM"
       />
 
       <TextInput
-        idPrefix={idPrefix}
+        idPrefix={
+          idPrefix
+        }
         name="nomor_whatsapp"
         label="Nomor WhatsApp"
         value={
-          produk?.nomor_whatsapp ??
+          produk
+            ?.nomor_whatsapp ??
           ''
         }
         placeholder="Contoh: 081234567890"
@@ -1308,7 +1824,9 @@ function ProdukFormFields({
 
       <div className="md:col-span-2">
         <TextArea
-          idPrefix={idPrefix}
+          idPrefix={
+            idPrefix
+          }
           name="alamat"
           label="Alamat Penjual"
           value={
@@ -1322,11 +1840,14 @@ function ProdukFormFields({
 
       <div className="md:col-span-2">
         <TextInput
-          idPrefix={idPrefix}
+          idPrefix={
+            idPrefix
+          }
           name="lokasi_url"
           label="URL Google Maps"
           value={
-            produk?.lokasi_url ??
+            produk
+              ?.lokasi_url ??
             ''
           }
           placeholder="https://maps.google.com/..."
@@ -1336,11 +1857,14 @@ function ProdukFormFields({
 
       <div className="md:col-span-2">
         <TextInput
-          idPrefix={idPrefix}
+          idPrefix={
+            idPrefix
+          }
           name="gambar_url"
           label="URL atau Path Gambar"
           value={
-            produk?.gambar_url ??
+            produk
+              ?.gambar_url ??
             ''
           }
           placeholder="/images/umkm/produk.jpg atau https://..."
@@ -1354,7 +1878,8 @@ function ProdukFormFields({
         label="Produk Terverifikasi"
         description="Tampilkan tanda verifikasi di samping nama penjual."
         checked={
-          produk?.terverifikasi ??
+          produk
+            ?.terverifikasi ??
           false
         }
       />
@@ -1373,16 +1898,27 @@ function ProdukFormFields({
   );
 }
 
+/* =========================================================
+   STAT CARD
+========================================================= */
+
 function StatCard({
   label,
   value,
   description,
   icon: Icon,
 }: {
-  label: string;
-  value: number;
-  description: string;
-  icon: LucideIcon;
+  label:
+    string;
+
+  value:
+    number;
+
+  description:
+    string;
+
+  icon:
+    LucideIcon;
 }) {
   return (
     <article className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
@@ -1397,27 +1933,40 @@ function StatCard({
           </p>
 
           <p className="mt-2 text-xs font-semibold text-slate-500">
-            {description}
+            {
+              description
+            }
           </p>
         </div>
 
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-          <Icon size={22} />
+          <Icon
+            size={22}
+          />
         </div>
       </div>
     </article>
   );
 }
 
+/* =========================================================
+   MESSAGE
+========================================================= */
+
 function Message({
   type,
   text,
 }: {
-  type: 'success' | 'error';
-  text: string;
+  type:
+    | 'success'
+    | 'error';
+
+  text:
+    string;
 }) {
   const success =
-    type === 'success';
+    type ===
+    'success';
 
   const Icon =
     success
@@ -1444,6 +1993,10 @@ function Message({
   );
 }
 
+/* =========================================================
+   INPUT
+========================================================= */
+
 function TextInput({
   idPrefix,
   name,
@@ -1454,14 +2007,29 @@ function TextInput({
   required = true,
   min,
 }: {
-  idPrefix: string;
-  name: string;
-  label: string;
-  value?: string;
-  placeholder?: string;
-  type?: string;
-  required?: boolean;
-  min?: number;
+  idPrefix:
+    string;
+
+  name:
+    string;
+
+  label:
+    string;
+
+  value?:
+    string;
+
+  placeholder?:
+    string;
+
+  type?:
+    string;
+
+  required?:
+    boolean;
+
+  min?:
+    number;
 }) {
   const id =
     `${idPrefix}-${name}`;
@@ -1485,15 +2053,25 @@ function TextInput({
         id={id}
         name={name}
         type={type}
-        required={required}
+        required={
+          required
+        }
         min={min}
-        defaultValue={value}
-        placeholder={placeholder}
+        defaultValue={
+          value
+        }
+        placeholder={
+          placeholder
+        }
         className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </div>
   );
 }
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
 
 function TextArea({
   idPrefix,
@@ -1503,12 +2081,23 @@ function TextArea({
   rows = 4,
   required = true,
 }: {
-  idPrefix: string;
-  name: string;
-  label: string;
-  value?: string;
-  rows?: number;
-  required?: boolean;
+  idPrefix:
+    string;
+
+  name:
+    string;
+
+  label:
+    string;
+
+  value?:
+    string;
+
+  rows?:
+    number;
+
+  required?:
+    boolean;
 }) {
   const id =
     `${idPrefix}-${name}`;
@@ -1532,13 +2121,21 @@ function TextArea({
         id={id}
         name={name}
         rows={rows}
-        required={required}
-        defaultValue={value}
+        required={
+          required
+        }
+        defaultValue={
+          value
+        }
         className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-7 text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </div>
   );
 }
+
+/* =========================================================
+   CHECKBOX
+========================================================= */
 
 function Checkbox({
   id,
@@ -1547,11 +2144,20 @@ function Checkbox({
   description,
   checked,
 }: {
-  id: string;
-  name: string;
-  label: string;
-  description: string;
-  checked: boolean;
+  id:
+    string;
+
+  name:
+    string;
+
+  label:
+    string;
+
+  description:
+    string;
+
+  checked:
+    boolean;
 }) {
   return (
     <label
@@ -1563,7 +2169,9 @@ function Checkbox({
         type="checkbox"
         name={name}
         value="true"
-        defaultChecked={checked}
+        defaultChecked={
+          checked
+        }
         className="mt-1 h-4 w-4 shrink-0 accent-emerald-700"
       />
 
@@ -1573,7 +2181,9 @@ function Checkbox({
         </span>
 
         <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">
-          {description}
+          {
+            description
+          }
         </span>
       </span>
     </label>

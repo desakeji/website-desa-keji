@@ -308,9 +308,9 @@ export default async function VisiMisiPage() {
             </section>
           </main>
 
-          {/* Sidebar kanan */}
-          <aside className="min-w-0 lg:w-1/3">
-  <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+          {/* Sidebar Kanan */}
+<aside className="min-w-0 lg:w-1/3">
+  <div className="flex flex-col gap-8">
     <SidebarLayanan
       daftarLayanan={daftarLayanan}
       sticky={false}

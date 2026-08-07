@@ -9,7 +9,6 @@ import {
 } from 'react';
 
 import {
-  ArrowRight,
   BadgeCheck,
   BookOpen,
   ExternalLink,
@@ -23,15 +22,27 @@ import {
   UserRound,
 } from 'lucide-react';
 
+import UmkmPanduanBerjualan from '@/components/umkm/UmkmPanduanBerjualan';
+
 import type {
   ProdukUmkm,
 } from '@/types/umkm';
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface EcatalogUmkm {
   judul: string;
   deskripsi: string;
   url: string;
   coverUrl: string;
+}
+
+interface PanduanUmkm {
+  judul: string;
+  deskripsi: string;
+  gambarUrl: string;
 }
 
 interface LapakDesaClientProps {
@@ -44,7 +55,15 @@ interface LapakDesaClientProps {
   ecatalog:
     | EcatalogUmkm
     | null;
+
+  panduanUmkm:
+    | PanduanUmkm
+    | null;
 }
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function formatRupiah(
   value: number
@@ -154,10 +173,15 @@ function getWhatsappUrl(
   )}`;
 }
 
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
+
 export default function LapakDesaClient({
   produk,
   kategori,
   ecatalog,
+  panduanUmkm,
 }: LapakDesaClientProps) {
   const [
     kategoriAktif,
@@ -248,7 +272,10 @@ export default function LapakDesaClient({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header Lapak */}
+      {/* =====================================================
+          HEADER LAPAK
+      ===================================================== */}
+
       <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 text-white">
         <div
           aria-hidden="true"
@@ -300,12 +327,20 @@ export default function LapakDesaClient({
         </div>
       </section>
 
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
       <main className="mx-auto max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
-        {/* E-Catalog */}
+        {/* ===================================================
+            E-CATALOG
+        =================================================== */}
+
         {ecatalog && (
           <section className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-xl shadow-slate-900/[0.06]">
             <div className="grid lg:grid-cols-[370px_minmax(0,1fr)]">
               {/* Cover */}
+
               <a
                 href={
                   ecatalog.url
@@ -349,6 +384,7 @@ export default function LapakDesaClient({
               </a>
 
               {/* Informasi katalog */}
+
               <div className="relative flex flex-col p-6 sm:p-8 lg:p-10">
                 <div
                   aria-hidden="true"
@@ -367,7 +403,9 @@ export default function LapakDesaClient({
                   </p>
 
                   <h2 className="mt-3 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
-                    {ecatalog.judul}
+                    {
+                      ecatalog.judul
+                    }
                   </h2>
 
                   <p className="mt-5 flex-1 text-sm font-medium leading-8 text-slate-600 sm:text-base">
@@ -414,7 +452,22 @@ export default function LapakDesaClient({
           </section>
         )}
 
-        {/* Daftar Produk */}
+        {/* ===================================================
+            PANDUAN SUKSES BERJUALAN
+        =================================================== */}
+
+        {panduanUmkm && (
+          <UmkmPanduanBerjualan
+            panduan={
+              panduanUmkm
+            }
+          />
+        )}
+
+        {/* ===================================================
+            DAFTAR PRODUK
+        =================================================== */}
+
         <section className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-sm">
           <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-6 sm:px-7">
             <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
@@ -433,6 +486,7 @@ export default function LapakDesaClient({
           </div>
 
           {/* Filter */}
+
           <form
             onSubmit={
               handleSubmit
@@ -514,18 +568,23 @@ export default function LapakDesaClient({
           </form>
 
           {/* Ringkasan */}
+
           <div className="flex flex-col gap-2 px-5 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-7">
             <p className="text-sm font-bold text-slate-700">
               Menampilkan{' '}
+
               <span className="text-emerald-700">
                 {
                   produkTersaring.length
                 }
               </span>{' '}
+
               dari{' '}
+
               <span className="text-emerald-700">
                 {produk.length}
               </span>{' '}
+
               produk
             </p>
 
@@ -544,7 +603,8 @@ export default function LapakDesaClient({
             )}
           </div>
 
-          {/* Daftar produk */}
+          {/* Daftar Produk */}
+
           <div className="p-5 sm:p-7">
             {produkTersaring.length >
             0 ? (
@@ -572,6 +632,10 @@ export default function LapakDesaClient({
   );
 }
 
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
 function ProdukCard({
   item,
 }: {
@@ -585,6 +649,7 @@ function ProdukCard({
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
       {/* Gambar produk */}
+
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {item.gambar_url ? (
           <img
@@ -623,6 +688,7 @@ function ProdukCard({
       </div>
 
       {/* Informasi */}
+
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-black leading-snug text-slate-900">
           {
@@ -685,6 +751,7 @@ function ProdukCard({
         )}
 
         {/* Tombol */}
+
         <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
           {whatsappUrl ? (
             <a
@@ -740,6 +807,10 @@ function ProdukCard({
     </article>
   );
 }
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
 
 function ProdukEmptyState() {
   return (

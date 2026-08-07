@@ -755,18 +755,17 @@ export default async function SejarahDesaPage() {
           </main>
 
           {/* Sidebar Kanan */}
-          <aside className="min-w-0 lg:w-1/3">
-            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
-              <SidebarLayanan
-                daftarLayanan={
-                  daftarLayanan
-                }
-                sticky={false}
-              />
+          {/* Sidebar Kanan */}
+<aside className="min-w-0 lg:w-1/3">
+  <div className="flex flex-col gap-8">
+    <SidebarLayanan
+      daftarLayanan={daftarLayanan}
+      sticky={false}
+    />
 
-              <SidebarTilikArkeji />
-            </div>
-          </aside>
+    <SidebarTilikArkeji />
+  </div>
+</aside>
         </div>
       </div>
     </div>

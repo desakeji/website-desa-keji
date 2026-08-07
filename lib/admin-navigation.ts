@@ -378,7 +378,7 @@ export const publicContentModules: AdminNavigationItem[] = [
 
     icon: Map,
 
-    enabled: false,
+    enabled: true,
   },
 
   {

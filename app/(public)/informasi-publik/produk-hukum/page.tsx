@@ -1,6 +1,8 @@
 // app/(public)/informasi-publik/produk-hukum/page.tsx
 
-import type { Metadata } from 'next';
+import type {
+  Metadata,
+} from 'next';
 
 import Link from 'next/link';
 
@@ -21,6 +23,7 @@ import {
   redirect,
 } from 'next/navigation';
 
+import BukuPanduanWebsite from '@/components/BukuPanduanWebsite';
 import SidebarLayanan from '@/components/SidebarLayanan';
 import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
@@ -36,7 +39,12 @@ import type {
   ProdukHukum,
 } from '@/types/produk-hukum';
 
-export const metadata: Metadata = {
+/* =========================================================
+   METADATA
+========================================================= */
+
+export const metadata:
+  Metadata = {
   title:
     'Produk Hukum Desa Keji | SIJI',
 
@@ -47,7 +55,12 @@ export const metadata: Metadata = {
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface PageProps {
   searchParams: Promise<{
@@ -85,7 +98,12 @@ interface LayananRow {
     | null;
 }
 
-const DEFAULT_LIMIT = 10;
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const DEFAULT_LIMIT =
+  10;
 
 const ALLOWED_LIMITS = [
   5,
@@ -93,6 +111,10 @@ const ALLOWED_LIMITS = [
   20,
   50,
 ];
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function safeString(
   value: unknown
@@ -116,7 +138,10 @@ function sanitizeSearch(
       ' '
     )
     .trim()
-    .slice(0, 100);
+    .slice(
+      0,
+      100
+    );
 }
 
 function sanitizeJenis(
@@ -129,11 +154,16 @@ function sanitizeJenis(
       ''
     )
     .trim()
-    .slice(0, 100);
+    .slice(
+      0,
+      100
+    );
 }
 
 function parsePositiveInteger(
-  value: string | undefined,
+  value:
+    | string
+    | undefined,
   fallback: number
 ) {
   const number =
@@ -155,7 +185,9 @@ function getSafeDocumentUrl(
   value: unknown
 ) {
   const url =
-    safeString(value);
+    safeString(
+      value
+    );
 
   if (!url) {
     return null;
@@ -163,7 +195,9 @@ function getSafeDocumentUrl(
 
   try {
     const parsedUrl =
-      new URL(url);
+      new URL(
+        url
+      );
 
     if (
       parsedUrl.protocol !==
@@ -205,16 +239,21 @@ function formatTanggal(
   return new Intl.DateTimeFormat(
     'id-ID',
     {
-      day: '2-digit',
+      day:
+        '2-digit',
 
-      month: 'long',
+      month:
+        'long',
 
-      year: 'numeric',
+      year:
+        'numeric',
 
       timeZone:
         'Asia/Jakarta',
     }
-  ).format(date);
+  ).format(
+    date
+  );
 }
 
 function formatAngka(
@@ -223,11 +262,17 @@ function formatAngka(
   return new Intl.NumberFormat(
     'id-ID'
   ).format(
-    Number.isFinite(value)
+    Number.isFinite(
+      value
+    )
       ? value
       : 0
   );
 }
+
+/* =========================================================
+   URL PAGINATION
+========================================================= */
 
 function buildPageUrl({
   q,
@@ -268,16 +313,24 @@ function buildPageUrl({
 
   params.set(
     'limit',
-    String(limit)
+    String(
+      limit
+    )
   );
 
   params.set(
     'page',
-    String(page)
+    String(
+      page
+    )
   );
 
   return `/informasi-publik/produk-hukum?${params.toString()}`;
 }
+
+/* =========================================================
+   PAGINATION ITEMS
+========================================================= */
 
 function getPaginationItems(
   currentPage: number,
@@ -296,19 +349,23 @@ function getPaginationItems(
   ) {
     const shouldShow =
       page === 1 ||
-      page === totalPages ||
+      page ===
+        totalPages ||
       Math.abs(
         page -
           currentPage
       ) <= 1;
 
-    if (!shouldShow) {
+    if (
+      !shouldShow
+    ) {
       continue;
     }
 
     const previousItem =
       items[
-        items.length - 1
+        items.length -
+          1
       ];
 
     if (
@@ -323,11 +380,17 @@ function getPaginationItems(
       );
     }
 
-    items.push(page);
+    items.push(
+      page
+    );
   }
 
   return items;
 }
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function ProdukHukumPage({
   searchParams,
@@ -335,9 +398,14 @@ export default async function ProdukHukumPage({
   const params =
     await searchParams;
 
+  /* =======================================================
+     SEARCH PARAMS
+  ======================================================= */
+
   const q =
     sanitizeSearch(
-      params.q ?? ''
+      params.q ??
+        ''
     );
 
   const tahunRaw =
@@ -354,7 +422,8 @@ export default async function ProdukHukumPage({
 
   const jenis =
     sanitizeJenis(
-      params.jenis ?? ''
+      params.jenis ??
+        ''
     );
 
   const page =
@@ -385,6 +454,10 @@ export default async function ProdukHukumPage({
     limit -
     1;
 
+  /* =======================================================
+     QUERY PRODUK HUKUM
+  ======================================================= */
+
   let produkQuery =
     supabaseAdmin
       .from(
@@ -406,10 +479,14 @@ export default async function ProdukHukumPage({
           updated_at
         `,
         {
-          count: 'exact',
+          count:
+            'exact',
         }
       )
-      .eq('aktif', true);
+      .eq(
+        'aktif',
+        true
+      );
 
   if (q) {
     produkQuery =
@@ -423,7 +500,9 @@ export default async function ProdukHukumPage({
     produkQuery =
       produkQuery.eq(
         'tahun',
-        Number(tahun)
+        Number(
+          tahun
+        )
       );
   }
 
@@ -437,50 +516,85 @@ export default async function ProdukHukumPage({
 
   produkQuery =
     produkQuery
-      .order('tahun', {
-        ascending: false,
-      })
+      .order(
+        'tahun',
+        {
+          ascending:
+            false,
+        }
+      )
       .order(
         'created_at',
         {
-          ascending: false,
+          ascending:
+            false,
         }
       )
-      .range(from, to);
+      .range(
+        from,
+        to
+      );
+
+  /* =======================================================
+     FETCH DATA
+  ======================================================= */
 
   const [
     produkResult,
     metadataResult,
     layananResult,
-  ] = await Promise.all([
-    produkQuery,
+  ] =
+    await Promise.all([
+      produkQuery,
 
-    supabaseAdmin
-      .from(
-        'produk_hukum'
-      )
-      .select(`
-        tahun,
-        jenis
-      `)
-      .eq('aktif', true),
+      supabaseAdmin
+        .from(
+          'produk_hukum'
+        )
+        .select(`
+          tahun,
+          jenis
+        `)
+        .eq(
+          'aktif',
+          true
+        ),
 
-    supabaseAdmin
-      .from('layanan')
-      .select(`
-        id,
-        nama,
-        slug
-      `)
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-        nullsFirst: false,
-      })
-      .order('nama', {
-        ascending: true,
-      }),
-  ]);
+      supabaseAdmin
+        .from(
+          'layanan'
+        )
+        .select(`
+          id,
+          nama,
+          slug
+        `)
+        .eq(
+          'aktif',
+          true
+        )
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
+
+            nullsFirst:
+              false,
+          }
+        )
+        .order(
+          'nama',
+          {
+            ascending:
+              true,
+          }
+        ),
+    ]);
+
+  /* =======================================================
+     ERROR HANDLING
+  ======================================================= */
 
   if (
     produkResult.error
@@ -489,19 +603,23 @@ export default async function ProdukHukumPage({
       'Gagal mengambil produk hukum:',
       {
         message:
-          produkResult.error
+          produkResult
+            .error
             .message,
 
         code:
-          produkResult.error
+          produkResult
+            .error
             .code,
 
         details:
-          produkResult.error
+          produkResult
+            .error
             .details,
 
         hint:
-          produkResult.error
+          produkResult
+            .error
             .hint,
       }
     );
@@ -514,19 +632,23 @@ export default async function ProdukHukumPage({
       'Gagal mengambil filter produk hukum:',
       {
         message:
-          metadataResult.error
+          metadataResult
+            .error
             .message,
 
         code:
-          metadataResult.error
+          metadataResult
+            .error
             .code,
 
         details:
-          metadataResult.error
+          metadataResult
+            .error
             .details,
 
         hint:
-          metadataResult.error
+          metadataResult
+            .error
             .hint,
       }
     );
@@ -539,23 +661,31 @@ export default async function ProdukHukumPage({
       'Gagal mengambil layanan:',
       {
         message:
-          layananResult.error
+          layananResult
+            .error
             .message,
 
         code:
-          layananResult.error
+          layananResult
+            .error
             .code,
 
         details:
-          layananResult.error
+          layananResult
+            .error
             .details,
 
         hint:
-          layananResult.error
+          layananResult
+            .error
             .hint,
       }
     );
   }
+
+  /* =======================================================
+     PRODUK HUKUM
+  ======================================================= */
 
   const daftarProdukHukum =
     (
@@ -578,6 +708,10 @@ export default async function ProdukHukumPage({
       1
     );
 
+  /* =======================================================
+     REDIRECT PAGE INVALID
+  ======================================================= */
+
   if (
     page >
     totalPages
@@ -588,11 +722,16 @@ export default async function ProdukHukumPage({
         tahun,
         jenis,
         limit,
+
         page:
           totalPages,
       })
     );
   }
+
+  /* =======================================================
+     METADATA FILTER
+  ======================================================= */
 
   const metadata =
     (
@@ -603,81 +742,110 @@ export default async function ProdukHukumPage({
   const daftarTahun = [
     ...new Set(
       metadata
-        .map((item) =>
-          Number(
-            item.tahun
-          )
+        .map(
+          (item) =>
+            Number(
+              item.tahun
+            )
         )
         .filter(
           (item) =>
             Number.isInteger(
               item
             ) &&
-            item >= 1900 &&
-            item <= 2200
+            item >=
+              1900 &&
+            item <=
+              2200
         )
     ),
   ].sort(
-    (first, second) =>
-      second - first
+    (
+      first,
+      second
+    ) =>
+      second -
+      first
   );
 
   const daftarJenis = [
     ...new Set(
       metadata
-        .map((item) =>
-          safeString(
-            item.jenis
-          )
+        .map(
+          (item) =>
+            safeString(
+              item.jenis
+            )
         )
-        .filter(Boolean)
+        .filter(
+          Boolean
+        )
     ),
   ].sort(
-    (first, second) =>
+    (
+      first,
+      second
+    ) =>
       first.localeCompare(
         second,
         'id-ID'
       )
   );
 
+  /* =======================================================
+     LAYANAN SIDEBAR
+  ======================================================= */
+
   const daftarLayanan:
-    PilihanLayanan[] = (
+    PilihanLayanan[] =
+    (
       (
         layananResult.data ??
         []
       ) as LayananRow[]
     )
-      .map((item) => {
-        const id =
-          Number(item.id);
+      .map(
+        (item) => {
+          const id =
+            Number(
+              item.id
+            );
 
-        const nama =
-          safeString(
-            item.nama
-          );
+          const nama =
+            safeString(
+              item.nama
+            );
 
-        const slug =
-          safeString(
-            item.slug
-          );
+          const slug =
+            safeString(
+              item.slug
+            );
 
-        return {
-          id,
-          nama,
-          slug,
-        };
-      })
+          return {
+            id,
+            nama,
+            slug,
+          };
+        }
+      )
       .filter(
         (item) =>
           Number.isInteger(
             item.id
           ) &&
-          item.id > 0 &&
-          item.nama.length >
+          item.id >
             0 &&
-          item.slug.length >
+          item.nama
+            .length >
+            0 &&
+          item.slug
+            .length >
             0
       );
+
+  /* =======================================================
+     PAGE INFO
+  ======================================================= */
 
   const hasActiveFilter =
     Boolean(
@@ -687,14 +855,16 @@ export default async function ProdukHukumPage({
     );
 
   const startEntry =
-    totalData === 0
+    totalData ===
+    0
       ? 0
       : from + 1;
 
   const endEntry =
     Math.min(
       from +
-        daftarProdukHukum.length,
+        daftarProdukHukum
+          .length,
       totalData
     );
 
@@ -704,10 +874,17 @@ export default async function ProdukHukumPage({
       totalPages
     );
 
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header Halaman */}
+        {/* ===================================================
+            HEADER HALAMAN
+        =================================================== */}
+
         <header className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-700 px-6 py-8 text-white shadow-lg sm:px-8">
           <div
             aria-hidden="true"
@@ -776,10 +953,26 @@ export default async function ProdukHukumPage({
           </div>
         </header>
 
+        {/* ===================================================
+            MAIN GRID
+        =================================================== */}
+
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          {/* Konten Utama */}
+          {/* =================================================
+              KONTEN UTAMA
+          ================================================= */}
+
           <main className="min-w-0 space-y-7 lg:w-2/3">
-            {/* Informasi */}
+            {/* ===============================================
+                BUKU PANDUAN WEBSITE
+            =============================================== */}
+
+            <BukuPanduanWebsite />
+
+            {/* ===============================================
+                INFORMASI PENCARIAN
+            =============================================== */}
+
             <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm">
@@ -798,17 +991,22 @@ export default async function ProdukHukumPage({
                   </h2>
 
                   <p className="mt-2 text-sm font-medium leading-7 text-emerald-800">
-                    Gunakan filter tahun,
-                    jenis dokumen, atau
-                    kata kunci judul untuk
-                    menemukan produk hukum
-                    yang dibutuhkan.
+                    Gunakan filter
+                    tahun, jenis
+                    dokumen, atau kata
+                    kunci judul untuk
+                    menemukan produk
+                    hukum yang
+                    dibutuhkan.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Filter */}
+            {/* ===============================================
+                FILTER
+            =============================================== */}
+
             <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
               <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white p-5 sm:p-6">
                 <div className="flex items-start gap-4">
@@ -824,12 +1022,14 @@ export default async function ProdukHukumPage({
                     </p>
 
                     <h2 className="mt-1 text-lg font-black text-slate-900">
-                      Filter Produk Hukum
+                      Filter Produk
+                      Hukum
                     </h2>
 
                     <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                      Pilih tahun, jenis,
-                      atau masukkan judul
+                      Pilih tahun,
+                      jenis, atau
+                      masukkan judul
                       dokumen.
                     </p>
                   </div>
@@ -840,6 +1040,8 @@ export default async function ProdukHukumPage({
                 action="/informasi-publik/produk-hukum"
                 className="grid gap-4 p-5 sm:p-6 md:grid-cols-2"
               >
+                {/* TAHUN */}
+
                 <FilterField
                   label="Tahun"
                   htmlFor="tahun"
@@ -859,8 +1061,12 @@ export default async function ProdukHukumPage({
                     {daftarTahun.map(
                       (item) => (
                         <option
-                          key={item}
-                          value={item}
+                          key={
+                            item
+                          }
+                          value={
+                            item
+                          }
                         >
                           {item}
                         </option>
@@ -868,6 +1074,8 @@ export default async function ProdukHukumPage({
                     )}
                   </select>
                 </FilterField>
+
+                {/* JENIS */}
 
                 <FilterField
                   label="Jenis Dokumen"
@@ -888,8 +1096,12 @@ export default async function ProdukHukumPage({
                     {daftarJenis.map(
                       (item) => (
                         <option
-                          key={item}
-                          value={item}
+                          key={
+                            item
+                          }
+                          value={
+                            item
+                          }
                         >
                           {item}
                         </option>
@@ -897,6 +1109,8 @@ export default async function ProdukHukumPage({
                     )}
                   </select>
                 </FilterField>
+
+                {/* SEARCH */}
 
                 <div className="md:col-span-2">
                   <FilterField
@@ -927,8 +1141,12 @@ export default async function ProdukHukumPage({
                 <input
                   type="hidden"
                   name="limit"
-                  value={limit}
+                  value={
+                    limit
+                  }
                 />
+
+                {/* BUTTON */}
 
                 <div className="flex flex-col gap-3 sm:flex-row md:col-span-2">
                   <button
@@ -954,8 +1172,13 @@ export default async function ProdukHukumPage({
               </form>
             </section>
 
-            {/* Daftar Dokumen */}
+            {/* ===============================================
+                DAFTAR DOKUMEN
+            =============================================== */}
+
             <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+              {/* Header daftar */}
+
               <div className="flex flex-col gap-4 border-b border-emerald-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
@@ -963,25 +1186,34 @@ export default async function ProdukHukumPage({
                   </p>
 
                   <h2 className="mt-1 text-lg font-black text-slate-900">
-                    Daftar Produk Hukum
+                    Daftar Produk
+                    Hukum
                   </h2>
 
                   <p className="mt-1 text-xs font-medium text-slate-500">
                     Menampilkan{' '}
+
                     {formatAngka(
                       startEntry
                     )}
+
                     –
+
                     {formatAngka(
                       endEntry
                     )}{' '}
+
                     dari{' '}
+
                     {formatAngka(
                       totalData
                     )}{' '}
+
                     dokumen
                   </p>
                 </div>
+
+                {/* Limit */}
 
                 <form className="flex items-center gap-2 text-sm text-slate-500">
                   <span className="text-xs font-semibold">
@@ -998,8 +1230,12 @@ export default async function ProdukHukumPage({
                     {ALLOWED_LIMITS.map(
                       (item) => (
                         <option
-                          key={item}
-                          value={item}
+                          key={
+                            item
+                          }
+                          value={
+                            item
+                          }
                         >
                           {item}
                         </option>
@@ -1015,7 +1251,9 @@ export default async function ProdukHukumPage({
                     <input
                       type="hidden"
                       name="q"
-                      value={q}
+                      value={
+                        q
+                      }
                     />
                   )}
 
@@ -1048,6 +1286,10 @@ export default async function ProdukHukumPage({
                 </form>
               </div>
 
+              {/* =============================================
+                  EMPTY / DATA
+              ============================================= */}
+
               {daftarProdukHukum.length ===
               0 ? (
                 <EmptyState
@@ -1057,7 +1299,10 @@ export default async function ProdukHukumPage({
                 />
               ) : (
                 <>
-                  {/* Tampilan Mobile */}
+                  {/* =========================================
+                      MOBILE
+                  ========================================= */}
+
                   <div className="divide-y divide-emerald-100 md:hidden">
                     {daftarProdukHukum.map(
                       (
@@ -1081,7 +1326,10 @@ export default async function ProdukHukumPage({
                     )}
                   </div>
 
-                  {/* Tampilan Desktop */}
+                  {/* =========================================
+                      DESKTOP
+                  ========================================= */}
+
                   <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[820px] border-collapse text-left">
                       <thead>
@@ -1097,7 +1345,8 @@ export default async function ProdukHukumPage({
                             scope="col"
                             className="px-5 py-4 text-xs font-extrabold uppercase tracking-wider"
                           >
-                            Produk Hukum
+                            Produk
+                            Hukum
                           </th>
 
                           <th
@@ -1150,9 +1399,16 @@ export default async function ProdukHukumPage({
                 </>
               )}
 
-              {totalPages > 1 && (
+              {/* =============================================
+                  PAGINATION
+              ============================================= */}
+
+              {totalPages >
+                1 && (
                 <Pagination
-                  q={q}
+                  q={
+                    q
+                  }
                   tahun={
                     tahun
                   }
@@ -1175,7 +1431,10 @@ export default async function ProdukHukumPage({
               )}
             </section>
 
-            {/* Catatan */}
+            {/* ===============================================
+                CATATAN
+            =============================================== */}
+
             <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -1195,11 +1454,14 @@ export default async function ProdukHukumPage({
                   </h2>
 
                   <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
-                    Dokumen yang ditampilkan
-                    merupakan produk hukum
-                    yang telah diaktifkan dan
-                    dipublikasikan melalui
-                    halaman administrator
+                    Dokumen yang
+                    ditampilkan
+                    merupakan produk
+                    hukum yang telah
+                    diaktifkan dan
+                    dipublikasikan
+                    melalui halaman
+                    administrator
                     website Desa Keji.
                   </p>
                 </div>
@@ -1207,14 +1469,19 @@ export default async function ProdukHukumPage({
             </section>
           </main>
 
-          {/* Sidebar Kanan */}
+          {/* =================================================
+              SIDEBAR KANAN
+          ================================================= */}
+
           <aside className="min-w-0 lg:w-1/3">
-            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
+            <div className="flex flex-col gap-8">
               <SidebarLayanan
                 daftarLayanan={
                   daftarLayanan
                 }
-                sticky={false}
+                sticky={
+                  false
+                }
               />
 
               <SidebarTilikArkeji />
@@ -1226,10 +1493,15 @@ export default async function ProdukHukumPage({
   );
 }
 
+/* =========================================================
+   HEADER BADGE
+========================================================= */
+
 function HeaderBadge({
   label,
 }: {
-  label: string;
+  label:
+    string;
 }) {
   return (
     <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-emerald-50 backdrop-blur">
@@ -1238,13 +1510,21 @@ function HeaderBadge({
   );
 }
 
+/* =========================================================
+   FILTER FIELD
+========================================================= */
+
 function FilterField({
   label,
   htmlFor,
   children,
 }: {
-  label: string;
-  htmlFor: string;
+  label:
+    string;
+
+  htmlFor:
+    string;
+
   children:
     React.ReactNode;
 }) {
@@ -1264,12 +1544,19 @@ function FilterField({
   );
 }
 
+/* =========================================================
+   TABLE ROW
+========================================================= */
+
 function ProdukHukumTableRow({
   item,
   nomor,
 }: {
-  item: ProdukHukum;
-  nomor: number;
+  item:
+    ProdukHukum;
+
+  nomor:
+    number;
 }) {
   const fileUrl =
     getSafeDocumentUrl(
@@ -1278,9 +1565,13 @@ function ProdukHukumTableRow({
 
   return (
     <tr className="transition odd:bg-white even:bg-slate-50/80 hover:bg-emerald-50/70">
+      {/* NO */}
+
       <td className="px-4 py-4 text-center text-sm font-semibold text-slate-500">
         {nomor}
       </td>
+
+      {/* PRODUK HUKUM */}
 
       <td className="px-5 py-4">
         <p className="font-bold leading-7 text-slate-900">
@@ -1309,15 +1600,21 @@ function ProdukHukumTableRow({
         </div>
       </td>
 
+      {/* JENIS */}
+
       <td className="px-4 py-4">
         <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
           {item.jenis}
         </span>
       </td>
 
+      {/* TAHUN */}
+
       <td className="px-4 py-4 text-center text-sm font-black text-slate-700">
         {item.tahun}
       </td>
+
+      {/* AKSI */}
 
       <td className="px-4 py-4">
         <DocumentActions
@@ -1330,12 +1627,19 @@ function ProdukHukumTableRow({
   );
 }
 
+/* =========================================================
+   MOBILE CARD
+========================================================= */
+
 function ProdukHukumMobileCard({
   item,
   nomor,
 }: {
-  item: ProdukHukum;
-  nomor: number;
+  item:
+    ProdukHukum;
+
+  nomor:
+    number;
 }) {
   const fileUrl =
     getSafeDocumentUrl(
@@ -1345,18 +1649,26 @@ function ProdukHukumMobileCard({
   return (
     <article className="p-5">
       <div className="flex items-start gap-4">
+        {/* Nomor */}
+
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-black text-emerald-700">
           {nomor}
         </div>
 
         <div className="min-w-0 flex-1">
+          {/* Jenis */}
+
           <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-extrabold text-emerald-700">
             {item.jenis}
           </span>
 
+          {/* Judul */}
+
           <h3 className="mt-3 font-black leading-7 text-slate-900">
             {item.judul}
           </h3>
+
+          {/* Nomor Dokumen */}
 
           <p className="mt-2 text-xs font-semibold text-slate-500">
             {safeString(
@@ -1364,6 +1676,8 @@ function ProdukHukumMobileCard({
             ) ||
               'Nomor tidak dicantumkan'}
           </p>
+
+          {/* Metadata */}
 
           <div className="mt-2 flex flex-wrap gap-3 text-xs font-medium text-slate-400">
             <span>
@@ -1384,6 +1698,8 @@ function ProdukHukumMobileCard({
             )}
           </div>
 
+          {/* Action */}
+
           <div className="mt-4">
             <DocumentActions
               fileUrl={
@@ -1397,6 +1713,10 @@ function ProdukHukumMobileCard({
   );
 }
 
+/* =========================================================
+   DOCUMENT ACTIONS
+========================================================= */
+
 function DocumentActions({
   fileUrl,
 }: {
@@ -1404,7 +1724,9 @@ function DocumentActions({
     | string
     | null;
 }) {
-  if (!fileUrl) {
+  if (
+    !fileUrl
+  ) {
     return (
       <div className="flex justify-center">
         <span className="inline-flex min-h-10 items-center justify-center rounded-xl bg-slate-100 px-3 text-xs font-bold text-slate-400">
@@ -1416,8 +1738,12 @@ function DocumentActions({
 
   return (
     <div className="flex flex-wrap justify-center gap-2">
+      {/* LIHAT */}
+
       <a
-        href={fileUrl}
+        href={
+          fileUrl
+        }
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-3 text-xs font-extrabold text-white transition hover:bg-emerald-800"
@@ -1429,8 +1755,12 @@ function DocumentActions({
         Lihat
       </a>
 
+      {/* DOWNLOAD */}
+
       <a
-        href={fileUrl}
+        href={
+          fileUrl
+        }
         download
         className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50"
         title="Unduh dokumen"
@@ -1444,10 +1774,15 @@ function DocumentActions({
   );
 }
 
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
 function EmptyState({
   hasFilter,
 }: {
-  hasFilter: boolean;
+  hasFilter:
+    boolean;
 }) {
   return (
     <div className="px-6 py-16 text-center">
@@ -1472,6 +1807,10 @@ function EmptyState({
   );
 }
 
+/* =========================================================
+   PAGINATION
+========================================================= */
+
 function Pagination({
   q,
   tahun,
@@ -1481,12 +1820,24 @@ function Pagination({
   totalPages,
   items,
 }: {
-  q: string;
-  tahun: string;
-  jenis: string;
-  limit: number;
-  page: number;
-  totalPages: number;
+  q:
+    string;
+
+  tahun:
+    string;
+
+  jenis:
+    string;
+
+  limit:
+    number;
+
+  page:
+    number;
+
+  totalPages:
+    number;
+
   items:
     (
       | number
@@ -1495,28 +1846,39 @@ function Pagination({
 }) {
   return (
     <div className="flex flex-col gap-4 border-t border-emerald-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      {/* INFO */}
+
       <p className="text-xs font-semibold text-slate-400">
         Halaman{' '}
+
         {formatAngka(
           page
         )}{' '}
+
         dari{' '}
+
         {formatAngka(
           totalPages
         )}
       </p>
 
+      {/* NAV */}
+
       <nav
         aria-label="Navigasi halaman produk hukum"
         className="flex flex-wrap gap-2"
       >
-        {page > 1 && (
+        {/* PREVIOUS */}
+
+        {page >
+          1 && (
           <Link
             href={buildPageUrl({
               q,
               tahun,
               jenis,
               limit,
+
               page:
                 page - 1,
             })}
@@ -1525,6 +1887,8 @@ function Pagination({
             Sebelumnya
           </Link>
         )}
+
+        {/* PAGE ITEMS */}
 
         {items.map(
           (
@@ -1547,22 +1911,27 @@ function Pagination({
 
             return (
               <Link
-                key={item}
+                key={
+                  item
+                }
                 href={buildPageUrl({
                   q,
                   tahun,
                   jenis,
                   limit,
+
                   page:
                     item,
                 })}
                 aria-current={
-                  item === page
+                  item ===
+                  page
                     ? 'page'
                     : undefined
                 }
                 className={`flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-extrabold transition ${
-                  item === page
+                  item ===
+                  page
                     ? 'bg-emerald-700 text-white'
                     : 'border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50'
                 }`}
@@ -1573,6 +1942,8 @@ function Pagination({
           }
         )}
 
+        {/* NEXT */}
+
         {page <
           totalPages && (
           <Link
@@ -1581,6 +1952,7 @@ function Pagination({
               tahun,
               jenis,
               limit,
+
               page:
                 page + 1,
             })}

@@ -12,23 +12,45 @@ import {
   CheckCircle2,
   CircleAlert,
   Info,
+  MessageCircle,
   RotateCcw,
   Send,
   ShieldCheck,
 } from 'lucide-react';
 
-import type { PilihanLayanan } from '@/types/layanan';
+import type {
+  PilihanLayanan,
+} from '@/types/layanan';
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const WHATSAPP_PENGURUS =
+  '6285741514010';
+
+const WHATSAPP_MESSAGE =
+  'Halo Pengurus Desa Keji, saya ingin menanyakan terkait layanan administrasi melalui Website Desa Keji.';
+
+const WHATSAPP_URL =
+  `https://wa.me/${WHATSAPP_PENGURUS}?text=${encodeURIComponent(
+    WHATSAPP_MESSAGE
+  )}`;
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface SidebarLayananProps {
-  daftarLayanan: PilihanLayanan[];
+  daftarLayanan:
+    PilihanLayanan[];
 
   /**
    * Mengatur apakah SidebarLayanan memiliki
    * posisi sticky sendiri.
    *
-   * Gunakan sticky={false} apabila komponen
-   * dibungkus bersama sidebar lain dalam
-   * satu container sticky.
+   * Gunakan sticky={false} apabila sidebar
+   * ingin mengikuti alur halaman secara normal.
    */
   sticky?: boolean;
 }
@@ -39,14 +61,28 @@ interface ApiResponse {
   message?: string;
 }
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function SidebarLayanan({
   daftarLayanan,
-  sticky = true,
+  sticky = false,
 }: SidebarLayananProps) {
-  const [nik, setNik] = useState('');
-  const [noWa, setNoWa] = useState('');
-  const [layananId, setLayananId] =
-    useState('');
+  const [
+    nik,
+    setNik,
+  ] = useState('');
+
+  const [
+    noWa,
+    setNoWa,
+  ] = useState('');
+
+  const [
+    layananId,
+    setLayananId,
+  ] = useState('');
 
   const [
     isNikVerified,
@@ -63,13 +99,19 @@ export default function SidebarLayanan({
     setIsSubmitting,
   ] = useState(false);
 
-  const [isSuccess, setIsSuccess] =
-    useState(false);
+  const [
+    isSuccess,
+    setIsSuccess,
+  ] = useState(false);
 
   const [
     errorMessage,
     setErrorMessage,
   ] = useState('');
+
+  /* =======================================================
+     RESET
+  ======================================================= */
 
   const resetForm = () => {
     setNik('');
@@ -79,182 +121,268 @@ export default function SidebarLayanan({
     setErrorMessage('');
   };
 
+  /* =======================================================
+     RESET SETELAH BERHASIL
+  ======================================================= */
+
   useEffect(() => {
     if (!isSuccess) {
       return;
     }
 
     const timeout =
-      window.setTimeout(() => {
-        resetForm();
-        setIsSuccess(false);
-      }, 5000);
+      window.setTimeout(
+        () => {
+          resetForm();
+          setIsSuccess(false);
+        },
+        5000
+      );
 
     return () => {
-      window.clearTimeout(timeout);
+      window.clearTimeout(
+        timeout
+      );
     };
   }, [isSuccess]);
+
+  /* =======================================================
+     FORMAT NIK
+  ======================================================= */
 
   const formatNik = (
     value: string
   ) => {
     return value
-      .replace(/\D/g, '')
-      .slice(0, 16);
+      .replace(
+        /\D/g,
+        ''
+      )
+      .slice(
+        0,
+        16
+      );
   };
 
   const maskNik = (
     value: string
   ) => {
-    if (value.length !== 16) {
+    if (
+      value.length !==
+      16
+    ) {
       return value;
     }
 
     return `${value.slice(
       0,
       4
-    )}********${value.slice(-4)}`;
+    )}********${value.slice(
+      -4
+    )}`;
   };
 
-  const handleVerifikasiNik = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
+  /* =======================================================
+     VERIFIKASI NIK
+  ======================================================= */
 
-    setErrorMessage('');
+  const handleVerifikasiNik =
+    async (
+      event:
+        FormEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
 
-    if (!/^\d{16}$/.test(nik)) {
-      setErrorMessage(
-        'NIK harus terdiri dari tepat 16 angka.'
-      );
-
-      return;
-    }
-
-    setIsVerifying(true);
-
-    try {
-      const response = await fetch(
-        '/api/warga/verifikasi',
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-
-          body: JSON.stringify({
-            nik,
-          }),
-        }
-      );
-
-      const result =
-        (await response.json()) as ApiResponse;
+      setErrorMessage('');
 
       if (
-        !response.ok ||
-        !result.valid
+        !/^\d{16}$/.test(
+          nik
+        )
       ) {
-        throw new Error(
-          result.message ??
-            'NIK tidak dapat diverifikasi.'
+        setErrorMessage(
+          'NIK harus terdiri dari tepat 16 angka.'
         );
+
+        return;
       }
 
-      setIsNikVerified(true);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Terjadi kesalahan saat memverifikasi NIK.';
-
-      setErrorMessage(message);
-      setIsNikVerified(false);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    setErrorMessage('');
-
-    if (!isNikVerified) {
-      setErrorMessage(
-        'Verifikasi NIK terlebih dahulu.'
+      setIsVerifying(
+        true
       );
 
-      return;
-    }
+      try {
+        const response =
+          await fetch(
+            '/api/warga/verifikasi',
+            {
+              method:
+                'POST',
 
-    if (!layananId) {
-      setErrorMessage(
-        'Pilih layanan terlebih dahulu.'
-      );
+              headers: {
+                'Content-Type':
+                  'application/json',
+              },
 
-      return;
-    }
+              body:
+                JSON.stringify(
+                  {
+                    nik,
+                  }
+                ),
+            }
+          );
 
-    if (!noWa.trim()) {
-      setErrorMessage(
-        'Nomor WhatsApp wajib diisi.'
-      );
+        const result =
+          (await response.json()) as ApiResponse;
 
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch(
-        '/api/permohonan',
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-
-          body: JSON.stringify({
-            nik,
-            noWa: noWa.trim(),
-            layananId:
-              Number(layananId),
-          }),
+        if (
+          !response.ok ||
+          !result.valid
+        ) {
+          throw new Error(
+            result.message ??
+              'NIK tidak dapat diverifikasi.'
+          );
         }
-      );
 
-      const result =
-        (await response.json()) as ApiResponse;
+        setIsNikVerified(
+          true
+        );
+      } catch (error) {
+        const message =
+          error instanceof
+          Error
+            ? error.message
+            : 'Terjadi kesalahan saat memverifikasi NIK.';
+
+        setErrorMessage(
+          message
+        );
+
+        setIsNikVerified(
+          false
+        );
+      } finally {
+        setIsVerifying(
+          false
+        );
+      }
+    };
+
+  /* =======================================================
+     KIRIM PERMOHONAN
+  ======================================================= */
+
+  const handleSubmit =
+    async (
+      event:
+        FormEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
+
+      setErrorMessage('');
 
       if (
-        !response.ok ||
-        !result.success
+        !isNikVerified
       ) {
-        throw new Error(
-          result.message ??
-            'Permohonan gagal dikirim.'
+        setErrorMessage(
+          'Verifikasi NIK terlebih dahulu.'
         );
+
+        return;
       }
 
-      setIsSuccess(true);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Terjadi kesalahan saat mengirim permohonan.';
+      if (
+        !layananId
+      ) {
+        setErrorMessage(
+          'Pilih layanan terlebih dahulu.'
+        );
 
-      setErrorMessage(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        return;
+      }
+
+      if (
+        !noWa.trim()
+      ) {
+        setErrorMessage(
+          'Nomor WhatsApp wajib diisi.'
+        );
+
+        return;
+      }
+
+      setIsSubmitting(
+        true
+      );
+
+      try {
+        const response =
+          await fetch(
+            '/api/permohonan',
+            {
+              method:
+                'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json',
+              },
+
+              body:
+                JSON.stringify(
+                  {
+                    nik,
+
+                    noWa:
+                      noWa.trim(),
+
+                    layananId:
+                      Number(
+                        layananId
+                      ),
+                  }
+                ),
+            }
+          );
+
+        const result =
+          (await response.json()) as ApiResponse;
+
+        if (
+          !response.ok ||
+          !result.success
+        ) {
+          throw new Error(
+            result.message ??
+              'Permohonan gagal dikirim.'
+          );
+        }
+
+        setIsSuccess(
+          true
+        );
+      } catch (error) {
+        const message =
+          error instanceof
+          Error
+            ? error.message
+            : 'Terjadi kesalahan saat mengirim permohonan.';
+
+        setErrorMessage(
+          message
+        );
+      } finally {
+        setIsSubmitting(
+          false
+        );
+      }
+    };
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
 
   return (
     <div
@@ -264,7 +392,10 @@ export default function SidebarLayanan({
           : 'relative'
       }`}
     >
-      {/* Header */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <div className="relative overflow-hidden bg-emerald-600 p-5 text-center">
         <h3 className="relative z-10 text-xl font-extrabold text-white">
           Layanan Cepat
@@ -273,9 +404,15 @@ export default function SidebarLayanan({
         <div className="absolute -bottom-8 -left-4 h-12 w-[120%] rotate-3 rounded-t-[50%] bg-emerald-800" />
       </div>
 
-      {/* Konten */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
       <div className="relative z-20 p-6">
-        {/* Informasi */}
+        {/* ===================================================
+            INFORMASI
+        =================================================== */}
+
         <div className="mb-6 flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-800 shadow-inner">
           <Info
             size={16}
@@ -292,7 +429,10 @@ export default function SidebarLayanan({
           </p>
         </div>
 
-        {/* Pesan error */}
+        {/* ===================================================
+            ERROR
+        =================================================== */}
+
         {errorMessage && (
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
             <CircleAlert
@@ -301,12 +441,17 @@ export default function SidebarLayanan({
             />
 
             <p className="leading-6">
-              {errorMessage}
+              {
+                errorMessage
+              }
             </p>
           </div>
         )}
 
-        {/* Status berhasil */}
+        {/* ===================================================
+            BERHASIL
+        =================================================== */}
+
         {isSuccess ? (
           <div className="rounded-xl border border-emerald-100 bg-white px-6 py-10 text-center shadow-inner">
             <CheckCircle2
@@ -328,13 +473,18 @@ export default function SidebarLayanan({
             </p>
           </div>
         ) : !isNikVerified ? (
-          /* Form verifikasi NIK */
+          /* =================================================
+             FORM VERIFIKASI NIK
+          ================================================= */
+
           <form
             onSubmit={
               handleVerifikasiNik
             }
             className="space-y-4"
           >
+            {/* NIK */}
+
             <div>
               <label
                 htmlFor="sidebar-nik"
@@ -352,14 +502,19 @@ export default function SidebarLayanan({
                 maxLength={16}
                 required
                 value={nik}
-                onChange={(event) => {
+                onChange={(
+                  event
+                ) => {
                   setNik(
                     formatNik(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   );
 
-                  setErrorMessage('');
+                  setErrorMessage(
+                    ''
+                  );
                 }}
                 className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none transition focus:ring-2 focus:ring-amber-400"
                 placeholder="Masukkan 16 digit NIK"
@@ -372,15 +527,19 @@ export default function SidebarLayanan({
               </p>
             </div>
 
+            {/* Tombol Verifikasi */}
+
             <button
               type="submit"
               disabled={
                 isVerifying ||
-                nik.length !== 16
+                nik.length !==
+                  16
               }
               className={`flex w-full items-center justify-center gap-2 rounded-lg py-3 font-extrabold text-white shadow-md transition-all ${
                 isVerifying ||
-                nik.length !== 16
+                nik.length !==
+                  16
                   ? 'cursor-not-allowed bg-gray-400'
                   : 'bg-amber-500 hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-lg'
               }`}
@@ -393,14 +552,79 @@ export default function SidebarLayanan({
                 ? 'Memverifikasi NIK...'
                 : 'Verifikasi NIK'}
             </button>
+
+            {/* ===============================================
+                KONTAK WHATSAPP PENGURUS DESA
+            =============================================== */}
+
+            <div className="pt-1">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="h-px flex-1 bg-emerald-600/70" />
+
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.13em] text-emerald-200">
+                  Butuh Bantuan?
+                </span>
+
+                <div className="h-px flex-1 bg-emerald-600/70" />
+              </div>
+
+              <a
+                href={
+                  WHATSAPP_URL
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex w-full items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-3.5 transition hover:-translate-y-0.5 hover:border-emerald-400/60 hover:bg-emerald-950/50"
+              >
+                {/* Icon WA */}
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#25D366] text-white shadow-md transition group-hover:scale-105">
+                  <MessageCircle
+                    size={20}
+                    strokeWidth={
+                      2.5
+                    }
+                  />
+                </div>
+
+                {/* Informasi */}
+
+                <div className="min-w-0 flex-1">
+  <p className="text-[10px] font-extrabold uppercase tracking-[0.11em] text-emerald-200">
+    Kontak WhatsApp
+  </p>
+
+  <p className="mt-0.5 text-sm font-extrabold text-white">
+    Pengurus Desa
+  </p>
+</div>
+
+                <span className="shrink-0 rounded-lg bg-white/10 px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-wide text-emerald-100 transition group-hover:bg-[#25D366] group-hover:text-white">
+                  Chat
+                </span>
+              </a>
+
+              <p className="mt-2 text-center text-[10px] font-medium leading-4 text-emerald-100/70">
+                Hubungi pengurus desa
+                apabila mengalami
+                kendala pada layanan
+                atau verifikasi NIK.
+              </p>
+            </div>
           </form>
         ) : (
-          /* Form permohonan */
+          /* =================================================
+             FORM PERMOHONAN
+          ================================================= */
+
           <form
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
             className="space-y-4"
           >
             {/* Status NIK */}
+
             <div className="rounded-lg border border-emerald-200 bg-white p-3">
               <div className="flex items-start gap-2">
                 <CheckCircle2
@@ -414,13 +638,19 @@ export default function SidebarLayanan({
                   </p>
 
                   <p className="mt-0.5 text-xs font-medium text-gray-500">
-                    {maskNik(nik)}
+                    {
+                      maskNik(
+                        nik
+                      )
+                    }
                   </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={resetForm}
+                  onClick={
+                    resetForm
+                  }
                   className="flex shrink-0 items-center gap-1 text-xs font-bold text-gray-500 transition hover:text-emerald-700"
                 >
                   <RotateCcw
@@ -433,6 +663,7 @@ export default function SidebarLayanan({
             </div>
 
             {/* Nomor WhatsApp */}
+
             <div>
               <label
                 htmlFor="sidebar-no-wa"
@@ -449,12 +680,17 @@ export default function SidebarLayanan({
                 autoComplete="tel"
                 required
                 value={noWa}
-                onChange={(event) => {
+                onChange={(
+                  event
+                ) => {
                   setNoWa(
-                    event.target.value
+                    event.target
+                      .value
                   );
 
-                  setErrorMessage('');
+                  setErrorMessage(
+                    ''
+                  );
                 }}
                 className="w-full rounded-lg border-none bg-white p-2.5 text-sm font-medium text-gray-800 shadow-inner outline-none transition focus:ring-2 focus:ring-amber-400"
                 placeholder="Contoh: 081234567890"
@@ -462,6 +698,7 @@ export default function SidebarLayanan({
             </div>
 
             {/* Pilihan layanan */}
+
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-3">
                 <label
@@ -472,7 +709,9 @@ export default function SidebarLayanan({
                 </label>
 
                 <span className="rounded-full border border-emerald-300/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-emerald-100">
-                  {daftarLayanan.length}{' '}
+                  {
+                    daftarLayanan.length
+                  }{' '}
                   pilihan
                 </span>
               </div>
@@ -481,13 +720,20 @@ export default function SidebarLayanan({
                 id="sidebar-layanan"
                 name="layanan"
                 required
-                value={layananId}
-                onChange={(event) => {
+                value={
+                  layananId
+                }
+                onChange={(
+                  event
+                ) => {
                   setLayananId(
-                    event.target.value
+                    event.target
+                      .value
                   );
 
-                  setErrorMessage('');
+                  setErrorMessage(
+                    ''
+                  );
                 }}
                 disabled={
                   daftarLayanan.length ===
@@ -511,11 +757,19 @@ export default function SidebarLayanan({
                     index
                   ) => (
                     <option
-                      key={layanan.id}
-                      value={layanan.id}
+                      key={
+                        layanan.id
+                      }
+                      value={
+                        layanan.id
+                      }
                     >
-                      {index + 1}.{' '}
-                      {layanan.nama}
+                      {index +
+                        1}
+                      .{' '}
+                      {
+                        layanan.nama
+                      }
                     </option>
                   )
                 )}
@@ -529,7 +783,8 @@ export default function SidebarLayanan({
               </p>
             </div>
 
-            {/* Tombol kirim */}
+            {/* Tombol Kirim */}
+
             <button
               type="submit"
               disabled={
@@ -545,7 +800,9 @@ export default function SidebarLayanan({
                   : 'bg-amber-500 hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-lg'
               }`}
             >
-              <Send size={16} />
+              <Send
+                size={16}
+              />
 
               {isSubmitting
                 ? 'Mengirim Permohonan...'

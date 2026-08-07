@@ -1,14 +1,22 @@
 // app/(public)/umkm/page.tsx
 
-import type { Metadata } from 'next';
+import type {
+  Metadata,
+} from 'next';
 
 import LapakDesaClient from '@/components/umkm/LapakDesaClient';
+import UmkmVideoTutorialPublic from '@/components/umkm/UmkmVideoTutorialPublic';
 
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import {
+  supabaseAdmin,
+} from '@/lib/supabase-admin';
 
-import type { ProdukUmkm } from '@/types/umkm';
+import type {
+  ProdukUmkm,
+} from '@/types/umkm';
 
-export const metadata: Metadata = {
+export const metadata:
+  Metadata = {
   title:
     'Lapak dan E-Catalog UMKM Desa Keji | SIJI',
 
@@ -19,12 +27,17 @@ export const metadata: Metadata = {
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
 const ECATALOG_COVER_URL =
   '/cover-ecatalog.png';
 
-interface EcatalogDatabase {
+/* =========================================================
+   DATABASE TYPES
+========================================================= */
+
+interface UmkmSettingsDatabase {
   ecatalog_judul:
     | string
     | null;
@@ -40,7 +53,27 @@ interface EcatalogDatabase {
   ecatalog_aktif:
     | boolean
     | null;
+
+  panduan_umkm_judul:
+    | string
+    | null;
+
+  panduan_umkm_deskripsi:
+    | string
+    | null;
+
+  panduan_umkm_gambar_url:
+    | string
+    | null;
+
+  panduan_umkm_aktif:
+    | boolean
+    | null;
 }
+
+/* =========================================================
+   PUBLIC TYPES
+========================================================= */
 
 interface EcatalogUmkm {
   judul: string;
@@ -48,6 +81,16 @@ interface EcatalogUmkm {
   url: string;
   coverUrl: string;
 }
+
+interface PanduanUmkm {
+  judul: string;
+  deskripsi: string;
+  gambarUrl: string;
+}
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function safeString(
   value: unknown
@@ -120,8 +163,12 @@ function normalizePublicImageUrl(
   }
 
   if (
-    rawUrl.startsWith('/') &&
-    !rawUrl.startsWith('//')
+    rawUrl.startsWith(
+      '/'
+    ) &&
+    !rawUrl.startsWith(
+      '//'
+    )
   ) {
     return rawUrl;
   }
@@ -130,6 +177,10 @@ function normalizePublicImageUrl(
     rawUrl
   );
 }
+
+/* =========================================================
+   PRODUK NORMALIZER
+========================================================= */
 
 function normalizeProduk(
   row: Record<
@@ -233,9 +284,13 @@ function normalizeProduk(
   };
 }
 
+/* =========================================================
+   E-CATALOG NORMALIZER
+========================================================= */
+
 function normalizeEcatalog(
   value:
-    | EcatalogDatabase
+    | UmkmSettingsDatabase
     | null
 ): EcatalogUmkm | null {
   if (
@@ -275,68 +330,129 @@ function normalizeEcatalog(
   };
 }
 
+/* =========================================================
+   PANDUAN UMKM NORMALIZER
+========================================================= */
+
+function normalizePanduanUmkm(
+  value:
+    | UmkmSettingsDatabase
+    | null
+): PanduanUmkm | null {
+  if (
+    !value ||
+    value.panduan_umkm_aktif !==
+      true
+  ) {
+    return null;
+  }
+
+  const gambarUrl =
+    normalizePublicImageUrl(
+      value.panduan_umkm_gambar_url
+    );
+
+  if (!gambarUrl) {
+    return null;
+  }
+
+  return {
+    judul:
+      safeString(
+        value.panduan_umkm_judul
+      ) ||
+      'Panduan Sukses Berjualan',
+
+    deskripsi:
+      safeString(
+        value.panduan_umkm_deskripsi
+      ) ||
+      'Pelajari langkah sederhana dalam menata display produk agar lebih menarik serta memberikan pelayanan yang ramah dan profesional kepada konsumen.',
+
+    gambarUrl,
+  };
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function UmkmPage() {
   const [
     produkResult,
     settingsResult,
-  ] = await Promise.all([
-    supabaseAdmin
-      .from(
-        'produk_umkm'
-      )
-      .select(`
-        id,
-        nama_produk,
-        slug,
-        kategori,
-        harga,
-        satuan,
-        deskripsi,
-        nama_penjual,
-        nomor_whatsapp,
-        alamat,
-        lokasi_url,
-        gambar_url,
-        terverifikasi,
-        aktif,
-        urutan,
-        created_at,
-        updated_at
-      `)
-      .eq(
-        'aktif',
-        true
-      )
-      .order(
-        'urutan',
-        {
-          ascending: true,
-          nullsFirst: false,
-        }
-      )
-      .order(
-        'created_at',
-        {
-          ascending: false,
-        }
-      ),
+  ] =
+    await Promise.all([
+      supabaseAdmin
+        .from(
+          'produk_umkm'
+        )
+        .select(`
+          id,
+          nama_produk,
+          slug,
+          kategori,
+          harga,
+          satuan,
+          deskripsi,
+          nama_penjual,
+          nomor_whatsapp,
+          alamat,
+          lokasi_url,
+          gambar_url,
+          terverifikasi,
+          aktif,
+          urutan,
+          created_at,
+          updated_at
+        `)
+        .eq(
+          'aktif',
+          true
+        )
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
 
-    supabaseAdmin
-      .from(
-        'paket_wisata_settings'
-      )
-      .select(`
-        ecatalog_judul,
-        ecatalog_deskripsi,
-        ecatalog_url,
-        ecatalog_aktif
-      `)
-      .eq(
-        'setting_key',
-        'utama'
-      )
-      .maybeSingle(),
-  ]);
+            nullsFirst:
+              false,
+          }
+        )
+        .order(
+          'created_at',
+          {
+            ascending:
+              false,
+          }
+        ),
+
+      supabaseAdmin
+        .from(
+          'paket_wisata_settings'
+        )
+        .select(`
+          ecatalog_judul,
+          ecatalog_deskripsi,
+          ecatalog_url,
+          ecatalog_aktif,
+
+          panduan_umkm_judul,
+          panduan_umkm_deskripsi,
+          panduan_umkm_gambar_url,
+          panduan_umkm_aktif
+        `)
+        .eq(
+          'setting_key',
+          'utama'
+        )
+        .maybeSingle(),
+    ]);
+
+  /* =======================================================
+     ERROR PRODUK
+  ======================================================= */
 
   if (
     produkResult.error
@@ -363,11 +479,15 @@ export default async function UmkmPage() {
     );
   }
 
+  /* =======================================================
+     ERROR SETTINGS
+  ======================================================= */
+
   if (
     settingsResult.error
   ) {
     console.error(
-      'Gagal mengambil pengaturan E-Catalog UMKM:',
+      'Gagal mengambil pengaturan UMKM:',
       {
         message:
           settingsResult.error
@@ -387,6 +507,10 @@ export default async function UmkmPage() {
       }
     );
   }
+
+  /* =======================================================
+     PRODUK
+  ======================================================= */
 
   const produk =
     (
@@ -413,6 +537,10 @@ export default async function UmkmPage() {
             0
       );
 
+  /* =======================================================
+     KATEGORI
+  ======================================================= */
+
   const kategori =
     Array.from(
       new Set(
@@ -425,7 +553,8 @@ export default async function UmkmPage() {
             (
               item
             ): item is string =>
-              item.length > 0
+              item.length >
+              0
           )
       )
     ).sort(
@@ -439,24 +568,51 @@ export default async function UmkmPage() {
         )
     );
 
+  const settings =
+    settingsResult.data as
+      | UmkmSettingsDatabase
+      | null;
+
+  /* =======================================================
+     E-CATALOG
+  ======================================================= */
+
   const ecatalog =
     normalizeEcatalog(
-      settingsResult.data as
-        | EcatalogDatabase
-        | null
+      settings
     );
 
+  /* =======================================================
+     PANDUAN
+  ======================================================= */
+
+  const panduanUmkm =
+    normalizePanduanUmkm(
+      settings
+    );
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
-    <LapakDesaClient
-      produk={
-        produk
-      }
-      kategori={
-        kategori
-      }
-      ecatalog={
-        ecatalog
-      }
-    />
+    <>
+      <LapakDesaClient
+        produk={
+          produk
+        }
+        kategori={
+          kategori
+        }
+        ecatalog={
+          ecatalog
+        }
+        panduanUmkm={
+          panduanUmkm
+        }
+      />
+
+      <UmkmVideoTutorialPublic />
+    </>
   );
 }
