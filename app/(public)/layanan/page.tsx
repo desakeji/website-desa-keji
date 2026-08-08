@@ -765,18 +765,18 @@ export default async function LayananPage() {
           </div>
 
           {/* Sidebar Kanan */}
-          <aside className="min-w-0">
-            <div className="flex flex-col gap-8 lg:sticky lg:top-24">
-              <SidebarLayanan
-                daftarLayanan={
-                  pilihanLayanan
-                }
-                sticky={false}
-              />
+<aside className="min-w-0">
+  <div className="flex flex-col gap-8">
+    <SidebarLayanan
+      daftarLayanan={
+        pilihanLayanan
+      }
+      sticky={false}
+    />
 
-              <SidebarTilikArkeji />
-            </div>
-          </aside>
+    <SidebarTilikArkeji />
+  </div>
+</aside>
         </section>
 
         {/* Penutup */}

@@ -14,6 +14,7 @@ import {
   Recycle,
   Save,
   Trash2,
+  type LucideIcon,
 } from 'lucide-react';
 
 import {
@@ -242,7 +243,19 @@ export default async function AdminPengelolaanSampahPage({
   ) {
     console.error(
       'Gagal mengambil data pengelolaan sampah:',
-      result.error
+      {
+        message:
+          result.error.message,
+
+        code:
+          result.error.code,
+
+        details:
+          result.error.details,
+
+        hint:
+          result.error.hint,
+      }
     );
   }
 
@@ -337,7 +350,7 @@ export default async function AdminPengelolaanSampahPage({
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola informasi TPS
+                Kelola enam titik TPS
                 dan pengepul serta
                 tautan Google Maps
                 yang digunakan pada
@@ -461,12 +474,16 @@ export default async function AdminPengelolaanSampahPage({
                 dan Pengepul
               </h2>
 
-              <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+              <p className="mt-1 max-w-3xl text-xs font-medium leading-5 text-slate-500">
                 Peta menggunakan file
                 tetap dari folder
-                public. Admin hanya
-                perlu mengatur tautan
-                lokasi Google Maps.
+                public. Admin dapat
+                mengatur enam titik
+                lokasi, termasuk nama,
+                jenis, tautan Google
+                Maps, keterangan,
+                urutan, dan status
+                publikasi.
               </p>
             </div>
           </div>
@@ -502,38 +519,55 @@ export default async function AdminPengelolaanSampahPage({
 
           <p className="mt-1 text-xs font-medium leading-6">
             Masukkan tautan hasil
-            dari Google Maps atau
-            Google Maps Share.
-            Contoh tautan:
-            maps.app.goo.gl atau
-            google.com/maps. Kolom
-            dapat dikosongkan apabila
-            titik Maps belum
-            tersedia.
+            Google Maps atau Google
+            Maps Share untuk masing-
+            masing titik. Tautan dapat
+            berupa maps.app.goo.gl
+            maupun google.com/maps.
+            Kolom dapat dikosongkan
+            jika titik Google Maps
+            belum tersedia.
           </p>
         </div>
       </section>
 
       {/* =====================================================
-          LIST LOCATION
+          LOCATION LIST
       ===================================================== */}
 
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 p-6">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
-            Titik Peta
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                Titik Peta
+              </p>
 
-          <h2 className="mt-1 text-xl font-black text-slate-900">
-            TPS dan Pengepul
-          </h2>
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                TPS dan Pengepul
+              </h2>
 
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-            Lima data berikut
-            mewakili lima foto lokasi
-            yang berada di dalam
-            gambar peta.
-          </p>
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                Enam data berikut
+                mewakili enam foto
+                lokasi TPS dan
+                pengepul yang berada
+                di dalam gambar peta.
+              </p>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <MapPinned
+                size={17}
+                className="text-emerald-700"
+              />
+
+              <p className="text-xs font-extrabold text-emerald-800">
+                {items.length}{' '}
+                titik tersimpan
+              </p>
+            </div>
+          </div>
         </div>
 
         {items.length ===
@@ -549,8 +583,8 @@ export default async function AdminPengelolaanSampahPage({
             </h3>
 
             <p className="mt-2 text-sm font-medium text-slate-500">
-              Jalankan SQL seed
-              terlebih dahulu.
+              Jalankan SQL seed enam
+              lokasi terlebih dahulu.
             </p>
           </div>
         ) : (
@@ -620,7 +654,9 @@ function LocationForm({
       />
 
       <div className="grid gap-6 xl:grid-cols-[190px_minmax(0,1fr)]">
-        {/* STATUS */}
+        {/* ===================================================
+            STATUS / IDENTITAS
+        =================================================== */}
 
         <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div
@@ -659,7 +695,19 @@ function LocationForm({
             {item.kode}
           </p>
 
-          <div className="mt-5">
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span
+              className={`inline-flex rounded-full px-3 py-1.5 text-[9px] font-extrabold uppercase ${
+                isTps
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-emerald-100 text-emerald-700'
+              }`}
+            >
+              {
+                item.jenis
+              }
+            </span>
+
             {hasMaps ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase text-emerald-700">
                 <CheckCircle2
@@ -680,7 +728,9 @@ function LocationForm({
           </div>
         </aside>
 
-        {/* FORM */}
+        {/* ===================================================
+            FORM
+        =================================================== */}
 
         <div className="grid gap-5 md:grid-cols-2">
           {/* NAMA */}
@@ -698,6 +748,7 @@ function LocationForm({
           <label className="block">
             <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
               Jenis
+
               <span className="ml-1 text-red-500">
                 *
               </span>
@@ -721,7 +772,7 @@ function LocationForm({
             </select>
           </label>
 
-          {/* MAPS */}
+          {/* GOOGLE MAPS */}
 
           <div className="md:col-span-2">
             <label className="block">
@@ -747,9 +798,12 @@ function LocationForm({
               </div>
 
               <p className="mt-2 text-[10px] font-medium text-slate-400">
-                Boleh dikosongkan
-                sementara jika link
-                lokasi belum tersedia.
+                Tautan ini digunakan
+                ketika pengguna
+                mengklik foto lokasi
+                pada peta publik dan
+                tombol Google Maps
+                pada kartu lokasi.
               </p>
             </label>
           </div>
@@ -805,8 +859,10 @@ function LocationForm({
               </span>
 
               <span className="mt-1 block text-xs font-medium text-emerald-800/70">
-                Tampilkan titik
-                pada halaman publik.
+                Tampilkan titik pada
+                halaman publik dan
+                aktifkan area klik
+                pada peta.
               </span>
             </span>
           </label>
@@ -917,7 +973,7 @@ function TextInput({
 }
 
 /* =========================================================
-   STAT
+   STAT CARD
 ========================================================= */
 
 function StatCard({
@@ -932,7 +988,7 @@ function StatCard({
     number;
 
   icon:
-    typeof MapPin;
+    LucideIcon;
 }) {
   return (
     <article className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
@@ -943,7 +999,9 @@ function StatCard({
           </p>
 
           <p className="mt-2 text-3xl font-black text-emerald-950">
-            {value}
+            {value.toLocaleString(
+              'id-ID'
+            )}
           </p>
         </div>
 

@@ -2,6 +2,7 @@
 
 import type {
   CSSProperties,
+  ReactNode,
 } from 'react';
 
 import type {
@@ -14,7 +15,6 @@ import {
   ArrowRight,
   CheckCircle2,
   ExternalLink,
-  Info,
   Leaf,
   MapPinned,
   MapPin,
@@ -63,7 +63,8 @@ const MAP_IMAGE =
 ========================================================= */
 
 type LokasiKode =
-  | 'pengepul-keji'
+  | 'pengepul-keji-1'
+  | 'pengepul-keji-2'
   | 'pengepul-suruhan-1'
   | 'pengepul-suruhan-2'
   | 'tps-keji'
@@ -122,12 +123,13 @@ interface MapArea {
 }
 
 /* =========================================================
-   KODE YANG VALID
+   KODE VALID
 ========================================================= */
 
 const LOKASI_CODES:
   LokasiKode[] = [
-    'pengepul-keji',
+    'pengepul-keji-1',
+    'pengepul-keji-2',
     'pengepul-suruhan-1',
     'pengepul-suruhan-2',
     'tps-keji',
@@ -135,10 +137,9 @@ const LOKASI_CODES:
   ];
 
 /* =========================================================
-   FALLBACK
+   FALLBACK LOCATIONS
 
-   Dipakai jika data DB belum tersedia.
-   Link Google Maps tetap null.
+   Dipakai bila data database belum tersedia.
 ========================================================= */
 
 const FALLBACK_LOCATIONS:
@@ -148,10 +149,10 @@ const FALLBACK_LOCATIONS:
         null,
 
       kode:
-        'pengepul-keji',
+        'pengepul-keji-1',
 
       nama:
-        'Pengepul Keji',
+        'Pengepul Keji 1',
 
       jenis:
         'Pengepul',
@@ -160,13 +161,39 @@ const FALLBACK_LOCATIONS:
         null,
 
       keterangan:
-        'Lokasi pengepul yang berada di wilayah Keji.',
+        'Lokasi pengepul pertama yang berada di wilayah Keji.',
 
       aktif:
         true,
 
       urutan:
         1,
+    },
+
+    {
+      id:
+        null,
+
+      kode:
+        'pengepul-keji-2',
+
+      nama:
+        'Pengepul Keji 2',
+
+      jenis:
+        'Pengepul',
+
+      mapsUrl:
+        null,
+
+      keterangan:
+        'Lokasi pengepul kedua yang berada di wilayah Keji.',
+
+      aktif:
+        true,
+
+      urutan:
+        2,
     },
 
     {
@@ -192,7 +219,7 @@ const FALLBACK_LOCATIONS:
         true,
 
       urutan:
-        2,
+        3,
     },
 
     {
@@ -218,7 +245,7 @@ const FALLBACK_LOCATIONS:
         true,
 
       urutan:
-        3,
+        4,
     },
 
     {
@@ -244,7 +271,7 @@ const FALLBACK_LOCATIONS:
         true,
 
       urutan:
-        4,
+        5,
     },
 
     {
@@ -270,59 +297,74 @@ const FALLBACK_LOCATIONS:
         true,
 
       urutan:
-        5,
+        6,
     },
   ];
 
 /* =========================================================
    AREA FOTO PADA PETA
 
-   Persentase dihitung berdasarkan posisi 5 foto
-   pada file peta final.
+   Posisi sudah disesuaikan dengan peta terbaru
+   yang memiliki 6 foto lokasi.
 
-   Karena memakai persen, posisi akan mengikuti ukuran
-   gambar secara responsif.
+   Seluruh nilai menggunakan persentase agar area klik
+   mengikuti ukuran gambar secara responsif.
 ========================================================= */
 
 const MAP_AREAS:
   MapArea[] = [
+    /* =====================================================
+       PENGEPUL SURUHAN 1
+       Foto kiri atas
+    ===================================================== */
+
     {
       kode:
         'pengepul-suruhan-1',
 
       style: {
         left:
-          '4.5%',
+          '4.6%',
 
         top:
-          '22.2%',
+          '19%',
+
+        width:
+          '16%',
+
+        height:
+          '18.8%',
+      },
+    },
+
+    /* =====================================================
+       PENGEPUL KEJI 2
+       Foto atas tengah
+    ===================================================== */
+
+    {
+      kode:
+        'pengepul-keji-2',
+
+      style: {
+        left:
+          '23.1%',
+
+        top:
+          '9.2%',
 
         width:
           '16.3%',
 
         height:
-          '17.3%',
+          '18.9%',
       },
     },
 
-    {
-      kode:
-        'pengepul-keji',
-
-      style: {
-        left:
-          '22.4%',
-
-        top:
-          '11.3%',
-
-        width:
-          '15.4%',
-
-        height:
-          '15.7%',
-      },
-    },
+    /* =====================================================
+       TPS KEJI
+       Foto atas kanan
+    ===================================================== */
 
     {
       kode:
@@ -330,18 +372,47 @@ const MAP_AREAS:
 
       style: {
         left:
-          '49.4%',
+          '47.6%',
 
         top:
-          '8.9%',
+          '9.2%',
 
         width:
-          '12.9%',
+          '14.3%',
 
         height:
-          '14.8%',
+          '17.2%',
       },
     },
+
+    /* =====================================================
+       PENGEPUL KEJI 1
+       Foto kanan tengah
+    ===================================================== */
+
+    {
+      kode:
+        'pengepul-keji-1',
+
+      style: {
+        left:
+          '52.6%',
+
+        top:
+          '33.7%',
+
+        width:
+          '16.3%',
+
+        height:
+          '19.1%',
+      },
+    },
+
+    /* =====================================================
+       TPS SURUHAN
+       Foto tengah bawah
+    ===================================================== */
 
     {
       kode:
@@ -349,18 +420,23 @@ const MAP_AREAS:
 
       style: {
         left:
-          '48%',
+          '43.9%',
 
         top:
-          '45.2%',
+          '54.7%',
 
         width:
-          '12.4%',
+          '15.3%',
 
         height:
-          '15.8%',
+          '18.2%',
       },
     },
+
+    /* =====================================================
+       PENGEPUL SURUHAN 2
+       Foto bawah
+    ===================================================== */
 
     {
       kode:
@@ -368,16 +444,16 @@ const MAP_AREAS:
 
       style: {
         left:
-          '36.9%',
+          '34.3%',
 
         top:
-          '72.6%',
+          '75.2%',
 
         width:
-          '15.6%',
+          '16%',
 
         height:
-          '17.9%',
+          '18.9%',
       },
     },
   ];
@@ -580,7 +656,9 @@ function mergeWithFallback(
   const databaseMap =
     new Map(
       databaseItems.map(
-        (item) => [
+        (
+          item
+        ) => [
           item.kode,
           item,
         ]
@@ -588,7 +666,9 @@ function mergeWithFallback(
     );
 
   return FALLBACK_LOCATIONS.map(
-    (fallback) =>
+    (
+      fallback
+    ) =>
       databaseMap.get(
         fallback.kode
       ) ??
@@ -676,14 +756,18 @@ export default async function PengelolaanSampahPage() {
 
   const lokasiAktif =
     seluruhLokasi.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.aktif
     );
 
   const lokasiByKode =
     new Map(
       seluruhLokasi.map(
-        (item) => [
+        (
+          item
+        ) => [
           item.kode,
           item,
         ]
@@ -692,14 +776,18 @@ export default async function PengelolaanSampahPage() {
 
   const jumlahTps =
     lokasiAktif.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.jenis ===
         'TPS'
     ).length;
 
   const jumlahPengepul =
     lokasiAktif.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.jenis ===
         'Pengepul'
     ).length;
@@ -735,6 +823,10 @@ export default async function PengelolaanSampahPage() {
               '28px 28px',
           }}
         />
+
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full border-[52px] border-white/[0.04]" />
+
+        <div className="pointer-events-none absolute -bottom-32 left-1/4 h-80 w-80 rounded-full bg-emerald-300/[0.08] blur-[100px]" />
 
         <div className="relative mx-auto flex min-h-[520px] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
@@ -809,10 +901,14 @@ export default async function PengelolaanSampahPage() {
       </section>
 
       {/* =====================================================
-          INTRO
+          MAIN
       ===================================================== */}
 
       <main className="mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 lg:px-8">
+        {/* ===================================================
+            INTRO
+        =================================================== */}
+
         <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <article className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700 text-white">
@@ -842,16 +938,17 @@ export default async function PengelolaanSampahPage() {
             </p>
 
             <p className="mt-4 text-sm font-medium leading-8 text-slate-600">
-              Peta berikut memuat
-              titik TPS dan pengepul
-              yang tersebar di
-              wilayah Keji dan
-              Suruhan. Dokumentasi
-              foto pada peta dapat
-              digunakan sebagai
-              pintasan menuju Google
-              Maps apabila tautan
-              lokasi telah tersedia.
+              Peta berikut memuat dua
+              titik TPS dan empat
+              titik pengepul yang
+              tersebar di wilayah
+              Keji dan Suruhan.
+              Dokumentasi foto pada
+              peta dapat digunakan
+              sebagai pintasan menuju
+              Google Maps apabila
+              tautan lokasi telah
+              tersedia.
             </p>
           </article>
 
@@ -878,7 +975,8 @@ export default async function PengelolaanSampahPage() {
 
               <InfoItem>
                 Arahkan kursor atau
-                sentuh foto lokasi.
+                sentuh salah satu dari
+                enam foto lokasi.
               </InfoItem>
 
               <InfoItem>
@@ -916,16 +1014,19 @@ export default async function PengelolaanSampahPage() {
                 </h2>
 
                 <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-                  Klik pada foto
-                  lokasi di dalam
-                  peta untuk membuka
-                  titik Google Maps.
+                  Terdapat enam foto
+                  lokasi pada peta.
+                  Klik foto untuk
+                  membuka titik Google
+                  Maps yang sudah
+                  ditentukan melalui
+                  administrator.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* MOBILE INFORMATION */}
+          {/* MOBILE INFO */}
 
           <div className="border-b border-amber-100 bg-amber-50 px-6 py-3 text-xs font-semibold text-amber-800 md:hidden">
             Pada layar kecil, geser
@@ -949,7 +1050,7 @@ export default async function PengelolaanSampahPage() {
                 }
               />
 
-              {/* CLICKABLE PHOTO AREAS */}
+              {/* CLICKABLE AREAS */}
 
               {MAP_AREAS.map(
                 (
@@ -990,12 +1091,12 @@ export default async function PengelolaanSampahPage() {
           <div className="border-t border-slate-100 p-5 md:p-6">
             <div className="flex flex-wrap gap-3">
               <LegendBadge
-                label="TPS"
+                label="2 TPS"
                 dotClass="bg-red-500"
               />
 
               <LegendBadge
-                label="Pengepul"
+                label="4 Pengepul"
                 dotClass="bg-emerald-600"
               />
 
@@ -1027,10 +1128,12 @@ export default async function PengelolaanSampahPage() {
             </h2>
 
             <p className="mt-3 text-sm font-medium leading-7 text-slate-500">
-              Tautan Google Maps akan
-              tersedia setelah lokasi
-              diperbarui melalui
-              administrator website.
+              Informasi berikut
+              menampilkan seluruh
+              titik aktif yang
+              dikelola melalui
+              administrator website
+              Desa Keji.
             </p>
           </div>
 
@@ -1209,7 +1312,7 @@ export default async function PengelolaanSampahPage() {
 }
 
 /* =========================================================
-   CLICKABLE AREA
+   CLICKABLE MAP AREA
 ========================================================= */
 
 function MapPhotoArea({
@@ -1242,17 +1345,15 @@ function MapPhotoArea({
           style
         }
       >
-        {/* MAP BUTTON */}
-
         <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-700 text-white shadow-lg ring-2 ring-white">
           <MapPin
             size={15}
           />
         </span>
 
-        {/* TOOLTIP */}
-
         <span className="pointer-events-none absolute bottom-2 left-2 max-w-[calc(100%-50px)] rounded-lg bg-emerald-950/95 px-2.5 py-1.5 text-[9px] font-extrabold leading-tight text-white opacity-0 shadow-lg transition group-hover:opacity-100">
+          {lokasi.nama}
+          {' · '}
           Buka Google Maps
         </span>
       </a>
@@ -1373,7 +1474,8 @@ function SummaryCard({
   icon: Icon,
   value,
   label,
-  primary = false,
+  primary =
+    false,
 }: {
   icon:
     LucideIcon;
@@ -1432,7 +1534,7 @@ function InfoItem({
   children,
 }: {
   children:
-    React.ReactNode;
+    ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3 rounded-xl bg-white/70 p-4">

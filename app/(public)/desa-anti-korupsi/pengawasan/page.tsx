@@ -1,4 +1,8 @@
-import type { Metadata } from 'next';
+// app/(public)/desa-anti-korupsi/pengawasan/page.tsx
+
+import type {
+  Metadata,
+} from 'next';
 
 import Link from 'next/link';
 
@@ -8,20 +12,14 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import PengawasanClient, {
-  type IndikatorPengawasanPublik,
-} from '@/components/anti-korupsi/PengawasanClient';
+import PengawasanClient from '@/components/anti-korupsi/PengawasanClient';
 
-import { supabaseAdmin } from '@/lib/supabase-admin';
+/* =========================================================
+   METADATA
+========================================================= */
 
-import {
-  ANTI_KORUPSI_ICON_OPTIONS,
-  JENIS_DOKUMEN_ANTI_KORUPSI,
-  type AntiKorupsiIconKey,
-  type JenisDokumenAntiKorupsi,
-} from '@/types/anti-korupsi';
-
-export const metadata: Metadata = {
+export const metadata:
+  Metadata = {
   title:
     'Pengawasan Desa Anti Korupsi | SIJI',
 
@@ -29,256 +27,20 @@ export const metadata: Metadata = {
     'Dokumen dan bukti dukung penguatan pengawasan Desa Anti Korupsi Desa Keji.',
 };
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+/* =========================================================
+   PAGE
+========================================================= */
 
-const SUB_SLUG = 'pengawasan';
-
-function safeString(
-  value: unknown
-) {
-  return String(
-    value ?? ''
-  ).trim();
-}
-
-function isIconKey(
-  value: string
-): value is AntiKorupsiIconKey {
-  return (
-    ANTI_KORUPSI_ICON_OPTIONS as readonly string[]
-  ).includes(value);
-}
-
-function isJenisDokumen(
-  value: string
-): value is JenisDokumenAntiKorupsi {
-  return (
-    JENIS_DOKUMEN_ANTI_KORUPSI as readonly string[]
-  ).includes(value);
-}
-
-export default async function PengawasanPage() {
-  const indikatorResult =
-    await supabaseAdmin
-      .from(
-        'anti_korupsi_indikator'
-      )
-      .select(`
-        id,
-        kode,
-        judul,
-        ringkasan,
-        icon_key,
-        urutan
-      `)
-      .eq(
-        'sub_slug',
-        SUB_SLUG
-      )
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('created_at', {
-        ascending: true,
-      });
-
-  if (indikatorResult.error) {
-    console.error(
-      'Gagal mengambil indikator Pengawasan:',
-      indikatorResult.error
-    );
-  }
-
-  const indikatorDasar =
-    (
-      indikatorResult.data ?? []
-    )
-      .map((row) => {
-        const id =
-          safeString(row.id);
-
-        const kode =
-          safeString(row.kode);
-
-        const judul =
-          safeString(row.judul);
-
-        const iconKey =
-          safeString(
-            row.icon_key
-          );
-
-        if (
-          !id ||
-          !kode ||
-          !judul ||
-          !isIconKey(iconKey)
-        ) {
-          return null;
-        }
-
-        return {
-          id,
-          kode,
-          judul,
-
-          ringkasan:
-            safeString(
-              row.ringkasan
-            ),
-
-          iconKey,
-        };
-      })
-      .filter(
-        (
-          item
-        ): item is Omit<
-          IndikatorPengawasanPublik,
-          'dokumen'
-        > =>
-          item !== null
-      );
-
-  const indikatorIds =
-    indikatorDasar.map(
-      (item) => item.id
-    );
-
-  const dokumenMap =
-    new Map<
-      string,
-      IndikatorPengawasanPublik['dokumen']
-    >();
-
-  if (indikatorIds.length > 0) {
-    const dokumenResult =
-      await supabaseAdmin
-        .from(
-          'anti_korupsi_dokumen'
-        )
-        .select(`
-          id,
-          indikator_id,
-          judul,
-          deskripsi,
-          jenis,
-          tahun,
-          drive_url,
-          urutan
-        `)
-        .in(
-          'indikator_id',
-          indikatorIds
-        )
-        .eq('aktif', true)
-        .order('urutan', {
-          ascending: true,
-        })
-        .order('created_at', {
-          ascending: true,
-        });
-
-    if (dokumenResult.error) {
-      console.error(
-        'Gagal mengambil dokumen Pengawasan:',
-        dokumenResult.error
-      );
-    }
-
-    for (
-      const row of
-        dokumenResult.data ?? []
-    ) {
-      const id =
-        safeString(row.id);
-
-      const indikatorId =
-        safeString(
-          row.indikator_id
-        );
-
-      const judul =
-        safeString(row.judul);
-
-      const jenis =
-        safeString(row.jenis);
-
-      const driveUrl =
-        safeString(
-          row.drive_url
-        );
-
-      if (
-        !id ||
-        !indikatorId ||
-        !judul ||
-        !driveUrl ||
-        !isJenisDokumen(jenis)
-      ) {
-        continue;
-      }
-
-      const rawTahun =
-        row.tahun;
-
-      const tahun =
-        rawTahun === null ||
-        rawTahun === undefined
-          ? null
-          : Number(rawTahun);
-
-      const daftar =
-        dokumenMap.get(
-          indikatorId
-        ) ?? [];
-
-      daftar.push({
-        id,
-        judul,
-
-        deskripsi:
-          safeString(
-            row.deskripsi
-          ),
-
-        jenis,
-
-        tahun:
-          tahun !== null &&
-          Number.isInteger(tahun)
-            ? tahun
-            : null,
-
-        driveUrl,
-      });
-
-      dokumenMap.set(
-        indikatorId,
-        daftar
-      );
-    }
-  }
-
-  const indikatorPengawasan:
-    IndikatorPengawasanPublik[] =
-    indikatorDasar.map(
-      (indikator) => ({
-        ...indikator,
-
-        dokumen:
-          dokumenMap.get(
-            indikator.id
-          ) ?? [],
-      })
-    );
-
+export default function PengawasanPage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-slate-50">
-      {/* Hero */}
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+
       <section className="relative isolate overflow-hidden bg-emerald-950 text-white">
+        {/* BACKGROUND */}
+
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -288,9 +50,13 @@ export default async function PengawasanPage() {
           }}
         />
 
+        {/* OVERLAY */}
+
         <div className="absolute inset-0 bg-gradient-to-r from-[#021b16] via-emerald-950/90 to-emerald-900/45" />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#021b16] via-transparent to-black/20" />
+
+        {/* PATTERN */}
 
         <div
           aria-hidden="true"
@@ -304,24 +70,37 @@ export default async function PengawasanPage() {
           }}
         />
 
+        {/* DECORATION */}
+
         <div className="pointer-events-none absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full border-[72px] border-white/[0.035]" />
 
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-[390px] w-[390px] rounded-full bg-emerald-300/10 blur-[110px]" />
 
+        {/* CONTENT */}
+
         <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          {/* BACK */}
+
           <Link
             href="/desa-anti-korupsi"
             className="inline-flex items-center gap-2 text-xs font-bold text-emerald-100/80 transition hover:text-white"
           >
-            <ArrowLeft size={15} />
+            <ArrowLeft
+              size={15}
+            />
 
-            Kembali ke Desa Anti Korupsi
+            Kembali ke Desa Anti
+            Korupsi
           </Link>
 
-          <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-4xl">
+          <div className="mt-7 flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            {/* LEFT */}
+
+            <div className="min-w-0 max-w-4xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.17em] text-emerald-100 backdrop-blur sm:text-xs">
-                <ShieldCheck size={15} />
+                <ShieldCheck
+                  size={15}
+                />
 
                 Desa Anti Korupsi
               </div>
@@ -330,44 +109,47 @@ export default async function PengawasanPage() {
                 Indikator II
               </p>
 
-              <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="mt-3 break-words text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                 Penguatan Pengawasan
               </h1>
 
               <p className="mt-5 max-w-3xl text-sm font-medium leading-7 text-emerald-50/85 sm:text-base">
                 Kumpulan dokumen dan
                 bukti pendukung
-                pelaksanaan pengawasan,
-                evaluasi kinerja, tindak
-                lanjut pemeriksaan,
-                serta pencegahan tindak
+                pelaksanaan evaluasi
+                kinerja perangkat
+                desa, tindak lanjut
+                hasil pengawasan dan
+                audit, serta
+                pencegahan tindak
                 pidana korupsi di
                 lingkungan Pemerintah
                 Desa Keji.
               </p>
             </div>
 
+            {/* INFO */}
+
             <div className="shrink-0">
               <div className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-emerald-50 backdrop-blur">
-                <FileSearch size={16} />
+                <FileSearch
+                  size={16}
+                />
 
-                {
-                  indikatorPengawasan.length
-                }{' '}
-                indikator pengawasan
+                3 indikator
+                pengawasan
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Konten */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
+
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <PengawasanClient
-          indikatorPengawasan={
-            indikatorPengawasan
-          }
-        />
+        <PengawasanClient />
       </main>
     </div>
   );

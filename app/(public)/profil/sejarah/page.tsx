@@ -6,69 +6,121 @@ import {
   ArrowRight,
   BookOpen,
   Calendar,
-  Camera,
   Download,
+  Droplets,
   ExternalLink,
   Eye,
   FileText,
-  Home as HomeIcon,
+  Landmark,
   Map,
-  Palette,
+  Music2,
   ShoppingBag,
+  Sparkles,
   User,
   Utensils,
+  type LucideIcon,
 } from 'lucide-react';
 
 import SidebarLayanan from '@/components/SidebarLayanan';
 import SidebarTilikArkeji from '@/components/SidebarTilikArkeji';
 
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import {
+  supabaseAdmin,
+} from '@/lib/supabase-admin';
 
 import type {
   PilihanLayanan,
 } from '@/types/layanan';
 
+/* =========================================================
+   CONFIG
+========================================================= */
+
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
 const JENIS_EBOOK =
   'ebook-sejarah';
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface LayananDatabase {
-  id: number | string | null;
-  nama: string | null;
-  slug: string | null;
+  id:
+    | number
+    | string
+    | null;
+
+  nama:
+    | string
+    | null;
+
+  slug:
+    | string
+    | null;
 }
 
 interface EbookSejarahPublik {
-  id: string;
-  judul: string;
-  deskripsi: string;
-  penyusun: string;
-  tahun: number | null;
-  jumlah_halaman: number | null;
-  file_url: string;
-  cover_url: string | null;
-  urutan: number;
+  id:
+    string;
+
+  judul:
+    string;
+
+  deskripsi:
+    string;
+
+  penyusun:
+    string;
+
+  tahun:
+    | number
+    | null;
+
+  jumlah_halaman:
+    | number
+    | null;
+
+  file_url:
+    string;
+
+  cover_url:
+    | string
+    | null;
+
+  urutan:
+    number;
 }
 
+/* =========================================================
+   HELPERS
+========================================================= */
+
 function safeString(
-  value: unknown
+  value:
+    unknown
 ) {
   return String(
-    value ?? ''
+    value ??
+      ''
   ).trim();
 }
 
 function normalizeEbook(
-  value: unknown
+  value:
+    unknown
 ): EbookSejarahPublik | null {
   if (
     !value ||
-    typeof value !== 'object' ||
-    Array.isArray(value)
+    typeof value !==
+      'object' ||
+    Array.isArray(
+      value
+    )
   ) {
     return null;
   }
@@ -80,10 +132,14 @@ function normalizeEbook(
     >;
 
   const id =
-    safeString(row.id);
+    safeString(
+      row.id
+    );
 
   const judul =
-    safeString(row.judul);
+    safeString(
+      row.judul
+    );
 
   const deskripsi =
     safeString(
@@ -102,7 +158,8 @@ function normalizeEbook(
 
   const urutan =
     Number(
-      row.urutan ?? 0
+      row.urutan ??
+        0
     );
 
   if (
@@ -119,14 +176,20 @@ function normalizeEbook(
   }
 
   const tahun =
-    row.tahun === null ||
-    row.tahun === undefined
+    row.tahun ===
+      null ||
+    row.tahun ===
+      undefined
       ? null
-      : Number(row.tahun);
+      : Number(
+          row.tahun
+        );
 
   const jumlahHalaman =
-    row.jumlah_halaman === null ||
-    row.jumlah_halaman === undefined
+    row.jumlah_halaman ===
+      null ||
+    row.jumlah_halaman ===
+      undefined
       ? null
       : Number(
           row.jumlah_halaman
@@ -139,59 +202,99 @@ function normalizeEbook(
 
   return {
     id,
+
     judul,
+
     deskripsi,
+
     penyusun,
 
     tahun:
-      tahun !== null &&
-      Number.isInteger(tahun)
+      tahun !==
+        null &&
+      Number.isInteger(
+        tahun
+      )
         ? tahun
         : null,
 
     jumlah_halaman:
-      jumlahHalaman !== null &&
+      jumlahHalaman !==
+        null &&
       Number.isInteger(
         jumlahHalaman
       )
         ? jumlahHalaman
         : null,
 
-    file_url: fileUrl,
+    file_url:
+      fileUrl,
 
     cover_url:
-      coverUrl || null,
+      coverUrl ||
+      null,
 
     urutan,
   };
 }
 
+/* =========================================================
+   DATA
+========================================================= */
+
 async function getDaftarLayanan():
-  Promise<PilihanLayanan[]> {
-  const { data, error } =
+  Promise<
+    PilihanLayanan[]
+  > {
+  const {
+    data,
+    error,
+  } =
     await supabaseAdmin
-      .from('layanan')
+      .from(
+        'layanan'
+      )
       .select(`
         id,
         nama,
         slug
       `)
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('nama', {
-        ascending: true,
-      });
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'urutan',
+        {
+          ascending:
+            true,
+        }
+      )
+      .order(
+        'nama',
+        {
+          ascending:
+            true,
+        }
+      );
 
-  if (error) {
+  if (
+    error
+  ) {
     console.error(
       'Gagal mengambil layanan pada halaman sejarah:',
       {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
       }
     );
 
@@ -199,35 +302,58 @@ async function getDaftarLayanan():
   }
 
   const rows =
-    (data ??
-      []) as LayananDatabase[];
+    (
+      data ??
+      []
+    ) as LayananDatabase[];
 
   return rows
-    .map((layanan) => ({
-      id: Number(layanan.id),
+    .map(
+      (
+        layanan
+      ) => ({
+        id:
+          Number(
+            layanan.id
+          ),
 
-      nama: safeString(
-        layanan.nama
-      ),
+        nama:
+          safeString(
+            layanan.nama
+          ),
 
-      slug: safeString(
-        layanan.slug
-      ),
-    }))
+        slug:
+          safeString(
+            layanan.slug
+          ),
+      })
+    )
     .filter(
-      (layanan) =>
+      (
+        layanan
+      ) =>
         Number.isInteger(
           layanan.id
         ) &&
-        layanan.id > 0 &&
-        layanan.nama.length > 0 &&
-        layanan.slug.length > 0
+        layanan.id >
+          0 &&
+        layanan.nama
+          .length >
+          0 &&
+        layanan.slug
+          .length >
+          0
     );
 }
 
 async function getEbookSejarah():
-  Promise<EbookSejarahPublik[]> {
-  const { data, error } =
+  Promise<
+    EbookSejarahPublik[]
+  > {
+  const {
+    data,
+    error,
+  } =
     await supabaseAdmin
       .from(
         'desa_wisata_dokumen'
@@ -247,52 +373,89 @@ async function getEbookSejarah():
         'jenis',
         JENIS_EBOOK
       )
-      .eq('aktif', true)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('tahun', {
-        ascending: false,
-        nullsFirst: false,
-      });
+      .eq(
+        'aktif',
+        true
+      )
+      .order(
+        'urutan',
+        {
+          ascending:
+            true,
+        }
+      )
+      .order(
+        'tahun',
+        {
+          ascending:
+            false,
 
-  if (error) {
+          nullsFirst:
+            false,
+        }
+      );
+
+  if (
+    error
+  ) {
     console.error(
       'Gagal mengambil ebook sejarah:',
       {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
       }
     );
 
     return [];
   }
 
-  return (data ?? [])
-    .map(normalizeEbook)
+  return (
+    data ??
+    []
+  )
+    .map(
+      normalizeEbook
+    )
     .filter(
       (
         item
       ): item is EbookSejarahPublik =>
-        item !== null
+        item !==
+        null
     );
 }
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function SejarahDesaPage() {
   const [
     daftarLayanan,
     daftarEbook,
-  ] = await Promise.all([
-    getDaftarLayanan(),
-    getEbookSejarah(),
-  ]);
+  ] =
+    await Promise.all([
+      getDaftarLayanan(),
+
+      getEbookSejarah(),
+    ]);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Teks Berjalan */}
+        {/* ===================================================
+            TEKS BERJALAN
+        =================================================== */}
+
         <div className="relative mb-6 flex items-center gap-3 overflow-hidden rounded-xl bg-emerald-800 px-4 py-2 text-sm font-medium text-white shadow-sm">
           <div className="z-10 shrink-0 rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold shadow-md">
             Sekilas Info
@@ -328,26 +491,49 @@ export default async function SejarahDesaPage() {
 
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="animate-scrolling-sejarah-info">
-              Untuk permohonan informasi
-              silakan masuk ke menu PPID
-              website ini. *** Sejarah,
-              arsip, budaya, kuliner, dan
-              potensi wisata Desa Keji,
-              Kecamatan Ungaran Barat,
+              Untuk permohonan
+              informasi silakan
+              masuk ke menu PPID
+              website ini. ***
+              Potensi alam, budaya,
+              kesenian, kuliner,
+              UMKM, dan wisata Desa
+              Keji, Kecamatan
+              Ungaran Barat,
               Kabupaten Semarang ***
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Konten Utama */}
-          <main className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 lg:w-2/3">
-            <h1 className="mb-4 text-2xl font-extrabold leading-tight text-gray-800 md:text-3xl">
-              Sejarah dan Potensi
-              Pariwisata Desa Keji
-            </h1>
+        {/* ===================================================
+            LAYOUT
+        =================================================== */}
 
-            {/* Metadata */}
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          {/* =================================================
+              KONTEN UTAMA
+          ================================================= */}
+
+          <main className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 lg:w-2/3">
+            {/* ===============================================
+                TITLE
+            =============================================== */}
+
+            <div className="mb-4">
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+                Profil Desa Keji
+              </p>
+
+              <h1 className="mt-2 text-2xl font-extrabold leading-tight text-gray-800 md:text-3xl">
+                Sejarah dan Potensi
+                Desa Keji
+              </h1>
+            </div>
+
+            {/* ===============================================
+                METADATA
+            =============================================== */}
+
             <div className="mb-6 flex flex-wrap gap-4 border-b border-gray-100 pb-4 text-xs font-semibold text-gray-500">
               <span className="flex items-center gap-1.5">
                 <Calendar
@@ -377,73 +563,67 @@ export default async function SejarahDesaPage() {
               </span>
             </div>
 
-            {/* Gambar Utama */}
+            {/* ===============================================
+                GAMBAR UTAMA
+            =============================================== */}
+
             <div className="mb-8 h-[300px] w-full overflow-hidden rounded-xl shadow-sm md:h-[400px]">
               <img
                 src="/background.png"
-                alt="Potensi Wisata Desa Keji"
+                alt="Potensi Desa Keji"
                 className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
               />
             </div>
 
-            {/* Pengantar */}
+            {/* ===============================================
+                PENGANTAR
+            =============================================== */}
+
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
-              <p className="mb-6 text-lg font-medium text-gray-800">
-                Desa Keji merupakan salah
-                satu desa yang terdapat di
-                Kecamatan Ungaran Barat,
-                Kabupaten Semarang. Berada
-                di lereng Gunung Ungaran
-                dengan panorama khas
-                pedesaan, hawa di desa ini
-                terasa begitu sejuk.
+              <p className="mb-5 text-lg font-medium text-gray-800">
+                Desa Keji merupakan
+                salah satu desa yang
+                berada di Kecamatan
+                Ungaran Barat,
+                Kabupaten Semarang.
+                Letaknya di kawasan
+                lereng Gunung Ungaran
+                memberikan Desa Keji
+                potensi alam, budaya,
+                kesenian, kuliner,
+                usaha masyarakat, dan
+                wisata yang beragam.
               </p>
 
               <p>
-                Desa ini memiliki banyak
-                potensi, salah satunya yaitu{' '}
-                <strong>
-                  Kampoeng Seni
-                </strong>{' '}
-                yang terdapat di Dusun
-                Suruhan. Desa wisata yang
-                berjarak sekitar 26 km dari
-                pusat Kota Semarang ini
-                merintis pariwisatanya
-                melalui Sanggar Tari dan
-                Studio Pelestari Seni Budaya
-                dan Permainan Tradisional{' '}
-                <strong>
-                  Yoss Tradisional Centre
-                  (YTC)
-                </strong>
-                .
-              </p>
-
-              <p>
-                Penyambutan wisatawan
-                biasanya dilakukan secara
-                meriah dengan{' '}
-                <strong>
-                  Tarian Kuda Debog
-                  (Pelepah Pisang)
-                </strong>{' '}
-                oleh anak-anak desa.
-                Kesenian tersebut menjadi
-                bagian dari identitas budaya
-                dan pengalaman wisata Desa
-                Keji.
+                Berbagai potensi
+                tersebut masih
+                dipertahankan dan
+                dikembangkan oleh
+                masyarakat. Selain
+                menjadi bagian dari
+                kehidupan sehari-hari
+                warga, potensi tersebut
+                juga menjadi identitas
+                Desa Keji dan modal
+                pengembangan Desa
+                Wisata Keji.
               </p>
             </div>
 
-            {/* Ebook Sejarah */}
+            {/* ===============================================
+                EBOOK SEJARAH
+            =============================================== */}
+
             <section
               id="ebook-sejarah"
               className="mt-10 scroll-mt-28"
             >
               <div className="mb-6 flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
-                  <BookOpen size={23} />
+                  <BookOpen
+                    size={23}
+                  />
                 </div>
 
                 <div>
@@ -452,26 +632,39 @@ export default async function SejarahDesaPage() {
                   </p>
 
                   <h2 className="mt-1 text-2xl font-black text-slate-900">
-                    Ebook Sejarah Desa Keji
+                    Ebook Sejarah Desa
+                    Keji
                   </h2>
 
                   <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
                     Baca dan unduh
-                    dokumentasi sejarah Desa
-                    Keji dalam bentuk buku
+                    dokumentasi
+                    sejarah Desa Keji
+                    dalam bentuk buku
                     digital.
                   </p>
                 </div>
               </div>
 
-              {daftarEbook.length > 0 ? (
+              {daftarEbook.length >
+              0 ? (
                 <div className="space-y-5">
                   {daftarEbook.map(
-                    (ebook, index) => (
+                    (
+                      ebook,
+                      index
+                    ) => (
                       <EbookSejarahCard
-                        key={ebook.id}
-                        ebook={ebook}
-                        nomor={index + 1}
+                        key={
+                          ebook.id
+                        }
+                        ebook={
+                          ebook
+                        }
+                        nomor={
+                          index +
+                          1
+                        }
                       />
                     )
                   )}
@@ -484,315 +677,664 @@ export default async function SejarahDesaPage() {
                   />
 
                   <h3 className="mt-4 text-lg font-black text-slate-800">
-                    Ebook sejarah sedang
-                    disiapkan
+                    Ebook sejarah
+                    sedang disiapkan
                   </h3>
 
                   <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-slate-500">
-                    Ebook akan ditampilkan
-                    setelah ditambahkan dan
-                    dipublikasikan melalui
-                    halaman administrator.
+                    Ebook akan
+                    ditampilkan setelah
+                    ditambahkan dan
+                    dipublikasikan
+                    melalui halaman
+                    administrator.
                   </p>
                 </div>
               )}
             </section>
 
-            {/* Sejarah dan Potensi */}
-            <div className="prose prose-emerald mt-10 max-w-none text-justify leading-relaxed text-gray-700">
-              {/* Potensi Kebudayaan */}
-              <div className="mb-4 mt-8 flex items-center gap-2 border-b-2 border-emerald-100 pb-2">
-                <Palette
-                  className="text-emerald-600"
-                  size={24}
+            {/* ===============================================
+                BAB 5
+            =============================================== */}
+
+            <section className="mt-12">
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-6 text-white sm:p-8">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px)',
+
+                    backgroundSize:
+                      '24px 24px',
+                  }}
                 />
 
-                <h3 className="m-0 text-xl font-bold text-gray-800">
-                  Potensi Kebudayaan
-                </h3>
+                <div className="relative">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+                    Bab 5
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-black sm:text-3xl">
+                    Potensi Desa
+                  </h2>
+
+                  <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-emerald-50/80">
+                    Potensi Desa Keji
+                    meliputi potensi
+                    alam, budaya,
+                    kesenian, kuliner,
+                    UMKM, dan wisata
+                    yang masih hidup
+                    serta dikembangkan
+                    oleh masyarakat.
+                  </p>
+                </div>
               </div>
+            </section>
+
+            {/* ===============================================
+                5.1 POTENSI ALAM
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.1"
+              title="Potensi Alam"
+              icon={Droplets}
+            />
+
+            <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
+              <h4 className="text-lg font-black text-emerald-800">
+                5.1.1 Sumber Mata Air
+                Kemloso
+              </h4>
 
               <p>
-                Sumber air{' '}
+                Sumber Mata Air
+                Kemloso merupakan
+                sumber mata air yang
+                terletak di{' '}
                 <strong>
-                  Watu Kemloso
-                </strong>{' '}
-                yang tidak jauh dari lokasi
-                Kampoeng Seni juga menjadi
-                bagian dari potensi
-                pariwisata. Setiap tahunnya
-                terdapat ritual adat{' '}
+                  Dusun Suruhan
+                </strong>
+                . Sumber mata air ini
+                digunakan oleh
+                penduduk Desa Keji
+                sebagai jaringan air
+                bersih untuk memenuhi
+                kebutuhan air
+                sehari-hari.
+              </p>
+
+              <p>
+                Air dari Sumber Mata
+                Air Kemloso
+                didistribusikan
+                menggunakan pipa.
+                Sebelum dialirkan ke
+                masyarakat, air
+                ditampung terlebih
+                dahulu pada tampungan
+                air besar maupun
+                tampungan air kecil
+                yang dimiliki oleh
+                masing-masing RT.
+              </p>
+
+              <p>
+                Setiap tahun
+                masyarakat
+                melaksanakan ritual{' '}
                 <strong>
                   Iriban Banyu Kemloso
+                </strong>
+                . Perayaan ini
+                dilaksanakan pada
+                bulan Agustus,
+                tepatnya pada{' '}
+                <strong>
+                  Sabtu Pahing
+                </strong>
+                , dan biasanya
+                diselenggarakan dengan
+                kirab sesaji menuju
+                sumber mata air.
+              </p>
+
+              <p>
+                Sebelum ritual
+                dimulai, lokasi di
+                sekitar sumber mata
+                air dibersihkan.
+                Terdapat pula prosesi
+                pemotongan ayam dan
+                penetesan darah
+                pertama pada sumber
+                air yang keluar dari
+                semak-semak di lereng
+                bukit.
+              </p>
+
+              <p>
+                Menurut salah satu
+                sesepuh Desa Keji,
+                ritual tersebut
+                merupakan bentuk rasa
+                syukur masyarakat
+                sekaligus upaya
+                pelestarian sumber
+                air.
+              </p>
+            </div>
+
+            {/* ===============================================
+                5.2 POTENSI BUDAYA
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.2"
+              title="Potensi Budaya"
+              icon={Landmark}
+            />
+
+            <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
+              <p>
+                Desa Keji memiliki
+                beberapa kebudayaan
+                yang masih ada dan
+                dilestarikan oleh
+                masyarakat hingga
+                sekarang.
+              </p>
+            </div>
+
+            <PotensiList
+              items={[
+                'Iriban Banyu Kemloso',
+                'Maulid Nabi',
+              ]}
+            />
+
+            {/* ===============================================
+                5.3 POTENSI KESENIAN
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.3"
+              title="Potensi Kesenian"
+              icon={Music2}
+            />
+
+            <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
+              <p>
+                Kesenian yang terdapat
+                di Desa Keji masih
+                terus dilestarikan
+                hingga saat ini.
+                Beberapa kesenian yang
+                masih ada dan
+                dikembangkan oleh
+                masyarakat antara
+                lain:
+              </p>
+            </div>
+
+            <PotensiList
+              items={[
+                'Gamelan',
+                'Kuda Debog',
+                'Kuda Lumping',
+              ]}
+            />
+
+            {/* ===============================================
+                LINK DESTINASI & POTENSI
+            =============================================== */}
+
+            <SectionLinkCard
+              href="/desa-wisata/destinasi"
+              icon={Sparkles}
+              label="Dokumentasi Budaya"
+              title="Lihat Destinasi dan Potensi Desa Keji"
+              description="Temukan dokumentasi Iriban Banyu Kemloso, kesenian, tradisi, potensi alam, serta berbagai destinasi Desa Wisata Keji."
+              buttonText="Lihat Destinasi & Potensi"
+              color="emerald"
+            />
+
+            {/* ===============================================
+                5.4 POTENSI KULINER
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.4"
+              title="Potensi Kuliner"
+              icon={Utensils}
+            />
+
+            <div className="space-y-5">
+              {/* TETEK MELEK */}
+
+              <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 sm:p-6">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                  5.4.1
+                </p>
+
+                <h4 className="mt-2 text-xl font-black text-emerald-950">
+                  Tetek Melek
+                </h4>
+
+                <div className="mt-4 space-y-4 text-justify text-sm font-medium leading-7 text-slate-600">
+                  <p>
+                    Tetek Melek
+                    merupakan makanan
+                    khas Desa Keji yang
+                    berbahan dasar
+                    singkong. Makanan
+                    ini memiliki
+                    kemiripan dengan
+                    kue tradisional
+                    jongkong, tetapi
+                    memiliki perbedaan
+                    pada cara
+                    pengemasannya.
+                  </p>
+
+                  <p>
+                    Proses
+                    pembuatannya
+                    dimulai dengan
+                    singkong yang telah
+                    dikupas dan
+                    dibersihkan,
+                    kemudian diparut.
+                    Setelah itu,
+                    singkong diperas
+                    untuk mengurangi
+                    kadar air.
+                  </p>
+
+                  <p>
+                    Parutan singkong
+                    kemudian diberi
+                    garam dan gula
+                    jawa, lalu
+                    dikukus. Setelah
+                    matang dan dingin,
+                    makanan dipotong
+                    dan disajikan
+                    bersama parutan
+                    kelapa dan
+                    serundeng.
+                  </p>
+                </div>
+              </article>
+
+              {/* PECEL GABLOK */}
+
+              <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 sm:p-6">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                  5.4.2
+                </p>
+
+                <h4 className="mt-2 text-xl font-black text-emerald-950">
+                  Pecel Gablok
+                </h4>
+
+                <div className="mt-4 space-y-4 text-justify text-sm font-medium leading-7 text-slate-600">
+                  <p>
+                    Gablok merupakan
+                    makanan berbahan
+                    dasar beras yang
+                    memiliki kemiripan
+                    dengan lontong,
+                    tetapi berbeda
+                    pada cara
+                    pembungkusannya.
+                  </p>
+
+                  <p>
+                    Beras dimasukkan
+                    ke dalam plastik
+                    kemudian direbus
+                    hingga matang.
+                    Proses memasak
+                    membutuhkan waktu
+                    kurang lebih satu
+                    jam sampai gablok
+                    siap disantap.
+                  </p>
+
+                  <p>
+                    Gablok biasanya
+                    disajikan bersama
+                    pecel yang terdiri
+                    dari rebusan
+                    sayuran, sambal
+                    kacang, serta
+                    gorengan.
+                  </p>
+                </div>
+              </article>
+            </div>
+
+            {/* ===============================================
+                5.5 POTENSI UMKM
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.5"
+              title="Potensi UMKM"
+              icon={ShoppingBag}
+            />
+
+            <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
+              <p>
+                Terdapat banyak pelaku
+                UMKM di Desa Keji.
+                Salah satu usaha yang
+                berkembang adalah
+                produksi berbagai
+                jenis keripik yang
+                dibuat secara langsung
+                oleh masyarakat desa
+                dan dapat bertahan
+                selama beberapa hari.
+              </p>
+
+              <p>
+                Selain produk keripik,
+                terdapat pula
+                pengolahan susu sapi
+                perah. Sapi
+                dikembangbiakkan dan
+                dipelihara dengan
+                baik, kemudian susu
+                diolah melalui proses
+                yang steril sebelum
+                diedarkan secara luas,
+                termasuk hingga
+                Tembalang dan
+                Salatiga.
+              </p>
+            </div>
+
+            <SectionLinkCard
+              href="/umkm"
+              icon={ShoppingBag}
+              label="Produk Lokal Desa"
+              title="Temukan Produk UMKM Desa Keji"
+              description="Lihat berbagai produk makanan, minuman, dan usaha masyarakat Desa Keji melalui Lapak UMKM."
+              buttonText="Lihat Lapak UMKM"
+              color="emerald"
+            />
+
+            {/* ===============================================
+                5.6 POTENSI WISATA
+            =============================================== */}
+
+            <PotensiHeading
+              number="5.6"
+              title="Potensi Wisata"
+              icon={Map}
+            />
+
+            <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
+              <p>
+                Desa Keji atau{' '}
+                <strong>
+                  Desa Wisata Keji
+                </strong>{' '}
+                memiliki potensi
+                wisata kebudayaan dan
+                alam yang menarik.
+                Potensi wisata budaya
+                yang dimiliki antara
+                lain{' '}
+                <strong>
+                  DWK Wono Sesaji
+                </strong>{' '}
+                dan{' '}
+                <strong>
+                  Sanggar Tari Budi
+                  Utomo
                 </strong>
                 .
               </p>
 
               <p>
-                Perayaan yang jatuh pada
-                bulan Agustus, tepatnya pada
-                hari Sabtu Pahing, biasanya
-                digelar secara besar-besaran
-                dengan kirab sesaji ke
-                sumber air yang menjadi
-                sumber penghidupan warga.
+                Kedua tempat tersebut
+                menjadi bagian dari
+                ikon kebudayaan Desa
+                Wisata Keji. DWK Wono
+                Sesaji merupakan
+                kawasan yang sarat
+                dengan nilai budaya
+                dan sering digunakan
+                untuk berbagai
+                kegiatan seni
+                tradisional Desa
+                Keji, salah satunya
+                Kuda Debog.
               </p>
 
-              <SectionLinkCard
-                href="/desa-wisata/galeri"
-                icon={Camera}
-                label="Dokumentasi Budaya"
-                title="Lihat Galeri Desa Keji"
-                description="Temukan dokumentasi Iriban Banyu Kemloso, kesenian, tradisi, dan berbagai kegiatan masyarakat Desa Keji."
-                buttonText="Lihat Galeri"
-                color="emerald"
-              />
-
-              {/* Potensi Kuliner */}
-              <div className="mb-4 mt-10 flex items-center gap-2 border-b-2 border-emerald-100 pb-2">
-                <Utensils
-                  className="text-emerald-600"
-                  size={24}
-                />
-
-                <h3 className="m-0 text-xl font-bold text-gray-800">
-                  Potensi Kuliner
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-                  <h4 className="mb-1 text-lg font-bold text-emerald-800">
-                    1. Gethuk Tetek Melek
-                  </h4>
-
-                  <p className="text-sm">
-                    Berbahan baku singkong,
-                    jajanan ini hampir sama
-                    dengan kue jongkong.
-                    Perbedaannya terdapat
-                    pada pembungkusnya.
-                    Jongkong dibungkus
-                    menggunakan daun pisang,
-                    sedangkan tetek melek
-                    dibungkus menggunakan
-                    plastik.
-                  </p>
-
-                  <p className="text-sm">
-                    Cara membuatnya yaitu
-                    singkong diparut, diberi
-                    garam dan gula jawa,
-                    kemudian dikukus. Setelah
-                    matang, adonan diletakkan
-                    di atas nampan, dipotong,
-                    dan disajikan dengan
-                    parutan kelapa.
-                  </p>
-
-                  <p className="text-sm">
-                    Makanan ini dinamakan
-                    &quot;Tetek Melek&quot;
-                    karena proses
-                    pembuatannya dilakukan
-                    sambil{' '}
-                    <em>melek-melek</em>{' '}
-                    atau begadang agar orang
-                    yang menyantapnya dapat
-                    terus terjaga ketika
-                    menyaksikan pertunjukan
-                    adat.
-                  </p>
-                </div>
-
-                <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-                  <h4 className="mb-1 text-lg font-bold text-emerald-800">
-                    2. Pecel Gablok
-                  </h4>
-
-                  <p className="text-sm">
-                    Menu ini menggunakan{' '}
-                    <em>gablok</em> yang
-                    dibuat dari beras. Beras
-                    dimasukkan ke dalam
-                    plastik, kemudian direbus
-                    hingga penuh.
-                  </p>
-
-                  <p className="text-sm">
-                    Beras setengah matang
-                    beserta plastiknya lalu
-                    dikukus selama kurang
-                    lebih satu jam. Gablok
-                    disantap dengan sambal
-                    pecel yang dicampur
-                    berbagai sayuran.
-                  </p>
-
-                  <p className="text-sm">
-                    Sajian ini biasanya
-                    dilengkapi dengan tempe
-                    mendoan hangat.
-                  </p>
-                </div>
-              </div>
-
-              <SectionLinkCard
-  href="/umkm"
-  icon={ShoppingBag}
-  label="Produk Lokal Desa"
-  title="Temukan Kuliner dan Produk UMKM"
-  description="Lihat produk makanan, minuman, kerajinan, dan usaha masyarakat Desa Keji melalui Lapak UMKM."
-  buttonText="Lihat Lapak UMKM"
-  color="emerald"
-/>
-
-              {/* Paket Wisata */}
-              <div className="mb-4 mt-10 flex items-center gap-2 border-b-2 border-emerald-100 pb-2">
-                <Map
-                  className="text-emerald-600"
-                  size={24}
-                />
-
-                <h3 className="m-0 text-xl font-bold text-gray-800">
-                  Paket Wisata
-                </h3>
-              </div>
-
               <p>
-                Desa Wisata Keji
-                menyediakan pilihan kegiatan
-                yang dapat disesuaikan untuk
-                wisatawan, sekolah,
-                komunitas, maupun kelompok
-                kunjungan.
+                Sanggar Tari Budi
+                Utomo menjadi salah
+                satu pusat pelestarian
+                seni tari. Tempat ini
+                digunakan untuk
+                melatih generasi muda
+                menari sekaligus
+                mempersembahkan
+                pertunjukan kesenian
+                khas Desa Keji.
               </p>
 
-              <div className="not-prose mt-5 grid gap-4 sm:grid-cols-2">
-                <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-700 text-white">
-                    <Map size={20} />
-                  </div>
-
-                  <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-                    Paket 01
-                  </p>
-
-                  <h4 className="mt-2 text-lg font-black text-slate-900">
-                    Paket Edukatif
-                  </h4>
-
-                  <p className="mt-3 text-sm font-medium leading-7 text-slate-600">
-                    Wisatawan diajak
-                    belajar membatik dengan
-                    motif khas kuda debog,
-                    bunga terompet, dan
-                    srengengen, serta
-                    mengenal tokoh wayang
-                    Punakawan.
-                  </p>
-                </article>
-
-                <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-700 text-white">
-                    <Calendar size={20} />
-                  </div>
-
-                  <p className="mt-4 text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-                    Paket 02
-                  </p>
-
-                  <h4 className="mt-2 text-lg font-black text-slate-900">
-                    Paket One Day
-                  </h4>
-
-                  <p className="mt-3 text-sm font-medium leading-7 text-slate-600">
-                    Wisatawan diajak
-                    mengunjungi industri
-                    herbal, Yoss Traditional
-                    Centre, industri makanan
-                    khas, industri tas, dan
-                    berbagai usaha kuliner
-                    lokal Desa Keji.
-                  </p>
-                </article>
-              </div>
-
-              {/* Penginapan */}
-              <div className="mb-4 mt-10 flex items-center gap-2 border-b-2 border-emerald-100 pb-2">
-                <HomeIcon
-                  className="text-emerald-600"
-                  size={24}
-                />
-
-                <h3 className="m-0 text-xl font-bold text-gray-800">
-                  Penginapan (Homestay)
-                </h3>
-              </div>
-
               <p>
-                Bagi wisatawan yang ingin
-                merasakan secara langsung
-                suasana malam di pedesaan,
-                penginapan atau{' '}
-                <em>homestay</em> tersedia
-                di rumah-rumah penduduk
-                dengan harga yang terjangkau
-                serta keramahan khas warga
+                Keberadaan sanggar
+                tidak hanya berperan
+                dalam melestarikan
+                warisan budaya, tetapi
+                juga berpotensi
+                menjadi wisata
+                edukatif bagi
+                pengunjung yang ingin
+                mengenal lebih dekat
+                seni tari tradisional
                 Desa Keji.
               </p>
 
-              <SectionLinkCard
-                href="/desa-wisata/paket-wisata"
-                icon={Map}
-                label="Informasi Kunjungan"
-                title="Paket Wisata dan Pemesanan Homestay"
-                description="Lihat informasi lengkap mengenai paket kegiatan, fasilitas, homestay, kontak pengelola, dan pemesanan kunjungan Desa Wisata Keji."
-                buttonText="Lihat Paket Wisata"
-                color="dark"
-              />
+              <p>
+                Selain kekayaan
+                budaya, posisi Desa
+                Keji di lereng Gunung
+                Ungaran memberikan
+                potensi alam yang
+                menarik. Salah
+                satunya adalah{' '}
+                <strong>
+                  Sumber Mata Air
+                  Kemloso
+                </strong>
+                , yang memiliki peran
+                penting sebagai
+                penyedia air bersih
+                bagi masyarakat.
+              </p>
+
+              <p>
+                Lingkungan sekitar
+                sumber mata air yang
+                dikelilingi pepohonan
+                dan area pertanian
+                menciptakan suasana
+                sejuk. Setiap tahun,
+                masyarakat juga
+                mengadakan ritual{' '}
+                <strong>
+                  Iriban Banyu Kemloso
+                </strong>{' '}
+                sebagai bentuk rasa
+                syukur atas
+                keberlimpahan air.
+              </p>
             </div>
+
+            {/* ===============================================
+                DESTINASI CTA
+            =============================================== */}
+
+            <SectionLinkCard
+              href="/desa-wisata/destinasi"
+              icon={Map}
+              label="Desa Wisata Keji"
+              title="Jelajahi Destinasi dan Potensi Desa Keji"
+              description="Lihat informasi lebih lanjut mengenai wisata budaya, wisata alam, destinasi, serta potensi yang dimiliki Desa Wisata Keji."
+              buttonText="Lihat Destinasi"
+              color="dark"
+            />
           </main>
 
-          {/* Sidebar Kanan */}
-          {/* Sidebar Kanan */}
-<aside className="min-w-0 lg:w-1/3">
-  <div className="flex flex-col gap-8">
-    <SidebarLayanan
-      daftarLayanan={daftarLayanan}
-      sticky={false}
-    />
+          {/* =================================================
+              SIDEBAR KANAN
+              STATIS / TIDAK STICKY
+          ================================================= */}
 
-    <SidebarTilikArkeji />
-  </div>
-</aside>
+          <aside className="min-w-0 lg:w-1/3">
+            <div className="flex flex-col gap-8">
+              <SidebarLayanan
+                daftarLayanan={
+                  daftarLayanan
+                }
+                sticky={
+                  false
+                }
+              />
+
+              <SidebarTilikArkeji />
+            </div>
+          </aside>
         </div>
       </div>
     </div>
   );
 }
 
+/* =========================================================
+   POTENSI HEADING
+========================================================= */
+
+function PotensiHeading({
+  number,
+  title,
+  icon:
+    Icon,
+}: {
+  number:
+    string;
+
+  title:
+    string;
+
+  icon:
+    LucideIcon;
+}) {
+  return (
+    <div className="mb-5 mt-10 border-b-2 border-emerald-100 pb-3">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+          <Icon
+            size={21}
+          />
+        </div>
+
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
+            {number}
+          </p>
+
+          <h3 className="mt-0.5 text-xl font-black text-gray-800">
+            {title}
+          </h3>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   POTENSI LIST
+========================================================= */
+
+function PotensiList({
+  items,
+}: {
+  items:
+    string[];
+}) {
+  return (
+    <div className="not-prose mt-5 grid gap-3 sm:grid-cols-2">
+      {items.map(
+        (
+          item,
+          index
+        ) => (
+          <article
+            key={
+              item
+            }
+            className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-xs font-black text-white">
+              {index +
+                1}
+            </span>
+
+            <p className="text-sm font-extrabold text-emerald-950">
+              {item}
+            </p>
+          </article>
+        )
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   EBOOK CARD
+========================================================= */
+
 function EbookSejarahCard({
   ebook,
   nomor,
 }: {
-  ebook: EbookSejarahPublik;
-  nomor: number;
+  ebook:
+    EbookSejarahPublik;
+
+  nomor:
+    number;
 }) {
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-lg">
       <div className="grid sm:grid-cols-[200px_minmax(0,1fr)]">
+        {/* COVER */}
+
         <div className="relative min-h-72 overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700">
           {ebook.cover_url ? (
             <img
-              src={ebook.cover_url}
+              src={
+                ebook.cover_url
+              }
               alt={`Cover ${ebook.judul}`}
               loading="lazy"
               className="h-full min-h-72 w-full object-cover"
             />
           ) : (
             <div className="flex h-full min-h-72 flex-col items-center justify-center p-6 text-center text-white">
-              <BookOpen size={52} />
+              <BookOpen
+                size={52}
+              />
 
               <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-200">
                 Ebook Sejarah
@@ -805,64 +1347,89 @@ function EbookSejarahCard({
           )}
 
           <span className="absolute right-3 top-3 rounded-full bg-black/60 px-3 py-1.5 text-xs font-black text-white backdrop-blur">
-            {String(nomor).padStart(
+            {String(
+              nomor
+            ).padStart(
               2,
               '0'
             )}
           </span>
         </div>
 
+        {/* CONTENT */}
+
         <div className="flex flex-col p-6">
           <div className="flex flex-wrap gap-2">
             {ebook.tahun && (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold text-emerald-700">
-                Tahun {ebook.tahun}
+                Tahun{' '}
+                {
+                  ebook.tahun
+                }
               </span>
             )}
 
             {ebook.jumlah_halaman && (
               <span className="rounded-full bg-blue-100 px-3 py-1 text-[10px] font-extrabold text-blue-700">
-                {ebook.jumlah_halaman}{' '}
+                {
+                  ebook.jumlah_halaman
+                }{' '}
                 halaman
               </span>
             )}
           </div>
 
           <h3 className="mt-4 text-2xl font-black leading-tight text-slate-900">
-            {ebook.judul}
+            {
+              ebook.judul
+            }
           </h3>
 
           <p className="mt-2 text-xs font-extrabold uppercase tracking-wider text-emerald-700">
             Disusun oleh{' '}
-            {ebook.penyusun}
+            {
+              ebook.penyusun
+            }
           </p>
 
           <p className="mt-4 flex-1 text-sm font-medium leading-7 text-slate-600">
-            {ebook.deskripsi}
+            {
+              ebook.deskripsi
+            }
           </p>
 
           <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row">
             <a
-              href={ebook.file_url}
+              href={
+                ebook.file_url
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-800"
             >
-              <FileText size={16} />
+              <FileText
+                size={16}
+              />
 
               Baca Ebook
 
-              <ExternalLink size={13} />
+              <ExternalLink
+                size={13}
+              />
             </a>
 
             <a
-              href={ebook.file_url}
+              href={
+                ebook.file_url
+              }
               target="_blank"
               rel="noopener noreferrer"
               download
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-5 text-sm font-extrabold text-emerald-700 transition hover:bg-emerald-100"
             >
-              <Download size={16} />
+              <Download
+                size={16}
+              />
 
               Unduh PDF
             </a>
@@ -873,25 +1440,45 @@ function EbookSejarahCard({
   );
 }
 
+/* =========================================================
+   LINK CARD
+========================================================= */
+
 function SectionLinkCard({
   href,
-  icon: Icon,
+  icon:
+    Icon,
   label,
   title,
   description,
   buttonText,
   color,
 }: {
-  href: string;
-  icon: typeof Map;
-  label: string;
-  title: string;
-  description: string;
-  buttonText: string;
-  color: 'emerald' | 'dark';
+  href:
+    string;
+
+  icon:
+    LucideIcon;
+
+  label:
+    string;
+
+  title:
+    string;
+
+  description:
+    string;
+
+  buttonText:
+    string;
+
+  color:
+    | 'emerald'
+    | 'dark';
 }) {
   const isDark =
-    color === 'dark';
+    color ===
+    'dark';
 
   return (
     <div
@@ -910,7 +1497,9 @@ function SectionLinkCard({
                 : 'bg-emerald-700 text-white'
             }`}
           >
-            <Icon size={20} />
+            <Icon
+              size={20}
+            />
           </div>
 
           <div>
@@ -947,7 +1536,9 @@ function SectionLinkCard({
         </div>
 
         <Link
-          href={href}
+          href={
+            href
+          }
           className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold transition ${
             isDark
               ? 'bg-white text-emerald-900 hover:bg-emerald-50'
@@ -956,7 +1547,9 @@ function SectionLinkCard({
         >
           {buttonText}
 
-          <ArrowRight size={15} />
+          <ArrowRight
+            size={15}
+          />
         </Link>
       </div>
     </div>
