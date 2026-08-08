@@ -24,8 +24,8 @@ import {
   Megaphone,
   Moon,
   Navigation,
-  PieChart,
   Quote,
+  Recycle,
   Scale,
   ShoppingCart,
   Sun,
@@ -91,10 +91,10 @@ export default function HomePage() {
       href: '/pembangunan',
     },
     {
-      name: 'Status IDM',
-      icon: PieChart,
-      href: '/idm',
-    },
+  name: 'Pengelolaan Sampah',
+  icon: Recycle,
+  href: '/pengelolaan-sampah',
+},
   ];
 
   const jadwalSholat = [

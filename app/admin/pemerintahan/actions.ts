@@ -24,7 +24,32 @@ import {
   type PemerintahanActionState,
 } from '@/types/pemerintahan';
 
-const PEMERINTAHAN_KEY = 'utama';
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const PEMERINTAHAN_KEY =
+  'utama';
+
+const STORAGE_BUCKET =
+  'pemerintahan';
+
+const STORAGE_FOLDER =
+  'perangkat-desa';
+
+const MAX_IMAGE_SIZE =
+  5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES =
+  new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ]);
+
+/* =========================================================
+   AUTH
+========================================================= */
 
 async function requireAdmin() {
   const supabase =
@@ -35,24 +60,32 @@ async function requireAdmin() {
       user,
     },
     error,
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth.getUser();
 
   if (
     error ||
     !user
   ) {
-    redirect('/login');
+    redirect(
+      '/login'
+    );
   }
 
   return user;
 }
+
+/* =========================================================
+   FORM HELPERS
+========================================================= */
 
 function getString(
   formData: FormData,
   key: string
 ) {
   return String(
-    formData.get(key) ?? ''
+    formData.get(key) ??
+      ''
   ).trim();
 }
 
@@ -68,16 +101,186 @@ function getNumber(
   );
 }
 
-function isValidImagePath(
-  value: string
+function getBoolean(
+  formData: FormData,
+  key: string
 ) {
   return (
-    value === '' ||
-    value.startsWith('/') ||
-    value.startsWith('https://') ||
-    value.startsWith('http://')
+    getString(
+      formData,
+      key
+    ) === 'true'
   );
 }
+
+function getImageFile(
+  formData: FormData
+): File | null {
+  const value =
+    formData.get(
+      'foto'
+    );
+
+  if (
+    !(value instanceof File) ||
+    value.size <= 0
+  ) {
+    return null;
+  }
+
+  return value;
+}
+
+/* =========================================================
+   IMAGE
+========================================================= */
+
+function validateImage(
+  file: File | null
+) {
+  if (!file) {
+    return null;
+  }
+
+  if (
+    !ALLOWED_IMAGE_TYPES.has(
+      file.type
+    )
+  ) {
+    return 'Foto harus berformat JPG, PNG, atau WEBP.';
+  }
+
+  if (
+    file.size >
+    MAX_IMAGE_SIZE
+  ) {
+    return 'Ukuran foto maksimal 5 MB.';
+  }
+
+  return null;
+}
+
+function extensionFromMime(
+  mime: string
+) {
+  switch (mime) {
+    case 'image/png':
+      return 'png';
+
+    case 'image/webp':
+      return 'webp';
+
+    default:
+      return 'jpg';
+  }
+}
+
+async function uploadFoto(
+  file: File
+) {
+  const imageError =
+    validateImage(
+      file
+    );
+
+  if (imageError) {
+    throw new Error(
+      imageError
+    );
+  }
+
+  const extension =
+    extensionFromMime(
+      file.type
+    );
+
+  const path =
+    `${STORAGE_FOLDER}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+  const arrayBuffer =
+    await file.arrayBuffer();
+
+  const {
+    error,
+  } =
+    await supabaseAdmin.storage
+      .from(
+        STORAGE_BUCKET
+      )
+      .upload(
+        path,
+        new Uint8Array(
+          arrayBuffer
+        ),
+        {
+          contentType:
+            file.type,
+
+          cacheControl:
+            '3600',
+
+          upsert:
+            false,
+        }
+      );
+
+  if (error) {
+    throw new Error(
+      `Upload foto gagal: ${error.message}`
+    );
+  }
+
+  const {
+    data,
+  } =
+    supabaseAdmin.storage
+      .from(
+        STORAGE_BUCKET
+      )
+      .getPublicUrl(
+        path
+      );
+
+  return {
+    path,
+
+    url:
+      data.publicUrl,
+  };
+}
+
+async function hapusFotoStorage(
+  path:
+    | string
+    | null
+    | undefined
+) {
+  if (!path) {
+    return;
+  }
+
+  const {
+    error,
+  } =
+    await supabaseAdmin.storage
+      .from(
+        STORAGE_BUCKET
+      )
+      .remove([
+        path,
+      ]);
+
+  if (error) {
+    console.error(
+      'Gagal menghapus foto perangkat:',
+      error
+    );
+  }
+}
+
+/* =========================================================
+   REVALIDATE
+========================================================= */
 
 function revalidatePemerintahan() {
   revalidatePath(
@@ -92,8 +295,14 @@ function revalidatePemerintahan() {
     '/api/pemerintahan'
   );
 
-  revalidatePath('/admin');
+  revalidatePath(
+    '/admin'
+  );
 }
+
+/* =========================================================
+   INFORMASI PEMERINTAHAN
+========================================================= */
 
 export async function simpanInformasiPemerintahanAction(
   previousState:
@@ -171,21 +380,27 @@ export async function simpanInformasiPemerintahanAction(
 
   if (
     requiredValues.some(
-      (value) => !value
+      (value) =>
+        !value
     )
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Semua kolom wajib harus diisi.',
     };
   }
 
   if (
-    sekilasInfo.length > 500
+    sekilasInfo.length >
+    500
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Sekilas informasi maksimal 500 karakter.',
     };
@@ -196,7 +411,9 @@ export async function simpanInformasiPemerintahanAction(
     2000
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Deskripsi Kepala Desa maksimal 2.000 karakter.',
     };
@@ -207,17 +424,22 @@ export async function simpanInformasiPemerintahanAction(
     2000
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Deskripsi perangkat maksimal 2.000 karakter.',
     };
   }
 
   if (
-    catatan.length > 2000
+    catatan.length >
+    2000
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Catatan maksimal 2.000 karakter.',
     };
@@ -225,61 +447,62 @@ export async function simpanInformasiPemerintahanAction(
 
   const {
     error,
-  } = await supabaseAdmin
-    .from('pemerintahan_desa')
-    .upsert(
-      {
-        pemerintahan_key:
-          PEMERINTAHAN_KEY,
+  } =
+    await supabaseAdmin
+      .from(
+        'pemerintahan_desa'
+      )
+      .upsert(
+        {
+          pemerintahan_key:
+            PEMERINTAHAN_KEY,
 
-        sekilas_info:
-          sekilasInfo,
+          sekilas_info:
+            sekilasInfo,
 
-        judul_halaman:
-          judulHalaman,
+          judul_halaman:
+            judulHalaman,
 
-        judul_sotk:
-          judulSotk,
+          judul_sotk:
+            judulSotk,
 
-        lokasi_pemerintahan:
-          lokasiPemerintahan,
+          lokasi_pemerintahan:
+            lokasiPemerintahan,
 
-        tanggal_publikasi:
-          tanggalPublikasi,
+          tanggal_publikasi:
+            tanggalPublikasi,
 
-        penulis,
+          penulis,
 
-        deskripsi_kepala_desa:
-          deskripsiKepalaDesa,
+          deskripsi_kepala_desa:
+            deskripsiKepalaDesa,
 
-        deskripsi_perangkat:
-          deskripsiPerangkat,
+          deskripsi_perangkat:
+            deskripsiPerangkat,
 
-        catatan:
-          catatan || '',
+          catatan:
+            catatan || '',
 
-        updated_at:
-          new Date().toISOString(),
-      },
-      {
-        onConflict:
-          'pemerintahan_key',
-      }
-    );
+          updated_at:
+            new Date()
+              .toISOString(),
+        },
+        {
+          onConflict:
+            'pemerintahan_key',
+        }
+      );
 
   if (error) {
     console.error(
       'Gagal menyimpan informasi pemerintahan:',
-      {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      }
+      error
     );
 
     return {
-      success: false,
+      success:
+        false,
+
       message:
         error.message ||
         'Informasi pemerintahan gagal disimpan.',
@@ -289,24 +512,40 @@ export async function simpanInformasiPemerintahanAction(
   revalidatePemerintahan();
 
   return {
-    success: true,
+    success:
+      true,
+
     message:
       'Informasi pemerintahan berhasil diperbarui.',
   };
 }
 
+/* =========================================================
+   PERANGKAT INPUT
+========================================================= */
+
 interface PerangkatInput {
   nama: string;
+
   jabatan: string;
+
   kelompok: string;
 
-  fotoUrl: string;
   nip: string;
+
   nomorTelepon: string;
+
   deskripsi: string;
 
   urutan: number;
+
   aktif: boolean;
+
+  foto:
+    | File
+    | null;
+
+  hapusFoto: boolean;
 }
 
 function parsePerangkat(
@@ -329,12 +568,6 @@ function parsePerangkat(
       getString(
         formData,
         'kelompok'
-      ),
-
-    fotoUrl:
-      getString(
-        formData,
-        'foto_url'
       ),
 
     nip:
@@ -362,36 +595,55 @@ function parsePerangkat(
       ),
 
     aktif:
-      getString(
+      getBoolean(
         formData,
         'aktif'
-      ) === 'true',
+      ),
+
+    foto:
+      getImageFile(
+        formData
+      ),
+
+    hapusFoto:
+      getBoolean(
+        formData,
+        'hapus_foto'
+      ),
   };
 }
+
+/* =========================================================
+   VALIDATION
+========================================================= */
 
 function validatePerangkat(
   input: PerangkatInput
 ) {
   if (
-    input.nama.length < 2
+    input.nama.length <
+    2
   ) {
     return 'Nama perangkat minimal terdiri dari 2 karakter.';
   }
 
   if (
-    input.nama.length > 150
+    input.nama.length >
+    150
   ) {
     return 'Nama perangkat maksimal 150 karakter.';
   }
 
   if (
-    input.jabatan.length < 2
+    input.jabatan.length <
+    2
   ) {
     return 'Jabatan minimal terdiri dari 2 karakter.';
   }
 
   if (
-    input.jabatan.length > 150
+    input.jabatan.length >
+    150
   ) {
     return 'Jabatan maksimal 150 karakter.';
   }
@@ -410,21 +662,15 @@ function validatePerangkat(
     !Number.isInteger(
       input.urutan
     ) ||
-    input.urutan < 1
+    input.urutan <
+      1
   ) {
     return 'Nomor urutan harus berupa angka minimal 1.';
   }
 
   if (
-    !isValidImagePath(
-      input.fotoUrl
-    )
-  ) {
-    return 'Path foto harus diawali /, http://, atau https://.';
-  }
-
-  if (
-    input.nip.length > 50
+    input.nip.length >
+    50
   ) {
     return 'NIP maksimal 50 karakter.';
   }
@@ -443,46 +689,21 @@ function validatePerangkat(
     return 'Deskripsi perangkat maksimal 2.000 karakter.';
   }
 
+  const imageError =
+    validateImage(
+      input.foto
+    );
+
+  if (imageError) {
+    return imageError;
+  }
+
   return null;
 }
 
-function perangkatPayload(
-  input: PerangkatInput
-) {
-  return {
-    nama:
-      input.nama,
-
-    jabatan:
-      input.jabatan,
-
-    kelompok:
-      input.kelompok as
-        KelompokPerangkat,
-
-    foto_url:
-      input.fotoUrl || null,
-
-    nip:
-      input.nip || null,
-
-    nomor_telepon:
-      input.nomorTelepon ||
-      null,
-
-    deskripsi:
-      input.deskripsi || null,
-
-    urutan:
-      input.urutan,
-
-    aktif:
-      input.aktif,
-
-    updated_at:
-      new Date().toISOString(),
-  };
-}
+/* =========================================================
+   CREATE
+========================================================= */
 
 export async function tambahPerangkatAction(
   previousState:
@@ -499,37 +720,118 @@ export async function tambahPerangkatAction(
     );
 
   const validationError =
-    validatePerangkat(input);
+    validatePerangkat(
+      input
+    );
 
-  if (validationError) {
+  if (
+    validationError
+  ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         validationError,
     };
   }
 
+  let uploaded:
+    | {
+        url: string;
+        path: string;
+      }
+    | null = null;
+
+  if (
+    input.foto
+  ) {
+    try {
+      uploaded =
+        await uploadFoto(
+          input.foto
+        );
+    } catch (
+      error
+    ) {
+      return {
+        success:
+          false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Upload foto gagal.',
+      };
+    }
+  }
+
   const {
     error,
-  } = await supabaseAdmin
-    .from('perangkat_desa')
-    .insert(
-      perangkatPayload(input)
-    );
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .insert({
+        nama:
+          input.nama,
+
+        jabatan:
+          input.jabatan,
+
+        kelompok:
+          input.kelompok as KelompokPerangkat,
+
+        foto_url:
+          uploaded?.url ??
+          null,
+
+        foto_path:
+          uploaded?.path ??
+          null,
+
+        nip:
+          input.nip ||
+          null,
+
+        nomor_telepon:
+          input.nomorTelepon ||
+          null,
+
+        deskripsi:
+          input.deskripsi ||
+          null,
+
+        urutan:
+          input.urutan,
+
+        aktif:
+          input.aktif,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      });
 
   if (error) {
+    if (
+      uploaded
+    ) {
+      await hapusFotoStorage(
+        uploaded.path
+      );
+    }
+
     console.error(
       'Gagal menambahkan perangkat desa:',
-      {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      }
+      error
     );
 
     return {
-      success: false,
+      success:
+        false,
+
       message:
         error.message ||
         'Perangkat desa gagal ditambahkan.',
@@ -543,6 +845,10 @@ export async function tambahPerangkatAction(
   );
 }
 
+/* =========================================================
+   UPDATE
+========================================================= */
+
 export async function ubahPerangkatAction(
   id: number,
   previousState:
@@ -554,11 +860,15 @@ export async function ubahPerangkatAction(
   await requireAdmin();
 
   if (
-    !Number.isInteger(id) ||
+    !Number.isInteger(
+      id
+    ) ||
     id <= 0
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'ID perangkat tidak valid.',
     };
@@ -570,42 +880,205 @@ export async function ubahPerangkatAction(
     );
 
   const validationError =
-    validatePerangkat(input);
+    validatePerangkat(
+      input
+    );
 
-  if (validationError) {
+  if (
+    validationError
+  ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         validationError,
     };
   }
 
   const {
+    data:
+      current,
+
+    error:
+      currentError,
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .select(`
+        foto_url,
+        foto_path
+      `)
+      .eq(
+        'id',
+        id
+      )
+      .maybeSingle();
+
+  if (
+    currentError ||
+    !current
+  ) {
+    return {
+      success:
+        false,
+
+      message:
+        currentError
+          ?.message ??
+        'Data perangkat tidak ditemukan.',
+    };
+  }
+
+  const oldUrl =
+    String(
+      current.foto_url ??
+      ''
+    ).trim() ||
+    null;
+
+  const oldPath =
+    String(
+      current.foto_path ??
+      ''
+    ).trim() ||
+    null;
+
+  let uploaded:
+    | {
+        url: string;
+        path: string;
+      }
+    | null = null;
+
+  if (
+    input.foto
+  ) {
+    try {
+      uploaded =
+        await uploadFoto(
+          input.foto
+        );
+    } catch (
+      error
+    ) {
+      return {
+        success:
+          false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Upload foto gagal.',
+      };
+    }
+  }
+
+  let fotoUrl =
+    oldUrl;
+
+  let fotoPath =
+    oldPath;
+
+  if (
+    uploaded
+  ) {
+    fotoUrl =
+      uploaded.url;
+
+    fotoPath =
+      uploaded.path;
+  } else if (
+    input.hapusFoto
+  ) {
+    fotoUrl =
+      null;
+
+    fotoPath =
+      null;
+  }
+
+  const {
     error,
-  } = await supabaseAdmin
-    .from('perangkat_desa')
-    .update(
-      perangkatPayload(input)
-    )
-    .eq('id', id);
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .update({
+        nama:
+          input.nama,
+
+        jabatan:
+          input.jabatan,
+
+        kelompok:
+          input.kelompok as KelompokPerangkat,
+
+        foto_url:
+          fotoUrl,
+
+        foto_path:
+          fotoPath,
+
+        nip:
+          input.nip ||
+          null,
+
+        nomor_telepon:
+          input.nomorTelepon ||
+          null,
+
+        deskripsi:
+          input.deskripsi ||
+          null,
+
+        urutan:
+          input.urutan,
+
+        aktif:
+          input.aktif,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        'id',
+        id
+      );
 
   if (error) {
-    console.error(
-      'Gagal memperbarui perangkat desa:',
-      {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      }
-    );
+    if (
+      uploaded
+    ) {
+      await hapusFotoStorage(
+        uploaded.path
+      );
+    }
 
     return {
-      success: false,
+      success:
+        false,
+
       message:
         error.message ||
         'Perangkat desa gagal diperbarui.',
     };
+  }
+
+  if (
+    oldPath &&
+    (
+      uploaded ||
+      input.hapusFoto
+    )
+  ) {
+    await hapusFotoStorage(
+      oldPath
+    );
   }
 
   revalidatePemerintahan();
@@ -615,6 +1088,10 @@ export async function ubahPerangkatAction(
   );
 }
 
+/* =========================================================
+   TOGGLE
+========================================================= */
+
 export async function togglePerangkatAction(
   formData: FormData
 ) {
@@ -622,17 +1099,23 @@ export async function togglePerangkatAction(
 
   const id =
     Number(
-      formData.get('id')
+      formData.get(
+        'id'
+      )
     );
 
   const aktif =
     String(
-      formData.get('aktif') ??
-        ''
+      formData.get(
+        'aktif'
+      ) ??
+      ''
     ) === 'true';
 
   if (
-    !Number.isInteger(id) ||
+    !Number.isInteger(
+      id
+    ) ||
     id <= 0
   ) {
     throw new Error(
@@ -642,22 +1125,24 @@ export async function togglePerangkatAction(
 
   const {
     error,
-  } = await supabaseAdmin
-    .from('perangkat_desa')
-    .update({
-      aktif,
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .update({
+        aktif,
 
-      updated_at:
-        new Date().toISOString(),
-    })
-    .eq('id', id);
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        'id',
+        id
+      );
 
   if (error) {
-    console.error(
-      'Gagal mengubah status perangkat:',
-      error
-    );
-
     throw new Error(
       'Status perangkat gagal diperbarui.'
     );
@@ -666,6 +1151,10 @@ export async function togglePerangkatAction(
   revalidatePemerintahan();
 }
 
+/* =========================================================
+   DELETE
+========================================================= */
+
 export async function hapusPerangkatAction(
   formData: FormData
 ) {
@@ -673,11 +1162,15 @@ export async function hapusPerangkatAction(
 
   const id =
     Number(
-      formData.get('id')
+      formData.get(
+        'id'
+      )
     );
 
   if (
-    !Number.isInteger(id) ||
+    !Number.isInteger(
+      id
+    ) ||
     id <= 0
   ) {
     throw new Error(
@@ -686,20 +1179,52 @@ export async function hapusPerangkatAction(
   }
 
   const {
+    data:
+      current,
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .select(
+        'foto_path'
+      )
+      .eq(
+        'id',
+        id
+      )
+      .maybeSingle();
+
+  const {
     error,
-  } = await supabaseAdmin
-    .from('perangkat_desa')
-    .delete()
-    .eq('id', id);
+  } =
+    await supabaseAdmin
+      .from(
+        'perangkat_desa'
+      )
+      .delete()
+      .eq(
+        'id',
+        id
+      );
 
   if (error) {
-    console.error(
-      'Gagal menghapus perangkat desa:',
-      error
-    );
-
     throw new Error(
       'Perangkat desa gagal dihapus.'
+    );
+  }
+
+  const fotoPath =
+    String(
+      current?.foto_path ??
+      ''
+    ).trim();
+
+  if (
+    fotoPath
+  ) {
+    await hapusFotoStorage(
+      fotoPath
     );
   }
 

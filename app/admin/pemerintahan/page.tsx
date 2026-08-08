@@ -24,15 +24,22 @@ import type {
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
-const PEMERINTAHAN_KEY = 'utama';
+const PEMERINTAHAN_KEY =
+  'utama';
 
 interface PageProps {
-  searchParams: Promise<{
-    status?: string;
-  }>;
+  searchParams:
+    Promise<{
+      status?: string;
+    }>;
 }
+
+/* =========================================================
+   DEFAULT
+========================================================= */
 
 const defaultPemerintahan:
   PemerintahanDesaData = {
@@ -54,22 +61,30 @@ const defaultPemerintahan:
   tanggal_publikasi:
     new Date()
       .toISOString()
-      .slice(0, 10),
+      .slice(
+        0,
+        10
+      ),
 
   penulis:
     'Admin Desa',
 
   deskripsi_kepala_desa:
-    'Memimpin penyelenggaraan pemerintahan, pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat desa.',
+    'Kepala Desa memimpin penyelenggaraan pemerintahan, pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat desa.',
 
   deskripsi_perangkat:
     'Perangkat desa membantu Kepala Desa sesuai bidang tugas dan wilayah kerjanya.',
 
   catatan:
-    'Informasi nama dan profil perangkat desa dapat ditambahkan setelah data resmi terbaru selesai diverifikasi oleh Pemerintah Desa Keji.',
+    'Data nama, jabatan, foto, dan susunan perangkat desa dapat diperbarui melalui halaman administrator.',
 
-  updated_at: '',
+  updated_at:
+    '',
 };
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function AdminPemerintahanPage({
   searchParams,
@@ -80,59 +95,65 @@ export default async function AdminPemerintahanPage({
   const [
     pemerintahanResult,
     perangkatResult,
-  ] = await Promise.all([
-    supabaseAdmin
-      .from(
-        'pemerintahan_desa'
-      )
-      .select(`
-        pemerintahan_key,
-        sekilas_info,
-        judul_halaman,
-        judul_sotk,
-        lokasi_pemerintahan,
-        tanggal_publikasi,
-        penulis,
-        deskripsi_kepala_desa,
-        deskripsi_perangkat,
-        catatan,
-        updated_at
-      `)
-      .eq(
-        'pemerintahan_key',
-        PEMERINTAHAN_KEY
-      )
-      .maybeSingle(),
+  ] =
+    await Promise.all([
+      supabaseAdmin
+        .from(
+          'pemerintahan_desa'
+        )
+        .select(`
+          pemerintahan_key,
+          sekilas_info,
+          judul_halaman,
+          judul_sotk,
+          lokasi_pemerintahan,
+          tanggal_publikasi,
+          penulis,
+          deskripsi_kepala_desa,
+          deskripsi_perangkat,
+          catatan,
+          updated_at
+        `)
+        .eq(
+          'pemerintahan_key',
+          PEMERINTAHAN_KEY
+        )
+        .maybeSingle(),
 
-    supabaseAdmin
-      .from('perangkat_desa')
-      .select(`
-        id,
-        nama,
-        jabatan,
-        kelompok,
-        foto_url,
-        nip,
-        nomor_telepon,
-        deskripsi,
-        urutan,
-        aktif,
-        created_at,
-        updated_at
-      `)
-      .order(
-        'urutan',
-        {
-          ascending: true,
-        }
-      )
-      .order(
-        'nama',
-        {
-          ascending: true,
-        }
-      ),
-  ]);
+      supabaseAdmin
+        .from(
+          'perangkat_desa'
+        )
+        .select(`
+          id,
+          nama,
+          jabatan,
+          kelompok,
+          foto_url,
+          foto_path,
+          nip,
+          nomor_telepon,
+          deskripsi,
+          urutan,
+          aktif,
+          created_at,
+          updated_at
+        `)
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
+          }
+        )
+        .order(
+          'nama',
+          {
+            ascending:
+              true,
+          }
+        ),
+    ]);
 
   if (
     pemerintahanResult.error
@@ -155,6 +176,7 @@ export default async function AdminPemerintahanPage({
   const pemerintahan:
     PemerintahanDesaData = {
     ...defaultPemerintahan,
+
     ...(pemerintahanResult.data ??
       {}),
   };
@@ -167,27 +189,46 @@ export default async function AdminPemerintahanPage({
 
   const totalAktif =
     perangkat.filter(
-      (item) => item.aktif
+      (
+        item
+      ) =>
+        item.aktif
     ).length;
 
   const totalKelompok =
     new Set(
       perangkat.map(
-        (item) =>
+        (
+          item
+        ) =>
           item.kelompok
       )
     ).size;
 
+  const totalFoto =
+    perangkat.filter(
+      (
+        item
+      ) =>
+        Boolean(
+          item.foto_url
+        )
+    ).length;
+
   const successMessage =
-    params.status === 'created'
+    params.status ===
+    'created'
       ? 'Perangkat desa berhasil ditambahkan.'
-      : params.status === 'updated'
+      : params.status ===
+          'updated'
         ? 'Data perangkat desa berhasil diperbarui.'
         : '';
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] px-6 py-7 text-white shadow-xl sm:px-8 sm:py-8">
+      {/* HEADER */}
+
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 px-6 py-8 text-white shadow-xl">
         <div
           className="pointer-events-none absolute inset-0 opacity-40"
           style={{
@@ -202,7 +243,9 @@ export default async function AdminPemerintahanPage({
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-              <Landmark size={27} />
+              <Landmark
+                size={27}
+              />
             </div>
 
             <div>
@@ -215,9 +258,11 @@ export default async function AdminPemerintahanPage({
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola informasi SOTK, identitas,
-                jabatan, foto, urutan, dan status
-                perangkat Desa Keji.
+                Kelola informasi SOTK,
+                nama perangkat,
+                jabatan, foto,
+                kelompok, urutan,
+                serta status publikasi.
               </p>
             </div>
           </div>
@@ -225,14 +270,19 @@ export default async function AdminPemerintahanPage({
           <Link
             href="/pemerintahan"
             target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:bg-white/15"
           >
             Lihat Halaman Publik
 
-            <ExternalLink size={16} />
+            <ExternalLink
+              size={16}
+            />
           </Link>
         </div>
       </section>
+
+      {/* MESSAGE */}
 
       {successMessage && (
         <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
@@ -247,20 +297,35 @@ export default async function AdminPemerintahanPage({
         </div>
       )}
 
-      <section className="grid gap-5 sm:grid-cols-3">
+      {/* STATS */}
+
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total Perangkat"
-          value={perangkat.length}
+          value={
+            perangkat.length
+          }
         />
 
         <StatCard
           label="Perangkat Aktif"
-          value={totalAktif}
+          value={
+            totalAktif
+          }
         />
 
         <StatCard
           label="Kelompok Jabatan"
-          value={totalKelompok}
+          value={
+            totalKelompok
+          }
+        />
+
+        <StatCard
+          label="Foto Terisi"
+          value={
+            totalFoto
+          }
         />
       </section>
 
@@ -279,18 +344,23 @@ export default async function AdminPemerintahanPage({
   );
 }
 
+/* =========================================================
+   STAT CARD
+========================================================= */
+
 function StatCard({
   label,
   value,
 }: {
   label: string;
+
   value: number;
 }) {
   return (
-    <article className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+    <article className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
             {label}
           </p>
 
@@ -302,7 +372,9 @@ function StatCard({
         </div>
 
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-          <UsersRound size={22} />
+          <UsersRound
+            size={22}
+          />
         </div>
       </div>
     </article>

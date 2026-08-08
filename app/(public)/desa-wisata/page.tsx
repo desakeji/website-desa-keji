@@ -1,9 +1,12 @@
 // app/(public)/desa-wisata/page.tsx
 
+import Image from 'next/image';
+
 import Link from 'next/link';
 
 import {
   ArrowRight,
+  ArrowUpRight,
   BadgeCheck,
   BookOpen,
   CalendarDays,
@@ -43,27 +46,46 @@ export const revalidate =
   0;
 
 /* =========================================================
+   DESA WISATA IDENTITY
+========================================================= */
+
+const LOGO_DWK =
+  '/desa-wisata/Logo%20DWK.png';
+
+const INSTAGRAM_DESA_WISATA =
+  'https://www.instagram.com/desa.wisatakeji?igsh=OHhtanAweGxxamQ0';
+
+/* =========================================================
    TYPES
 ========================================================= */
 
 interface PotensiWisata {
   title: string;
+
   description: string;
+
   href: string;
+
   icon: LucideIcon;
+
   label: string;
 }
 
 interface BudayaDesa {
   title: string;
+
   description: string;
+
   category: string;
+
   icon: LucideIcon;
 }
 
 interface PedomanAdministrasiPreview {
   judul: string;
+
   deskripsi: string;
+
   aktif: boolean;
 }
 
@@ -687,7 +709,7 @@ export default async function DesaWisataPage() {
           HERO
       ===================================================== */}
 
-      <section className="relative isolate min-h-[720px] overflow-hidden bg-emerald-950 text-white">
+      <section className="relative isolate overflow-hidden bg-emerald-950 text-white">
         {/* Background */}
 
         <div
@@ -700,14 +722,15 @@ export default async function DesaWisataPage() {
 
         {/* Overlay */}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/85 to-emerald-900/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#031f18] via-emerald-950/92 to-emerald-800/55" />
 
         <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-transparent to-black/10" />
 
         {/* Pattern */}
 
         <div
-          className="absolute inset-0 opacity-20"
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.15]"
           style={{
             backgroundImage:
               'radial-gradient(circle, rgba(255,255,255,0.28) 1.2px, transparent 1.2px)',
@@ -717,86 +740,203 @@ export default async function DesaWisataPage() {
           }}
         />
 
-        <div className="absolute -right-36 -top-36 h-[520px] w-[520px] rounded-full border-[88px] border-white/[0.04]" />
+        {/* Decorations */}
 
-        {/* Hero Content */}
+        <div className="pointer-events-none absolute -right-36 -top-36 h-[520px] w-[520px] rounded-full border-[88px] border-white/[0.04]" />
+
+        <div className="pointer-events-none absolute -bottom-40 left-1/3 h-[420px] w-[420px] rounded-full bg-emerald-300/[0.07] blur-[110px]" />
+
+        {/* Content */}
 
         <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-100 backdrop-blur">
-              <Leaf
-                size={15}
-              />
+          <div className="grid w-full gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+            {/* =================================================
+                LEFT
+            ================================================= */}
 
-              Desa Wisata Keji
-            </div>
-
-            <p className="mt-8 text-sm font-extrabold uppercase tracking-[0.24em] text-emerald-300">
-              Ungaran Barat ·
-              Kabupaten Semarang
-            </p>
-
-            <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              Jelajahi Pesona
-
-              <span className="block text-emerald-300">
-                Desa Keji
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-3xl text-base font-medium leading-8 text-emerald-50/90 md:text-lg md:leading-9">
-              Temukan kekayaan budaya,
-              kuliner lokal, kesenian,
-              kegiatan masyarakat, dan
-              suasana pedesaan yang
-              tumbuh melalui semangat
-              kebersamaan serta
-              pelestarian potensi lokal.
-            </p>
-
-            {/* CTA */}
-
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/desa-wisata/destinasi"
-                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 text-sm font-extrabold text-emerald-950 shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:bg-emerald-400"
-              >
-                <Compass
-                  size={18}
+            <div className="max-w-4xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-100 backdrop-blur">
+                <Leaf
+                  size={15}
                 />
 
-                Jelajahi Desa Keji
-              </Link>
+                Desa Wisata Keji
+              </div>
 
-              <Link
-                href="/desa-wisata/informasi-kunjungan"
-                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15"
-              >
-                <MapPin
-                  size={18}
+              <p className="mt-8 text-sm font-extrabold uppercase tracking-[0.24em] text-emerald-300">
+                Ungaran Barat ·
+                Kabupaten Semarang
+              </p>
+
+              <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+                Jelajahi Pesona
+
+                <span className="block text-emerald-300">
+                  Desa Keji
+                </span>
+              </h1>
+
+              <p className="mt-7 max-w-3xl text-base font-medium leading-8 text-emerald-50/90 md:text-lg md:leading-9">
+                Temukan kekayaan
+                budaya, kuliner lokal,
+                kesenian, kegiatan
+                masyarakat, dan
+                suasana pedesaan yang
+                tumbuh melalui
+                semangat kebersamaan
+                serta pelestarian
+                potensi lokal.
+              </p>
+
+              {/* CTA */}
+
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/desa-wisata/destinasi"
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-6 text-sm font-extrabold text-emerald-950 shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:bg-emerald-300"
+                >
+                  <Compass
+                    size={18}
+                  />
+
+                  Jelajahi Desa Keji
+                </Link>
+
+                <Link
+                  href="/desa-wisata/informasi-kunjungan"
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15"
+                >
+                  <MapPin
+                    size={18}
+                  />
+
+                  Rencanakan Kunjungan
+                </Link>
+              </div>
+
+              {/* Stats */}
+
+              <div className="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
+                <HeroStat
+                  value="3"
+                  label="Dusun"
                 />
 
-                Rencanakan Kunjungan
-              </Link>
+                <HeroStat
+                  value="Beragam"
+                  label="Budaya & Tradisi"
+                />
+
+                <HeroStat
+                  value="Lokal"
+                  label="Kuliner & UMKM"
+                />
+              </div>
             </div>
 
-            {/* Stats */}
+            {/* =================================================
+                RIGHT - LOGO DESA WISATA
+            ================================================= */}
 
-            <div className="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
-              <HeroStat
-                value="3"
-                label="Dusun"
-              />
+            <div className="flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-[430px]">
+                {/* Glow */}
 
-              <HeroStat
-                value="Beragam"
-                label="Budaya & Tradisi"
-              />
+                <div className="pointer-events-none absolute inset-10 rounded-full bg-emerald-300/20 blur-[80px]" />
 
-              <HeroStat
-                value="Lokal"
-                label="Kuliner & UMKM"
-              />
+                {/* Card */}
+
+                <div className="relative overflow-hidden rounded-[2.5rem] border border-white/15 bg-white/[0.08] p-6 shadow-[0_35px_90px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-7">
+                  {/* Pattern */}
+
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 opacity-[0.1]"
+                    style={{
+                      backgroundImage:
+                        'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
+
+                      backgroundSize:
+                        '23px 23px',
+                    }}
+                  />
+
+                  <div className="relative">
+                    {/* Logo */}
+
+                    <div className="mx-auto flex aspect-square max-w-[290px] items-center justify-center rounded-[2rem] border border-white/10 bg-black/10 p-4 sm:max-w-[310px] sm:p-5">
+                      <Image
+                        src={
+                          LOGO_DWK
+                        }
+                        alt="Logo Desa Wisata Keji"
+                        width={380}
+                        height={380}
+                        priority
+                        className="h-full w-full object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.28)]"
+                      />
+                    </div>
+
+                    {/* Identity */}
+
+                    <div className="mt-6 text-center">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-300">
+                        Identitas Desa
+                        Wisata
+                      </p>
+
+                      <h2 className="mt-2 text-2xl font-black text-white">
+                        Desa Wisata Keji
+                      </h2>
+
+                      <p className="mt-3 text-sm font-medium leading-6 text-emerald-50/70">
+                        Kekayaan alam,
+                        budaya,
+                        kesenian, dan
+                        kehidupan
+                        masyarakat
+                        dalam satu
+                        pengalaman desa
+                        wisata.
+                      </p>
+                    </div>
+
+                    {/* Instagram */}
+
+                    <a
+                      href={
+                        INSTAGRAM_DESA_WISATA
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group mt-6 flex min-h-12 items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 transition hover:bg-white/15"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-800">
+                          <InstagramIcon
+                            className="h-[18px] w-[18px]"
+                          />
+                        </div>
+
+                        <div className="min-w-0 text-left">
+                          <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-emerald-300">
+                            Instagram
+                          </p>
+
+                          <p className="truncate text-xs font-extrabold text-white">
+                            @desa.wisatakeji
+                          </p>
+                        </div>
+                      </div>
+
+                      <ArrowUpRight
+                        size={17}
+                        className="shrink-0 text-emerald-200 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      />
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -873,7 +1013,8 @@ export default async function DesaWisataPage() {
                       className="group bg-white p-6 transition hover:bg-emerald-50 md:p-7"
                     >
                       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-sm font-black text-emerald-700">
-                        {index + 1}
+                        {index +
+                          1}
                       </span>
 
                       <h3 className="mt-5 text-lg font-black text-slate-900">
@@ -915,9 +1056,7 @@ export default async function DesaWisataPage() {
                 index
               ) => (
                 <PotensiCard
-                  key={
-                    `${item.href}-${index}`
-                  }
+                  key={`${item.href}-${index}`}
                   item={
                     item
                   }
@@ -945,15 +1084,15 @@ export default async function DesaWisataPage() {
               </p>
 
               <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight md:text-4xl">
-                Budaya dan tradisi yang
-                membentuk identitas
-                Desa Keji
+                Budaya dan tradisi
+                yang membentuk
+                identitas Desa Keji
               </h2>
 
               <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-slate-300 md:text-base">
                 Tradisi dan kesenian
-                Desa Keji menjadi ruang
-                kebersamaan,
+                Desa Keji menjadi
+                ruang kebersamaan,
                 pelestarian nilai,
                 serta penguatan
                 identitas masyarakat.
@@ -1090,20 +1229,23 @@ export default async function DesaWisataPage() {
                 </p>
 
                 <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight md:text-4xl">
-                  Datang, mengenal, dan
-                  menjadi bagian dari
-                  cerita Desa Keji
+                  Datang, mengenal,
+                  dan menjadi bagian
+                  dari cerita Desa
+                  Keji
                 </h2>
 
                 <p className="mt-5 max-w-2xl text-sm font-medium leading-7 text-emerald-50/85 md:text-base">
                   Temukan informasi
                   lokasi, agenda,
-                  produk lokal, budaya,
-                  dan panduan sebelum
-                  berkunjung. Hormati
-                  kehidupan masyarakat
-                  serta jaga kebersihan
-                  selama berada di desa.
+                  produk lokal,
+                  budaya, dan panduan
+                  sebelum berkunjung.
+                  Hormati kehidupan
+                  masyarakat serta
+                  jaga kebersihan
+                  selama berada di
+                  desa.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -1115,7 +1257,8 @@ export default async function DesaWisataPage() {
                       size={17}
                     />
 
-                    Informasi Kunjungan
+                    Informasi
+                    Kunjungan
                   </Link>
 
                   <Link
@@ -1162,19 +1305,121 @@ export default async function DesaWisataPage() {
       </section>
 
       {/* =====================================================
+          INSTAGRAM DESA WISATA
+      ===================================================== */}
+
+      <section className="pb-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-sm">
+            <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
+              {/* LOGO */}
+
+              <div className="relative flex min-h-[340px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#052e24] via-emerald-900 to-emerald-700 p-8">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)',
+
+                    backgroundSize:
+                      '24px 24px',
+                  }}
+                />
+
+                <div className="pointer-events-none absolute inset-14 rounded-full bg-emerald-300/15 blur-[60px]" />
+
+                <Image
+                  src={
+                    LOGO_DWK
+                  }
+                  alt="Logo Desa Wisata Keji"
+                  width={300}
+                  height={300}
+                  className="relative h-[230px] w-[230px] object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.28)]"
+                />
+              </div>
+
+              {/* CONTENT */}
+
+              <div className="flex flex-col justify-center p-7 sm:p-9 lg:p-10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <InstagramIcon
+                    className="h-6 w-6"
+                  />
+                </div>
+
+                <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
+                  Instagram Resmi
+                </p>
+
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
+                  Ikuti perjalanan
+                  Desa Wisata Keji
+                </h2>
+
+                <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-slate-500 sm:text-base">
+                  Temukan dokumentasi
+                  kegiatan, budaya,
+                  destinasi, kuliner,
+                  kesenian, dan kabar
+                  terbaru Desa Wisata
+                  Keji melalui akun
+                  Instagram resmi.
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <a
+                    href={
+                      INSTAGRAM_DESA_WISATA
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+                  >
+                    <InstagramIcon
+                      className="h-[18px] w-[18px]"
+                    />
+
+                    @desa.wisatakeji
+
+                    <ArrowUpRight
+                      size={16}
+                      className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
+                  </a>
+
+                  <span className="text-xs font-semibold text-slate-400">
+                    Desa Wisata Keji ·
+                    Ungaran Barat
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
           PENUTUP
       ===================================================== */}
 
       <section className="border-t border-slate-200 bg-white py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-            <Leaf
-              size={30}
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 p-2">
+            <Image
+              src={
+                LOGO_DWK
+              }
+              alt="Logo Desa Wisata Keji"
+              width={100}
+              height={100}
+              className="h-full w-full object-contain"
             />
           </div>
 
           <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
-            Makarti Nyawiji
+            Desa Wisata Keji
           </p>
 
           <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
@@ -1183,9 +1428,10 @@ export default async function DesaWisataPage() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-500 md:text-base">
-            Nikmati suasana pedesaan,
-            kenali budaya masyarakat,
-            temukan kuliner lokal, dan
+            Nikmati suasana
+            pedesaan, kenali budaya
+            masyarakat, temukan
+            kuliner lokal, dan
             dukung pertumbuhan UMKM
             Desa Keji.
           </p>
@@ -1214,11 +1460,9 @@ function HeroStat({
   value,
   label,
 }: {
-  value:
-    string;
+  value: string;
 
-  label:
-    string;
+  label: string;
 }) {
   return (
     <article className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
@@ -1243,17 +1487,13 @@ function SectionHeading({
   description,
   compact = false,
 }: {
-  eyebrow:
-    string;
+  eyebrow: string;
 
-  title:
-    string;
+  title: string;
 
-  description:
-    string;
+  description: string;
 
-  compact?:
-    boolean;
+  compact?: boolean;
 }) {
   return (
     <div
@@ -1314,7 +1554,8 @@ function PotensiCard({
 
           <span className="text-xs font-black text-slate-300">
             {String(
-              index + 1
+              index +
+                1
             ).padStart(
               2,
               '0'
@@ -1384,7 +1625,8 @@ function BudayaCard({
 
           <span className="text-xs font-black text-white/20">
             {String(
-              index + 1
+              index +
+                1
             ).padStart(
               2,
               '0'
@@ -1561,5 +1803,53 @@ function VisitFeature({
         </div>
       </div>
     </article>
+  );
+}
+
+/* =========================================================
+   INSTAGRAM ICON
+========================================================= */
+
+function InstagramIcon({
+  className = '',
+}: {
+  className?:
+    string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={
+        className
+      }
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+
+      <circle
+        cx="12"
+        cy="12"
+        r="4"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+
+      <circle
+        cx="17.5"
+        cy="6.5"
+        r="1"
+        fill="currentColor"
+      />
+    </svg>
   );
 }

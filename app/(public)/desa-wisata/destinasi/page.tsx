@@ -1,8 +1,6 @@
 // app/(public)/desa-wisata/destinasi/page.tsx
 
-import type {
-  Metadata,
-} from 'next';
+import type { Metadata } from 'next';
 
 import Link from 'next/link';
 
@@ -18,7 +16,7 @@ import {
   Sparkles,
   Store,
   TreePine,
-  UsersRound,
+  UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -26,167 +24,158 @@ import {
    METADATA
 ========================================================= */
 
-export const metadata:
-  Metadata = {
+export const metadata: Metadata = {
   title:
     'Destinasi dan Potensi Desa Wisata Keji | SIJI',
 
   description:
-    'Jelajahi berbagai potensi wisata, budaya, kehidupan masyarakat, kuliner, dan daya tarik Desa Keji.',
+    'Jelajahi potensi alam, budaya, kesenian, kuliner, UMKM, dan destinasi wisata Desa Keji.',
 };
 
 /* =========================================================
    TYPES
 ========================================================= */
 
+interface DestinasiItem {
+  title: string;
+  category: string;
+  location?: string;
+  description: string;
+  imageUrl: string | null;
+  icon: LucideIcon;
+}
+
 interface PotensiItem {
   title: string;
-
   description: string;
-
-  icon: LucideIcon;
-
-  label: string;
-}
-
-interface DayaTarikItem {
-  title: string;
-
-  description: string;
-
+  imageUrl: string | null;
   icon: LucideIcon;
 }
 
 /* =========================================================
-   POTENSI
+   DESTINASI UTAMA
+
+   imageUrl sementara null.
+   Nanti dari admin → database → gambar_url.
 ========================================================= */
 
-const potensiDesa:
-  PotensiItem[] = [
-    {
-      title:
-        'Budaya dan Tradisi',
+const destinasiUtama: DestinasiItem[] = [
+  {
+    title:
+      'Sumber Mata Air Kemloso',
 
-      description:
-        'Desa Keji memiliki berbagai tradisi dan kegiatan masyarakat yang masih dijaga sebagai bagian dari identitas serta kehidupan sosial desa.',
+    category:
+      'Potensi Alam',
 
-      icon:
-        Landmark,
+    location:
+      'Dusun Suruhan',
 
-      label:
-        'Warisan Lokal',
-    },
+    imageUrl:
+      null,
 
-    {
-      title:
-        'Kesenian Masyarakat',
+    icon:
+      TreePine,
 
-      description:
-        'Berbagai bentuk kesenian tradisional menjadi ruang kreativitas masyarakat sekaligus bagian dari upaya pelestarian budaya lokal.',
+    description:
+      'Sumber Mata Air Kemloso merupakan salah satu sumber mata air penting di Desa Keji. Air dari sumber ini dimanfaatkan masyarakat sebagai jaringan air bersih untuk memenuhi kebutuhan sehari-hari. Air ditampung terlebih dahulu sebelum dialirkan melalui jaringan pipa ke masyarakat.',
+  },
 
-      icon:
-        Sparkles,
+  {
+    title:
+      'DWK Wono Sesaji',
 
-      label:
-        'Seni Desa',
-    },
+    category:
+      'Wisata Budaya',
 
-    {
-      title:
-        'Kuliner Lokal',
+    imageUrl:
+      null,
 
-      description:
-        'Kuliner khas dan produk olahan masyarakat memiliki potensi sebagai bagian dari pengalaman wisata sekaligus pengembangan ekonomi lokal.',
+    icon:
+      Landmark,
 
-      icon:
-        Store,
+    description:
+      'DWK Wono Sesaji merupakan kawasan yang memiliki nilai budaya dan menjadi salah satu ikon kebudayaan Desa Wisata Keji. Kawasan ini digunakan untuk berbagai kegiatan seni tradisional masyarakat, salah satunya kesenian Kuda Debog.',
+  },
 
-      label:
-        'Produk Lokal',
-    },
+  {
+    title:
+      'Sanggar Tari Budi Utomo',
 
-    {
-      title:
-        'Kehidupan Pedesaan',
+    category:
+      'Wisata Edukasi & Seni',
 
-      description:
-        'Suasana kehidupan masyarakat, kegiatan sehari-hari, serta lingkungan desa memberikan pengalaman yang dekat dengan karakter pedesaan.',
+    imageUrl:
+      null,
 
-      icon:
-        TreePine,
+    icon:
+      Sparkles,
 
-      label:
-        'Suasana Desa',
-    },
-
-    {
-      title:
-        'Kegiatan Masyarakat',
-
-      description:
-        'Kegiatan sosial, keagamaan, gotong royong, dan aktivitas warga menjadi bagian penting dari karakter serta kehidupan Desa Keji.',
-
-      icon:
-        UsersRound,
-
-      label:
-        'Masyarakat',
-    },
-
-    {
-      title:
-        'UMKM dan Ekonomi Kreatif',
-
-      description:
-        'Produk UMKM, kuliner, dan berbagai kegiatan usaha masyarakat memiliki potensi untuk berkembang sebagai pendukung aktivitas Desa Wisata Keji.',
-
-      icon:
-        HeartHandshake,
-
-      label:
-        'Ekonomi Desa',
-    },
-  ];
+    description:
+      'Sanggar Tari Budi Utomo menjadi salah satu ruang pelestarian seni tari di Desa Keji. Sanggar ini menjadi tempat generasi muda berlatih tari sekaligus memperkenalkan kesenian tradisional Desa Keji kepada masyarakat dan pengunjung.',
+  },
+];
 
 /* =========================================================
-   DAYA TARIK
+   POTENSI PENDUKUNG
 ========================================================= */
 
-const dayaTarik:
-  DayaTarikItem[] = [
-    {
-      title:
-        'Pengalaman Lokal',
+const potensiPendukung: PotensiItem[] = [
+  {
+    title:
+      'Budaya dan Tradisi',
 
-      description:
-        'Wisatawan dapat mengenal kehidupan masyarakat dan berbagai aktivitas lokal secara lebih dekat.',
+    description:
+      'Desa Keji memiliki tradisi yang masih dijaga masyarakat, di antaranya Iriban Banyu Kemloso dan peringatan Maulid Nabi.',
 
-      icon:
-        Leaf,
-    },
+    imageUrl:
+      null,
 
-    {
-      title:
-        'Budaya yang Hidup',
+    icon:
+      Landmark,
+  },
 
-      description:
-        'Tradisi, kesenian, dan kegiatan masyarakat menjadi bagian dari daya tarik yang terus berkembang.',
+  {
+    title:
+      'Kesenian Desa',
 
-      icon:
-        Landmark,
-    },
+    description:
+      'Kesenian yang masih dilestarikan antara lain Gamelan, Kuda Debog, dan Kuda Lumping sebagai bagian dari identitas budaya Desa Keji.',
 
-    {
-      title:
-        'Potensi yang Beragam',
+    imageUrl:
+      null,
 
-      description:
-        'Wisata, budaya, UMKM, kuliner, dan kehidupan desa dapat dikembangkan menjadi pengalaman yang saling terhubung.',
+    icon:
+      Sparkles,
+  },
 
-      icon:
-        Compass,
-    },
-  ];
+  {
+    title:
+      'Kuliner Tradisional',
+
+    description:
+      'Tetek Melek dan Pecel Gablok menjadi bagian dari kekayaan kuliner lokal yang dapat diperkenalkan sebagai identitas khas Desa Keji.',
+
+    imageUrl:
+      null,
+
+    icon:
+      UtensilsCrossed,
+  },
+
+  {
+    title:
+      'UMKM Masyarakat',
+
+    description:
+      'Desa Keji memiliki berbagai pelaku UMKM, antara lain usaha aneka keripik serta pengolahan susu sapi perah yang dipasarkan hingga luar wilayah desa.',
+
+    imageUrl:
+      null,
+
+    icon:
+      Store,
+  },
+];
 
 /* =========================================================
    PAGE
@@ -200,27 +189,21 @@ export default function DestinasiWisataPage() {
       ===================================================== */}
 
       <section className="relative isolate overflow-hidden bg-emerald-950 text-white">
-        {/* Background */}
-
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-45"
+          className="absolute inset-0 bg-cover bg-center opacity-40"
           style={{
             backgroundImage:
               "url('/background.png')",
           }}
         />
 
-        {/* Overlay */}
-
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/90 to-emerald-900/65" />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/90 to-emerald-800/55" />
 
         <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-transparent to-black/10" />
 
-        {/* Pattern */}
-
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          className="absolute inset-0 opacity-[0.13]"
           style={{
             backgroundImage:
               'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)',
@@ -230,39 +213,34 @@ export default function DestinasiWisataPage() {
           }}
         />
 
-        {/* Decoration */}
-
-        <div className="pointer-events-none absolute -right-32 -top-32 h-[440px] w-[440px] rounded-full border-[75px] border-white/[0.04]" />
-
-        {/* Content */}
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[430px] w-[430px] rounded-full border-[72px] border-white/[0.04]" />
 
         <div className="relative mx-auto flex min-h-[560px] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur">
-              <Compass
-                size={27}
-              />
+              <Compass size={27} />
             </div>
 
             <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-300">
               Desa Wisata Keji
             </p>
 
-            <h1 className="mt-3 max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Destinasi dan Potensi
+
               <span className="block text-emerald-300">
                 Desa Keji
               </span>
             </h1>
 
             <p className="mt-6 max-w-3xl text-sm font-medium leading-8 text-emerald-50/85 sm:text-base">
-              Jelajahi berbagai potensi
-              budaya, kehidupan
-              masyarakat, kuliner,
-              kesenian, UMKM, serta
-              suasana pedesaan yang
-              menjadi bagian dari
-              karakter Desa Keji.
+              Desa Keji memiliki
+              potensi alam, budaya,
+              kesenian, kuliner, serta
+              kegiatan masyarakat yang
+              dapat dikembangkan sebagai
+              bagian dari pengalaman
+              Desa Wisata Keji.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -270,20 +248,16 @@ export default function DestinasiWisataPage() {
                 href="/desa-wisata/informasi-kunjungan"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-400 px-6 text-sm font-extrabold text-emerald-950 transition hover:bg-emerald-300"
               >
-                <Route
-                  size={17}
-                />
+                <Route size={17} />
 
                 Informasi Kunjungan
               </Link>
 
               <Link
                 href="/desa-wisata/galeri"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/15"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white transition hover:bg-white/15"
               >
-                <Camera
-                  size={17}
-                />
+                <Camera size={17} />
 
                 Lihat Galeri
               </Link>
@@ -299,10 +273,8 @@ export default function DestinasiWisataPage() {
       <section className="relative z-10 -mt-14 pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-2xl shadow-slate-900/[0.08]">
-            <div className="grid lg:grid-cols-[0.85fr_1.15fr]">
-              {/* Left */}
-
-              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-7 text-white sm:p-8 lg:p-10">
+            <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 p-7 text-white sm:p-9">
                 <div
                   aria-hidden="true"
                   className="absolute inset-0 opacity-[0.13]"
@@ -316,53 +288,51 @@ export default function DestinasiWisataPage() {
                 />
 
                 <div className="relative">
-                  <MapPin
+                  <Leaf
                     size={30}
                     className="text-emerald-300"
                   />
 
                   <p className="mt-7 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-300">
-                    Tentang Desa Keji
+                    Potensi Desa
                   </p>
 
                   <h2 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
-                    Potensi wisata yang
-                    tumbuh bersama
-                    masyarakat
+                    Alam dan budaya
+                    menjadi bagian dari
+                    kehidupan masyarakat
                   </h2>
 
                   <p className="mt-5 text-sm font-medium leading-7 text-emerald-50/80">
-                    Pengembangan Desa
-                    Wisata Keji tidak
-                    hanya berorientasi
-                    pada lokasi wisata,
-                    tetapi juga pada
-                    budaya, aktivitas
-                    masyarakat,
-                    ekonomi lokal, dan
-                    pengalaman
-                    kehidupan desa.
+                    Berada di kawasan
+                    lereng Gunung
+                    Ungaran, Desa Keji
+                    memiliki lingkungan
+                    alam yang berpadu
+                    dengan budaya dan
+                    kehidupan masyarakat.
                   </p>
                 </div>
               </div>
 
-              {/* Right */}
-
               <div className="grid gap-px bg-slate-100 sm:grid-cols-3">
-                {dayaTarik.map(
-                  (
-                    item
-                  ) => (
-                    <DayaTarikCard
-                      key={
-                        item.title
-                      }
-                      item={
-                        item
-                      }
-                    />
-                  )
-                )}
+                <HighlightCard
+                  icon={TreePine}
+                  title="Potensi Alam"
+                  text="Sumber Mata Air Kemloso"
+                />
+
+                <HighlightCard
+                  icon={Landmark}
+                  title="Potensi Budaya"
+                  text="DWK Wono Sesaji"
+                />
+
+                <HighlightCard
+                  icon={Sparkles}
+                  title="Potensi Seni"
+                  text="Sanggar Tari Budi Utomo"
+                />
               </div>
             </div>
           </div>
@@ -370,53 +340,27 @@ export default function DestinasiWisataPage() {
       </section>
 
       {/* =====================================================
-          POTENSI DESA
+          DESTINASI + FOTO
       ===================================================== */}
 
       <section className="pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Heading */}
+          <SectionHeading
+            eyebrow="Daya Tarik Desa"
+            title="Potensi wisata alam dan budaya Desa Keji"
+            description="Beberapa lokasi dan ruang budaya memiliki peran penting dalam kehidupan masyarakat sekaligus berpotensi menjadi daya tarik wisata."
+          />
 
-          <div className="max-w-4xl">
-            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
-              Jelajahi Potensi
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-              Beragam potensi yang
-              membentuk pengalaman
-              Desa Keji
-            </h2>
-
-            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-slate-500 sm:text-base">
-              Desa Keji memiliki
-              berbagai potensi yang
-              dapat dikembangkan
-              secara berkelanjutan
-              sebagai bagian dari
-              pengalaman wisata
-              berbasis masyarakat.
-            </p>
-          </div>
-
-          {/* Cards */}
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {potensiDesa.map(
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {destinasiUtama.map(
               (
                 item,
                 index
               ) => (
-                <PotensiCard
-                  key={
-                    item.title
-                  }
-                  item={
-                    item
-                  }
-                  index={
-                    index
-                  }
+                <DestinasiCard
+                  key={item.title}
+                  item={item}
+                  index={index}
                 />
               )
             )}
@@ -425,81 +369,102 @@ export default function DestinasiWisataPage() {
       </section>
 
       {/* =====================================================
-          DESA BERBASIS MASYARAKAT
+          KEMLOSO FEATURE + FOTO BESAR
       ===================================================== */}
 
       <section className="bg-slate-900 py-24 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
-            {/* Text */}
+          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <WisataImage
+              src={
+                destinasiUtama[0]
+                  .imageUrl
+              }
+              alt="Sumber Mata Air Kemloso"
+              ratioClass="aspect-[4/3]"
+              dark
+            />
 
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-400">
-                Wisata Berbasis
-                Masyarakat
+                Potensi Alam
               </p>
 
-              <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">
-                Masyarakat menjadi
-                bagian utama dalam
-                pengembangan Desa
-                Wisata Keji
+              <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
+                Sumber Mata Air Kemloso
               </h2>
 
-              <p className="mt-5 max-w-3xl text-sm font-medium leading-7 text-slate-300 sm:text-base">
-                Pengembangan potensi
-                desa diarahkan agar
-                dapat melibatkan
-                masyarakat secara
-                langsung, memperkuat
-                ekonomi lokal,
-                melestarikan budaya,
-                serta memberikan
-                pengalaman yang
-                berkesan bagi
-                wisatawan.
+              <p className="mt-5 text-sm font-medium leading-8 text-slate-300 sm:text-base">
+                Sumber Mata Air Kemloso
+                berada di Dusun Suruhan
+                dan digunakan masyarakat
+                Desa Keji sebagai sumber
+                air bersih. Air
+                ditampung kemudian
+                dialirkan menggunakan
+                jaringan pipa untuk
+                memenuhi kebutuhan
+                sehari-hari warga.
               </p>
+
+              <p className="mt-4 text-sm font-medium leading-8 text-slate-300 sm:text-base">
+                Lingkungan di sekitar
+                sumber mata air
+                dikelilingi pepohonan
+                dan kawasan persawahan.
+                Sumber ini juga memiliki
+                hubungan erat dengan
+                tradisi Iriban Banyu
+                Kemloso.
+              </p>
+
+              <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <SmallInfo
+                  title="Lokasi"
+                  value="Dusun Suruhan"
+                />
+
+                <SmallInfo
+                  title="Fungsi"
+                  value="Sumber Air Bersih"
+                />
+              </div>
 
               <Link
                 href="/desa-wisata/budaya-tradisi"
                 className="mt-8 inline-flex items-center gap-2 text-sm font-extrabold text-emerald-400 transition hover:text-emerald-300"
               >
-                Jelajahi Budaya &
-                Tradisi
+                Mengenal Iriban Banyu
+                Kemloso
 
-                <ArrowRight
-                  size={17}
-                />
+                <ArrowRight size={17} />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Features */}
+      {/* =====================================================
+          POTENSI PENDUKUNG + FOTO
+      ===================================================== */}
 
-            <div className="space-y-3">
-              <FeatureDark
-                icon={
-                  UsersRound
-                }
-                title="Melibatkan Masyarakat"
-                description="Pengembangan wisata diarahkan agar dapat memberikan ruang partisipasi bagi masyarakat desa."
-              />
+      <section className="py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="Potensi Pendukung"
+            title="Potensi yang saling melengkapi"
+            description="Budaya, kesenian, kuliner, dan kegiatan ekonomi masyarakat mendukung pengembangan Desa Wisata Keji secara terpadu."
+          />
 
-              <FeatureDark
-                icon={
-                  HeartHandshake
-                }
-                title="Mendukung Ekonomi Lokal"
-                description="Produk UMKM, kuliner, dan usaha masyarakat menjadi bagian dari pengembangan potensi desa."
-              />
-
-              <FeatureDark
-                icon={
-                  Leaf
-                }
-                title="Menjaga Identitas Desa"
-                description="Budaya, tradisi, dan karakter lingkungan tetap menjadi dasar pengembangan Desa Wisata Keji."
-              />
-            </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {potensiPendukung.map(
+              (item) => (
+                <PotensiCard
+                  key={item.title}
+                  item={item}
+                />
+              )
+            )}
           </div>
         </div>
       </section>
@@ -508,12 +473,12 @@ export default function DestinasiWisataPage() {
           CTA
       ===================================================== */}
 
-      <section className="py-24">
+      <section className="pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-2xl sm:p-9 lg:p-12">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-xl sm:p-9 lg:p-12">
             <div
               aria-hidden="true"
-              className="absolute inset-0 opacity-[0.13]"
+              className="absolute inset-0 opacity-[0.12]"
               style={{
                 backgroundImage:
                   'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)',
@@ -523,53 +488,34 @@ export default function DestinasiWisataPage() {
               }}
             />
 
-            <div className="pointer-events-none absolute -right-28 -top-28 h-80 w-80 rounded-full border-[55px] border-white/[0.04]" />
-
-            <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
-                  Rencanakan Kunjungan
+                  Jelajahi Desa Keji
                 </p>
 
-                <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">
-                  Kenali Desa Keji
-                  secara lebih dekat
+                <h2 className="mt-3 text-3xl font-black">
+                  Kenali potensi Desa
+                  Keji lebih dekat
                 </h2>
 
                 <p className="mt-4 max-w-2xl text-sm font-medium leading-7 text-emerald-50/80">
-                  Temukan paket wisata,
-                  informasi kunjungan,
-                  budaya, kuliner, dan
-                  berbagai pengalaman
-                  yang dapat dinikmati
-                  ketika berkunjung ke
-                  Desa Keji.
+                  Temukan budaya,
+                  kuliner, kegiatan,
+                  dan pengalaman yang
+                  menjadi bagian dari
+                  Desa Wisata Keji.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Link
-                  href="/desa-wisata/paket-wisata"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
-                >
-                  Lihat Paket Wisata
+              <Link
+                href="/desa-wisata/paket-wisata"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-extrabold text-emerald-900"
+              >
+                Lihat Paket Wisata
 
-                  <ArrowRight
-                    size={16}
-                  />
-                </Link>
-
-                <Link
-                  href="/desa-wisata/informasi-kunjungan"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-extrabold text-white transition hover:bg-white/15"
-                >
-                  <MapPin
-                    size={16}
-                  />
-
-                  Informasi Kunjungan
-                </Link>
-              </div>
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </div>
@@ -579,148 +525,241 @@ export default function DestinasiWisataPage() {
 }
 
 /* =========================================================
-   DAYA TARIK CARD
+   COMPONENTS
 ========================================================= */
 
-function DayaTarikCard({
-  item,
-}: {
-  item:
-    DayaTarikItem;
-}) {
-  const Icon =
-    item.icon;
-
-  return (
-    <article className="bg-white p-6 transition hover:bg-emerald-50 sm:p-7">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-        <Icon
-          size={21}
-        />
-      </div>
-
-      <h3 className="mt-5 text-lg font-black text-slate-900">
-        {
-          item.title
-        }
-      </h3>
-
-      <p className="mt-3 text-sm font-medium leading-7 text-slate-500">
-        {
-          item.description
-        }
-      </p>
-    </article>
-  );
-}
-
-/* =========================================================
-   POTENSI CARD
-========================================================= */
-
-function PotensiCard({
-  item,
-  index,
-}: {
-  item:
-    PotensiItem;
-
-  index:
-    number;
-}) {
-  const Icon =
-    item.icon;
-
-  return (
-    <article className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
-      {/* Decoration */}
-
-      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-100/70 transition duration-500 group-hover:scale-125" />
-
-      {/* Header */}
-
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
-          <Icon
-            size={24}
-          />
-        </div>
-
-        <span className="text-xs font-black text-slate-300">
-          {String(
-            index +
-              1
-          ).padStart(
-            2,
-            '0'
-          )}
-        </span>
-      </div>
-
-      {/* Content */}
-
-      <div className="relative mt-6 flex flex-1 flex-col">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-          {
-            item.label
-          }
-        </p>
-
-        <h3 className="mt-2 text-xl font-black leading-7 text-slate-900">
-          {
-            item.title
-          }
-        </h3>
-
-        <p className="mt-3 flex-1 text-sm font-medium leading-7 text-slate-500">
-          {
-            item.description
-          }
-        </p>
-      </div>
-    </article>
-  );
-}
-
-/* =========================================================
-   FEATURE DARK
-========================================================= */
-
-function FeatureDark({
-  icon: Icon,
+function SectionHeading({
+  eyebrow,
   title,
   description,
 }: {
-  icon:
-    LucideIcon;
-
-  title:
-    string;
-
-  description:
-    string;
+  eyebrow: string;
+  title: string;
+  description: string;
 }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur">
-      <div className="flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300">
-          <Icon
-            size={21}
-          />
+    <div className="max-w-4xl">
+      <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-700">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+        {title}
+      </h2>
+
+      <p className="mt-4 text-sm font-medium leading-7 text-slate-500 sm:text-base">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function WisataImage({
+  src,
+  alt,
+  ratioClass =
+    'aspect-[16/10]',
+  dark = false,
+}: {
+  src: string | null;
+  alt: string;
+  ratioClass?: string;
+  dark?: boolean;
+}) {
+  if (src) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-3xl ${ratioClass}`}
+      >
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex ${ratioClass} items-center justify-center overflow-hidden rounded-3xl border ${
+        dark
+          ? 'border-white/10 bg-white/[0.05]'
+          : 'border-emerald-100 bg-gradient-to-br from-emerald-50 to-white'
+      }`}
+    >
+      <div className="px-6 text-center">
+        <div
+          className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+            dark
+              ? 'bg-emerald-400/15 text-emerald-300'
+              : 'bg-emerald-100 text-emerald-700'
+          }`}
+        >
+          <Camera size={25} />
         </div>
 
-        <div>
-          <h3 className="font-black text-white">
-            {title}
+        <p
+          className={`mt-4 text-xs font-extrabold ${
+            dark
+              ? 'text-slate-300'
+              : 'text-emerald-800'
+          }`}
+        >
+          Foto {alt}
+        </p>
+
+        <p
+          className={`mt-1 text-[10px] font-medium ${
+            dark
+              ? 'text-slate-500'
+              : 'text-slate-400'
+          }`}
+        >
+          Dapat ditambahkan melalui
+          halaman admin
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DestinasiCard({
+  item,
+  index,
+}: {
+  item: DestinasiItem;
+  index: number;
+}) {
+  const Icon =
+    item.icon;
+
+  return (
+    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+      <WisataImage
+        src={item.imageUrl}
+        alt={item.title}
+        ratioClass="aspect-[16/10]"
+      />
+
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+            <Icon size={21} />
+          </div>
+
+          <span className="text-xs font-black text-slate-300">
+            {String(
+              index + 1
+            ).padStart(
+              2,
+              '0'
+            )}
+          </span>
+        </div>
+
+        <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+          {item.category}
+        </p>
+
+        <h3 className="mt-2 text-xl font-black text-slate-900">
+          {item.title}
+        </h3>
+
+        {item.location && (
+          <div className="mt-3 flex items-center gap-2 text-xs font-bold text-emerald-700">
+            <MapPin size={14} />
+
+            {item.location}
+          </div>
+        )}
+
+        <p className="mt-4 text-sm font-medium leading-7 text-slate-500">
+          {item.description}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function PotensiCard({
+  item,
+}: {
+  item: PotensiItem;
+}) {
+  const Icon =
+    item.icon;
+
+  return (
+    <article className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+      <div className="grid sm:grid-cols-[180px_minmax(0,1fr)]">
+        <WisataImage
+          src={item.imageUrl}
+          alt={item.title}
+          ratioClass="min-h-[180px]"
+        />
+
+        <div className="p-6">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+            <Icon size={21} />
+          </div>
+
+          <h3 className="mt-4 text-lg font-black text-slate-900">
+            {item.title}
           </h3>
 
-          <p className="mt-2 text-xs font-medium leading-6 text-slate-300">
-            {
-              description
-            }
+          <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
+            {item.description}
           </p>
         </div>
       </div>
     </article>
+  );
+}
+
+function HighlightCard({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+}) {
+  return (
+    <article className="bg-white p-6 transition hover:bg-emerald-50 sm:p-7">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+        <Icon size={21} />
+      </div>
+
+      <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+        {title}
+      </p>
+
+      <h3 className="mt-2 font-black text-slate-900">
+        {text}
+      </h3>
+    </article>
+  );
+}
+
+function SmallInfo({
+  title,
+  value,
+}: {
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
+      <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">
+        {title}
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-white">
+        {value}
+      </p>
+    </div>
   );
 }

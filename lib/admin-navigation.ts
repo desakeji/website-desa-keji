@@ -8,6 +8,7 @@ import {
   FileText,
   Hammer,
   Home,
+  Recycle,
   Images,
   Info,
   Landmark,
@@ -448,6 +449,48 @@ export const publicContentModules: AdminNavigationItem[] = [
 
     enabled: true,
   },
+  {
+  id: 'pertanahan',
+
+  label: 'Data Pertanahan',
+
+  description:
+    'Kelola informasi penggunaan lahan, luas tanah, jumlah bidang, sumber data, dan informasi pertanahan Desa Keji.',
+
+  href:
+    '/admin/pertanahan',
+
+  publicHref:
+    '/data-desa/pertanahan',
+
+  icon:
+    Map,
+
+  enabled:
+    true,
+},
+
+{
+  id: 'pengelolaan-sampah',
+
+  label:
+    'Pengelolaan Sampah',
+
+  description:
+    'Kelola lokasi TPS, pengepul, tautan Google Maps, keterangan, urutan, dan status lokasi pengelolaan sampah.',
+
+  href:
+    '/admin/pengelolaan-sampah',
+
+  publicHref:
+    '/pengelolaan-sampah',
+
+  icon:
+    Recycle,
+
+  enabled:
+    true,
+},
 ];
 
 function getPublicModule(id: string): AdminNavigationItem {
@@ -506,24 +549,44 @@ export const adminMenuGroups: AdminNavigationGroup[] = [
   },
 
   {
-    label: 'Data dan Pemerintahan',
+  label: 'Data dan Pemerintahan',
 
-    items: [
-      getPublicModule('profil'),
+  items: [
+    getPublicModule(
+      'profil'
+    ),
 
-      getPublicModule('pemerintahan'),
+    getPublicModule(
+      'pemerintahan'
+    ),
 
-      getPublicModule('tilik-arkeji'),
+    getPublicModule(
+      'tilik-arkeji'
+    ),
 
-      getPublicModule('data-desa'),
+    getPublicModule(
+      'data-desa'
+    ),
 
-      sdgsMenu,
+    getPublicModule(
+      'pertanahan'
+    ),
 
-      getPublicModule('peta'),
+    getPublicModule(
+      'pengelolaan-sampah'
+    ),
 
-      getPublicModule('kontak'),
-    ],
-  },
+    sdgsMenu,
+
+    getPublicModule(
+      'peta'
+    ),
+
+    getPublicModule(
+      'kontak'
+    ),
+  ],
+},
 
   {
     label: 'Program dan Potensi',

@@ -1,6 +1,8 @@
 // app/admin/permohonan/page.tsx
 
-import { createHmac } from 'node:crypto';
+import {
+  createHmac,
+} from 'node:crypto';
 
 import Link from 'next/link';
 
@@ -37,12 +39,26 @@ import {
   ubahStatusPermohonan,
 } from './actions';
 
+/* =========================================================
+   CONFIG
+========================================================= */
+
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
-const ITEM_PER_PAGE = 15;
+/*
+ * Maksimal 20 baris
+ * dalam satu halaman.
+ */
+const ITEM_PER_PAGE =
+  20;
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type StatusPermohonan =
   | 'Menunggu'
@@ -51,67 +67,111 @@ type StatusPermohonan =
   | 'Ditolak';
 
 interface PageProps {
-  searchParams: Promise<{
-    q?: string;
-    status?: string;
-    layanan?: string;
-    page?: string;
-  }>;
+  searchParams:
+    Promise<{
+      q?: string;
+
+      status?: string;
+
+      layanan?: string;
+
+      page?: string;
+    }>;
 }
 
 interface PermohonanDatabase {
   id: number;
+
   warga_nik: string;
+
   layanan_id: number;
+
   no_wa: string;
+
   status: string;
+
   created_at: string;
 }
 
 interface WargaDatabase {
   nik_hash: string;
+
   nama_lengkap: string;
-  dusun: string | null;
-  rw: string | null;
-  rt: string | null;
+
+  dusun:
+    | string
+    | null;
+
+  rw:
+    | string
+    | null;
+
+  rt:
+    | string
+    | null;
 }
 
 interface LayananDatabase {
   id: number;
+
   nama: string;
 }
 
 interface PermohonanView {
   id: number;
+
   namaPemohon: string;
+
   nikLast4: string;
+
   wilayah: string;
+
   layananId: number;
+
   layanan: string;
+
   noWa: string;
-  status: StatusPermohonan;
+
+  status:
+    StatusPermohonan;
+
   createdAt: string;
 }
 
 interface StatistikItem {
   label: string;
+
   value: number;
+
   description: string;
+
   icon: LucideIcon;
+
   className: string;
 }
 
+/* =========================================================
+   PAGE HELPERS
+========================================================= */
+
 function parsePage(
-  value: string | undefined
+  value:
+    | string
+    | undefined
 ) {
-  const parsed = Number.parseInt(
-    value ?? '1',
-    10
-  );
+  const parsed =
+    Number.parseInt(
+      value ??
+        '1',
+      10
+    );
 
   if (
-    !Number.isFinite(parsed) ||
-    parsed < 1
+    !Number.isFinite(
+      parsed
+    ) ||
+    parsed <
+      1
   ) {
     return 1;
   }
@@ -123,8 +183,14 @@ function normalisasiNik(
   value: string
 ) {
   return value
-    .replace(/\D/g, '')
-    .slice(0, 16);
+    .replace(
+      /\D/g,
+      ''
+    )
+    .slice(
+      0,
+      16
+    );
 }
 
 function hashNik(
@@ -135,26 +201,41 @@ function hashNik(
     'sha256',
     secret
   )
-    .update(nik)
-    .digest('hex');
+    .update(
+      nik
+    )
+    .digest(
+      'hex'
+    );
 }
 
 function normalisasiStatus(
   value: string
-): StatusPermohonan {
-  const normalized = value
-    .trim()
-    .toLowerCase();
+):
+  StatusPermohonan {
+  const normalized =
+    value
+      .trim()
+      .toLowerCase();
 
-  if (normalized === 'diproses') {
+  if (
+    normalized ===
+    'diproses'
+  ) {
     return 'Diproses';
   }
 
-  if (normalized === 'selesai') {
+  if (
+    normalized ===
+    'selesai'
+  ) {
     return 'Selesai';
   }
 
-  if (normalized === 'ditolak') {
+  if (
+    normalized ===
+    'ditolak'
+  ) {
     return 'Ditolak';
   }
 
@@ -164,7 +245,10 @@ function normalisasiStatus(
 function formatTanggal(
   value: string
 ) {
-  const date = new Date(value);
+  const date =
+    new Date(
+      value
+    );
 
   if (
     Number.isNaN(
@@ -177,31 +261,50 @@ function formatTanggal(
   return new Intl.DateTimeFormat(
     'id-ID',
     {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      day:
+        '2-digit',
+
+      month:
+        'short',
+
+      year:
+        'numeric',
+
+      hour:
+        '2-digit',
+
+      minute:
+        '2-digit',
+
       timeZone:
         'Asia/Jakarta',
     }
-  ).format(date);
+  ).format(
+    date
+  );
 }
 
 function formatNomorWhatsApp(
   value: string
 ) {
   const digits =
-    value.replace(/\D/g, '');
+    value.replace(
+      /\D/g,
+      ''
+    );
 
   if (
-    digits.startsWith('0')
+    digits.startsWith(
+      '0'
+    )
   ) {
     return `62${digits.slice(1)}`;
   }
 
   if (
-    digits.startsWith('8')
+    digits.startsWith(
+      '8'
+    )
   ) {
     return `62${digits}`;
   }
@@ -220,24 +323,36 @@ function formatWilayah(
 
   const wilayah = [
     warga.dusun,
+
     warga.rt
       ? `RT ${warga.rt}`
       : null,
+
     warga.rw
       ? `RW ${warga.rw}`
       : null,
-  ].filter(Boolean);
+  ].filter(
+    Boolean
+  );
 
   return (
-    wilayah.join(' · ') ||
+    wilayah.join(
+      ' · '
+    ) ||
     'Wilayah belum dilengkapi'
   );
 }
 
+/* =========================================================
+   PAGINATION URL
+========================================================= */
+
 function buildPageUrl(
   current: {
     q: string;
+
     status: string;
+
     layanan: string;
   },
   page: number
@@ -245,7 +360,9 @@ function buildPageUrl(
   const params =
     new URLSearchParams();
 
-  if (current.q) {
+  if (
+    current.q
+  ) {
     params.set(
       'q',
       current.q
@@ -254,7 +371,8 @@ function buildPageUrl(
 
   if (
     current.status &&
-    current.status !== 'semua'
+    current.status !==
+      'semua'
   ) {
     params.set(
       'status',
@@ -262,7 +380,9 @@ function buildPageUrl(
     );
   }
 
-  if (current.layanan) {
+  if (
+    current.layanan
+  ) {
     params.set(
       'layanan',
       current.layanan
@@ -271,11 +391,114 @@ function buildPageUrl(
 
   params.set(
     'page',
-    String(page)
+    String(
+      page
+    )
   );
 
   return `/admin/permohonan?${params.toString()}`;
 }
+
+/* =========================================================
+   PAGE NUMBERS
+========================================================= */
+
+function getPageNumbers(
+  currentPage: number,
+  totalPages: number
+) {
+  if (
+    totalPages <=
+    7
+  ) {
+    return Array.from(
+      {
+        length:
+          totalPages,
+      },
+      (
+        _,
+        index
+      ) =>
+        index +
+        1
+    );
+  }
+
+  const pages =
+    new Set<
+      number
+    >([
+      1,
+      totalPages,
+      currentPage,
+      currentPage - 1,
+      currentPage + 1,
+    ]);
+
+  if (
+    currentPage <=
+    3
+  ) {
+    pages.add(
+      2
+    );
+
+    pages.add(
+      3
+    );
+
+    pages.add(
+      4
+    );
+  }
+
+  if (
+    currentPage >=
+    totalPages -
+      2
+  ) {
+    pages.add(
+      totalPages -
+        1
+    );
+
+    pages.add(
+      totalPages -
+        2
+    );
+
+    pages.add(
+      totalPages -
+        3
+    );
+  }
+
+  return Array.from(
+    pages
+  )
+    .filter(
+      (
+        page
+      ) =>
+        page >=
+          1 &&
+        page <=
+          totalPages
+    )
+    .sort(
+      (
+        a,
+        b
+      ) =>
+        a -
+        b
+    );
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default async function AdminPermohonanPage({
   searchParams,
@@ -283,87 +506,146 @@ export default async function AdminPermohonanPage({
   const params =
     await searchParams;
 
-  const q = String(
-    params.q ?? ''
-  )
-    .trim()
-    .toLowerCase();
+  /* =======================================================
+     PARAMETER
+  ======================================================= */
 
-  const statusFilter = String(
-    params.status ?? 'semua'
-  ).toLowerCase();
+  const q =
+    String(
+      params.q ??
+        ''
+    )
+      .trim()
+      .toLowerCase();
 
-  const layananFilter = String(
-    params.layanan ?? ''
-  );
+  const statusFilter =
+    String(
+      params.status ??
+        'semua'
+    ).toLowerCase();
+
+  const layananFilter =
+    String(
+      params.layanan ??
+        ''
+    );
 
   const currentPage =
-    parsePage(params.page);
+    parsePage(
+      params.page
+    );
 
-  /*
-   * Ambil data dari tabel yang sama
-   * dengan API publik, yaitu permohonan.
-   */
+  /* =======================================================
+     FETCH
+  ======================================================= */
+
   const [
     permohonanResult,
     layananResult,
-  ] = await Promise.all([
-    supabaseAdmin
-      .from('permohonan')
-      .select(`
-        id,
-        warga_nik,
-        layanan_id,
-        no_wa,
-        status,
-        created_at
-      `)
-      .order('created_at', {
-        ascending: false,
-      }),
+  ] =
+    await Promise.all([
+      supabaseAdmin
+        .from(
+          'permohonan'
+        )
+        .select(`
+          id,
+          warga_nik,
+          layanan_id,
+          no_wa,
+          status,
+          created_at
+        `)
+        .order(
+          'created_at',
+          {
+            ascending:
+              false,
+          }
+        ),
 
-    supabaseAdmin
-      .from('layanan')
-      .select(`
-        id,
-        nama
-      `)
-      .order('urutan', {
-        ascending: true,
-      })
-      .order('nama', {
-        ascending: true,
-      }),
-  ]);
+      supabaseAdmin
+        .from(
+          'layanan'
+        )
+        .select(`
+          id,
+          nama
+        `)
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
+          }
+        )
+        .order(
+          'nama',
+          {
+            ascending:
+              true,
+          }
+        ),
+    ]);
 
-  if (permohonanResult.error) {
+  /* =======================================================
+     ERROR
+  ======================================================= */
+
+  if (
+    permohonanResult.error
+  ) {
     console.error(
       'Gagal mengambil data permohonan:',
       {
         message:
-          permohonanResult.error.message,
+          permohonanResult
+            .error
+            .message,
+
         code:
-          permohonanResult.error.code,
+          permohonanResult
+            .error
+            .code,
+
         details:
-          permohonanResult.error.details,
+          permohonanResult
+            .error
+            .details,
+
         hint:
-          permohonanResult.error.hint,
+          permohonanResult
+            .error
+            .hint,
       }
     );
   }
 
-  if (layananResult.error) {
+  if (
+    layananResult.error
+  ) {
     console.error(
       'Gagal mengambil daftar layanan:',
       {
         message:
-          layananResult.error.message,
+          layananResult
+            .error
+            .message,
+
         code:
-          layananResult.error.code,
+          layananResult
+            .error
+            .code,
+
         details:
-          layananResult.error.details,
+          layananResult
+            .error
+            .details,
+
         hint:
-          layananResult.error.hint,
+          layananResult
+            .error
+            .hint,
       }
     );
   }
@@ -380,36 +662,42 @@ export default async function AdminPermohonanPage({
       []
     ) as LayananDatabase[];
 
-  /*
-   * Tabel permohonan menyimpan NIK mentah,
-   * sedangkan tabel warga menyimpan nik_hash.
-   *
-   * NIK permohonan diubah menjadi hash agar
-   * dapat dicocokkan dengan data warga.
-   */
+  /* =======================================================
+     HASH NIK
+  ======================================================= */
+
   const secret =
-    process.env.NIK_HASH_SECRET;
+    process.env
+      .NIK_HASH_SECRET;
 
   const nikHashMap =
-    new Map<string, string>();
+    new Map<
+      string,
+      string
+    >();
 
   if (
     !secret ||
-    secret.length < 32
+    secret.length <
+      32
   ) {
     console.error(
       'NIK_HASH_SECRET belum tersedia atau kurang dari 32 karakter.'
     );
   } else {
     permohonanRows.forEach(
-      (item) => {
+      (
+        item
+      ) => {
         const nik =
           normalisasiNik(
             item.warga_nik
           );
 
         if (
-          /^\d{16}$/.test(nik)
+          /^\d{16}$/.test(
+            nik
+          )
         ) {
           nikHashMap.set(
             nik,
@@ -431,15 +719,22 @@ export default async function AdminPermohonanPage({
     ),
   ];
 
+  /* =======================================================
+     WARGA
+  ======================================================= */
+
   let wargaRows:
     WargaDatabase[] = [];
 
   if (
-    daftarNikHash.length > 0
+    daftarNikHash.length >
+    0
   ) {
     const wargaResult =
       await supabaseAdmin
-        .from('warga')
+        .from(
+          'warga'
+        )
         .select(`
           nik_hash,
           nama_lengkap,
@@ -452,18 +747,31 @@ export default async function AdminPermohonanPage({
           daftarNikHash
         );
 
-    if (wargaResult.error) {
+    if (
+      wargaResult.error
+    ) {
       console.error(
         'Gagal mengambil data warga pemohon:',
         {
           message:
-            wargaResult.error.message,
+            wargaResult
+              .error
+              .message,
+
           code:
-            wargaResult.error.code,
+            wargaResult
+              .error
+              .code,
+
           details:
-            wargaResult.error.details,
+            wargaResult
+              .error
+              .details,
+
           hint:
-            wargaResult.error.hint,
+            wargaResult
+              .error
+              .hint,
         }
       );
     } else {
@@ -475,10 +783,16 @@ export default async function AdminPermohonanPage({
     }
   }
 
+  /* =======================================================
+     MAP
+  ======================================================= */
+
   const wargaMap =
     new Map(
       wargaRows.map(
-        (warga) => [
+        (
+          warga
+        ) => [
           warga.nik_hash,
           warga,
         ]
@@ -488,7 +802,9 @@ export default async function AdminPermohonanPage({
   const layananMap =
     new Map(
       daftarLayanan.map(
-        (layanan) => [
+        (
+          layanan
+        ) => [
           Number(
             layanan.id
           ),
@@ -497,41 +813,55 @@ export default async function AdminPermohonanPage({
       )
     );
 
-  /*
-   * Gabungkan data permohonan,
-   * warga, dan layanan.
-   */
+  /* =======================================================
+     NORMALIZE
+  ======================================================= */
+
   const seluruhPermohonan:
     PermohonanView[] =
     permohonanRows.map(
-      (item) => {
+      (
+        item
+      ) => {
         const nik =
           normalisasiNik(
             item.warga_nik
           );
 
         const nikHash =
-          nikHashMap.get(nik) ??
+          nikHashMap.get(
+            nik
+          ) ??
           '';
 
         const warga =
-          wargaMap.get(nikHash);
+          wargaMap.get(
+            nikHash
+          );
 
         return {
           id:
-            Number(item.id),
+            Number(
+              item.id
+            ),
 
           namaPemohon:
-            warga?.nama_lengkap ??
+            warga
+              ?.nama_lengkap ??
             'Warga tidak ditemukan',
 
           nikLast4:
-            nik.length >= 4
-              ? nik.slice(-4)
+            nik.length >=
+            4
+              ? nik.slice(
+                  -4
+                )
               : '----',
 
           wilayah:
-            formatWilayah(warga),
+            formatWilayah(
+              warga
+            ),
 
           layananId:
             Number(
@@ -563,61 +893,81 @@ export default async function AdminPermohonanPage({
       }
     );
 
-  /*
-   * Statistik dihitung dari semua data,
-   * sebelum filter diterapkan.
-   */
+  /* =======================================================
+     STATISTIK
+  ======================================================= */
+
   const totalPermohonan =
     seluruhPermohonan.length;
 
   const totalMenunggu =
     seluruhPermohonan.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.status ===
         'Menunggu'
     ).length;
 
   const totalDiproses =
     seluruhPermohonan.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.status ===
         'Diproses'
     ).length;
 
   const totalSelesai =
     seluruhPermohonan.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.status ===
         'Selesai'
     ).length;
 
   const totalDitolak =
     seluruhPermohonan.filter(
-      (item) =>
+      (
+        item
+      ) =>
         item.status ===
         'Ditolak'
     ).length;
 
-  /*
-   * Filter pencarian, status, dan layanan.
-   */
+  /* =======================================================
+     FILTER
+  ======================================================= */
+
   const permohonanFiltered =
     seluruhPermohonan.filter(
-      (item) => {
+      (
+        item
+      ) => {
         const cocokPencarian =
           !q ||
           item.namaPemohon
             .toLowerCase()
-            .includes(q) ||
+            .includes(
+              q
+            ) ||
           item.noWa
             .toLowerCase()
-            .includes(q) ||
+            .includes(
+              q
+            ) ||
           item.nikLast4.includes(
-            q.replace(/\D/g, '')
+            q.replace(
+              /\D/g,
+              ''
+            )
           ) ||
           item.layanan
             .toLowerCase()
-            .includes(q);
+            .includes(
+              q
+            );
 
         const cocokStatus =
           statusFilter ===
@@ -630,7 +980,8 @@ export default async function AdminPermohonanPage({
           !layananFilter ||
           String(
             item.layananId
-          ) === layananFilter;
+          ) ===
+            layananFilter;
 
         return (
           cocokPencarian &&
@@ -640,16 +991,21 @@ export default async function AdminPermohonanPage({
       }
     );
 
+  /* =======================================================
+     PAGINATION 20 PER PAGE
+  ======================================================= */
+
   const totalFiltered =
     permohonanFiltered.length;
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      totalFiltered /
-        ITEM_PER_PAGE
-    )
-  );
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        totalFiltered /
+          ITEM_PER_PAGE
+      )
+    );
 
   const safeCurrentPage =
     Math.min(
@@ -658,11 +1014,15 @@ export default async function AdminPermohonanPage({
     );
 
   const from =
-    (safeCurrentPage - 1) *
+    (
+      safeCurrentPage -
+      1
+    ) *
     ITEM_PER_PAGE;
 
   const to =
-    from + ITEM_PER_PAGE;
+    from +
+    ITEM_PER_PAGE;
 
   const permohonan =
     permohonanFiltered.slice(
@@ -670,61 +1030,111 @@ export default async function AdminPermohonanPage({
       to
     );
 
+  const firstItem =
+    totalFiltered ===
+    0
+      ? 0
+      : from +
+        1;
+
+  const lastItem =
+    Math.min(
+      from +
+        permohonan.length,
+      totalFiltered
+    );
+
+  const pageNumbers =
+    getPageNumbers(
+      safeCurrentPage,
+      totalPages
+    );
+
+  /* =======================================================
+     STATS CONFIG
+  ======================================================= */
+
   const statistik:
     StatistikItem[] = [
-    {
-      label:
-        'Total Permohonan',
-      value:
-        totalPermohonan,
-      description:
-        'Seluruh pengajuan layanan',
-      icon:
-        FileText,
-      className:
-        'bg-slate-100 text-slate-700',
-    },
-    {
-      label:
-        'Menunggu',
-      value:
-        totalMenunggu,
-      description:
-        'Belum mulai diproses',
-      icon:
-        Clock3,
-      className:
-        'bg-amber-100 text-amber-700',
-    },
-    {
-      label:
-        'Diproses',
-      value:
-        totalDiproses,
-      description:
-        'Sedang ditangani admin',
-      icon:
-        CircleEllipsis,
-      className:
-        'bg-blue-100 text-blue-700',
-    },
-    {
-      label:
-        'Selesai',
-      value:
-        totalSelesai,
-      description:
-        'Pelayanan telah selesai',
-      icon:
-        CheckCircle2,
-      className:
-        'bg-emerald-100 text-emerald-700',
-    },
-  ];
+      {
+        label:
+          'Total Permohonan',
+
+        value:
+          totalPermohonan,
+
+        description:
+          'Seluruh pengajuan layanan',
+
+        icon:
+          FileText,
+
+        className:
+          'bg-slate-100 text-slate-700',
+      },
+
+      {
+        label:
+          'Menunggu',
+
+        value:
+          totalMenunggu,
+
+        description:
+          'Belum mulai diproses',
+
+        icon:
+          Clock3,
+
+        className:
+          'bg-amber-100 text-amber-700',
+      },
+
+      {
+        label:
+          'Diproses',
+
+        value:
+          totalDiproses,
+
+        description:
+          'Sedang ditangani admin',
+
+        icon:
+          CircleEllipsis,
+
+        className:
+          'bg-blue-100 text-blue-700',
+      },
+
+      {
+        label:
+          'Selesai',
+
+        value:
+          totalSelesai,
+
+        description:
+          'Pelayanan telah selesai',
+
+        icon:
+          CheckCircle2,
+
+        className:
+          'bg-emerald-100 text-emerald-700',
+      },
+    ];
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
-      {/* Header */}
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] px-6 py-7 text-white shadow-xl shadow-emerald-950/10 sm:px-8 sm:py-8">
         <div
           className="pointer-events-none absolute inset-0 opacity-40"
@@ -736,6 +1146,7 @@ export default async function AdminPermohonanPage({
                 transparent 1.5px
               )
             `,
+
             backgroundSize:
               '26px 26px',
           }}
@@ -750,7 +1161,8 @@ export default async function AdminPermohonanPage({
                 size={14}
               />
 
-              Administrasi pelayanan warga
+              Administrasi pelayanan
+              warga
             </div>
 
             <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
@@ -793,10 +1205,15 @@ export default async function AdminPermohonanPage({
         </div>
       </section>
 
-      {/* Statistik */}
+      {/* ===================================================
+          STATISTIK
+      =================================================== */}
+
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {statistik.map(
-          (item) => {
+          (
+            item
+          ) => {
             const Icon =
               item.icon;
 
@@ -810,7 +1227,9 @@ export default async function AdminPermohonanPage({
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500">
-                      {item.label}
+                      {
+                        item.label
+                      }
                     </p>
 
                     <p className="mt-4 text-4xl font-black text-slate-900">
@@ -823,12 +1242,16 @@ export default async function AdminPermohonanPage({
                   <div
                     className={`flex h-12 w-12 items-center justify-center rounded-2xl ${item.className}`}
                   >
-                    <Icon size={23} />
+                    <Icon
+                      size={23}
+                    />
                   </div>
                 </div>
 
                 <p className="mt-5 border-t border-slate-100 pt-4 text-sm font-medium text-slate-500">
-                  {item.description}
+                  {
+                    item.description
+                  }
                 </p>
               </article>
             );
@@ -836,12 +1259,17 @@ export default async function AdminPermohonanPage({
         )}
       </section>
 
-      {/* Filter */}
+      {/* ===================================================
+          FILTER
+      =================================================== */}
+
       <section className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-[0_12px_35px_rgba(6,78,59,0.07)] sm:p-6">
         <form
           method="get"
           className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_260px_auto]"
         >
+          {/* SEARCH */}
+
           <div>
             <label
               htmlFor="q"
@@ -860,13 +1288,16 @@ export default async function AdminPermohonanPage({
                 id="q"
                 name="q"
                 defaultValue={
-                  params.q ?? ''
+                  params.q ??
+                  ''
                 }
                 placeholder="Cari nama, WhatsApp, layanan, atau 4 digit NIK..."
                 className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
               />
             </div>
           </div>
+
+          {/* STATUS */}
 
           <div>
             <label
@@ -906,6 +1337,8 @@ export default async function AdminPermohonanPage({
             </select>
           </div>
 
+          {/* LAYANAN */}
+
           <div>
             <label
               htmlFor="layanan"
@@ -927,7 +1360,9 @@ export default async function AdminPermohonanPage({
               </option>
 
               {daftarLayanan.map(
-                (layanan) => (
+                (
+                  layanan
+                ) => (
                   <option
                     key={
                       layanan.id
@@ -936,12 +1371,16 @@ export default async function AdminPermohonanPage({
                       layanan.id
                     }
                   >
-                    {layanan.nama}
+                    {
+                      layanan.nama
+                    }
                   </option>
                 )
               )}
             </select>
           </div>
+
+          {/* BUTTON */}
 
           <div className="flex items-end gap-2">
             <button
@@ -968,8 +1407,13 @@ export default async function AdminPermohonanPage({
         </form>
       </section>
 
-      {/* Daftar permohonan */}
+      {/* ===================================================
+          TABLE
+      =================================================== */}
+
       <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-[0_12px_35px_rgba(6,78,59,0.07)]">
+        {/* HEADER */}
+
         <div className="flex flex-col gap-3 border-b border-emerald-50 bg-gradient-to-r from-emerald-50/70 to-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
           <div>
             <h2 className="text-lg font-black text-slate-900 sm:text-xl">
@@ -977,25 +1421,55 @@ export default async function AdminPermohonanPage({
             </h2>
 
             <p className="mt-1 text-sm font-medium text-slate-500">
-              Menampilkan{' '}
-              {permohonan.length}{' '}
-              dari{' '}
-              {totalFiltered}{' '}
-              data yang sesuai.
+              {totalFiltered >
+              0 ? (
+                <>
+                  Menampilkan data{' '}
+                  <strong className="text-slate-700">
+                    {firstItem}
+                    –
+                    {lastItem}
+                  </strong>{' '}
+                  dari{' '}
+                  <strong className="text-slate-700">
+                    {
+                      totalFiltered
+                    }
+                  </strong>{' '}
+                  permohonan.
+                </>
+              ) : (
+                'Tidak ada data yang sesuai.'
+              )}
             </p>
           </div>
 
-          <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-100 bg-white px-4 py-2 text-xs font-extrabold text-red-700">
-            <CircleAlert
-              size={15}
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex w-fit items-center gap-2 rounded-xl border border-emerald-100 bg-white px-4 py-2 text-xs font-extrabold text-emerald-700">
+              <FileText
+                size={14}
+              />
 
-            Ditolak:{' '}
-            {totalDitolak}
+              Maks. 20 / halaman
+            </span>
+
+            <span className="inline-flex w-fit items-center gap-2 rounded-xl border border-red-100 bg-white px-4 py-2 text-xs font-extrabold text-red-700">
+              <CircleAlert
+                size={15}
+              />
+
+              Ditolak:{' '}
+              {
+                totalDitolak
+              }
+            </span>
           </div>
         </div>
 
-        {permohonan.length === 0 ? (
+        {/* EMPTY */}
+
+        {permohonan.length ===
+        0 ? (
           <div className="flex min-h-[360px] flex-col items-center justify-center px-6 py-14 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 ring-1 ring-emerald-100">
               <FileText
@@ -1009,12 +1483,15 @@ export default async function AdminPermohonanPage({
 
             <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">
               Permohonan yang dikirim
-              melalui formulir Layanan
-              Cepat akan otomatis muncul
-              pada halaman ini.
+              melalui formulir
+              Layanan Cepat akan
+              otomatis muncul pada
+              halaman ini.
             </p>
           </div>
         ) : (
+          /* TABLE */
+
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1080px] border-collapse">
               <thead>
@@ -1047,11 +1524,17 @@ export default async function AdminPermohonanPage({
 
               <tbody className="divide-y divide-slate-100">
                 {permohonan.map(
-                  (item) => (
+                  (
+                    item
+                  ) => (
                     <tr
-                      key={item.id}
+                      key={
+                        item.id
+                      }
                       className="align-top transition hover:bg-emerald-50/30"
                     >
+                      {/* DATE */}
+
                       <td className="whitespace-nowrap px-6 py-5">
                         <div className="flex items-start gap-2">
                           <CalendarDays
@@ -1067,11 +1550,16 @@ export default async function AdminPermohonanPage({
                             </p>
 
                             <p className="mt-1 text-[10px] font-semibold text-slate-400">
-                              ID #{item.id}
+                              ID #
+                              {
+                                item.id
+                              }
                             </p>
                           </div>
                         </div>
                       </td>
+
+                      {/* USER */}
 
                       <td className="px-6 py-5">
                         <div className="flex items-start gap-3">
@@ -1083,30 +1571,44 @@ export default async function AdminPermohonanPage({
 
                           <div>
                             <p className="font-extrabold text-slate-800">
-                              {item.namaPemohon}
+                              {
+                                item.namaPemohon
+                              }
                             </p>
 
                             <p className="mt-1 text-xs font-semibold text-slate-500">
                               NIK ••••{' '}
-                              {item.nikLast4}
+                              {
+                                item.nikLast4
+                              }
                             </p>
 
                             <p className="mt-1 text-xs font-medium text-slate-400">
-                              {item.wilayah}
+                              {
+                                item.wilayah
+                              }
                             </p>
                           </div>
                         </div>
                       </td>
 
+                      {/* SERVICE */}
+
                       <td className="px-6 py-5">
                         <span className="inline-flex max-w-[230px] rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-extrabold leading-5 text-emerald-800">
-                          {item.layanan}
+                          {
+                            item.layanan
+                          }
                         </span>
                       </td>
 
+                      {/* WA */}
+
                       <td className="px-6 py-5">
                         <p className="text-sm font-bold text-slate-700">
-                          {item.noWa}
+                          {
+                            item.noWa
+                          }
                         </p>
 
                         <a
@@ -1127,11 +1629,17 @@ export default async function AdminPermohonanPage({
                         </a>
                       </td>
 
+                      {/* STATUS */}
+
                       <td className="px-6 py-5">
                         <StatusBadge
-                          status={item.status}
+                          status={
+                            item.status
+                          }
                         />
                       </td>
+
+                      {/* ACTION */}
 
                       <td className="px-6 py-5">
                         <form
@@ -1143,7 +1651,9 @@ export default async function AdminPermohonanPage({
                           <input
                             type="hidden"
                             name="id"
-                            value={item.id}
+                            value={
+                              item.id
+                            }
                           />
 
                           <select
@@ -1189,79 +1699,187 @@ export default async function AdminPermohonanPage({
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex flex-col gap-4 border-t border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-slate-500">
-              Halaman{' '}
-              {safeCurrentPage}{' '}
-              dari{' '}
-              {totalPages}
-            </p>
+        {/* =================================================
+            PAGINATION
+        ================================================= */}
 
-            <div className="flex gap-2">
-              {safeCurrentPage > 1 ? (
-                <Link
-                  href={buildPageUrl(
+        {totalPages >
+          1 && (
+          <div className="border-t border-slate-100 px-5 py-5 sm:px-7">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              {/* INFO */}
+
+              <div>
+                <p className="text-sm font-semibold text-slate-600">
+                  Halaman{' '}
+                  <strong className="font-black text-slate-900">
                     {
-                      q:
-                        params.q ?? '',
-                      status:
-                        statusFilter,
-                      layanan:
-                        layananFilter,
-                    },
-                    safeCurrentPage - 1
-                  )}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                >
-                  <ArrowLeft
-                    size={15}
-                  />
-
-                  Sebelumnya
-                </Link>
-              ) : (
-                <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 text-xs font-extrabold text-slate-300">
-                  <ArrowLeft
-                    size={15}
-                  />
-
-                  Sebelumnya
-                </span>
-              )}
-
-              {safeCurrentPage <
-              totalPages ? (
-                <Link
-                  href={buildPageUrl(
+                      safeCurrentPage
+                    }
+                  </strong>{' '}
+                  dari{' '}
+                  <strong className="font-black text-slate-900">
                     {
-                      q:
-                        params.q ?? '',
-                      status:
-                        statusFilter,
-                      layanan:
-                        layananFilter,
-                    },
-                    safeCurrentPage + 1
+                      totalPages
+                    }
+                  </strong>
+                </p>
+
+                <p className="mt-1 text-xs font-medium text-slate-400">
+                  Maksimal 20
+                  permohonan pada
+                  setiap halaman.
+                </p>
+              </div>
+
+              {/* CONTROLS */}
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* PREVIOUS */}
+
+                {safeCurrentPage >
+                1 ? (
+                  <Link
+                    href={buildPageUrl(
+                      {
+                        q:
+                          params.q ??
+                          '',
+
+                        status:
+                          statusFilter,
+
+                        layanan:
+                          layananFilter,
+                      },
+                      safeCurrentPage -
+                        1
+                    )}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                  >
+                    <ArrowLeft
+                      size={15}
+                    />
+
+                    Sebelumnya
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 text-xs font-extrabold text-slate-300">
+                    <ArrowLeft
+                      size={15}
+                    />
+
+                    Sebelumnya
+                  </span>
+                )}
+
+                {/* PAGE NUMBERS */}
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {pageNumbers.map(
+                    (
+                      page,
+                      index
+                    ) => {
+                      const previousPage =
+                        pageNumbers[
+                          index -
+                            1
+                        ];
+
+                      const showDots =
+                        previousPage &&
+                        page -
+                          previousPage >
+                          1;
+
+                      return (
+                        <div
+                          key={
+                            page
+                          }
+                          className="flex items-center gap-1.5"
+                        >
+                          {showDots && (
+                            <span className="px-1 text-xs font-bold text-slate-300">
+                              ...
+                            </span>
+                          )}
+
+                          {page ===
+                          safeCurrentPage ? (
+                            <span className="flex h-10 min-w-10 items-center justify-center rounded-xl bg-emerald-700 px-3 text-xs font-black text-white shadow-sm">
+                              {
+                                page
+                              }
+                            </span>
+                          ) : (
+                            <Link
+                              href={buildPageUrl(
+                                {
+                                  q:
+                                    params.q ??
+                                    '',
+
+                                  status:
+                                    statusFilter,
+
+                                  layanan:
+                                    layananFilter,
+                                },
+                                page
+                              )}
+                              className="flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                            >
+                              {
+                                page
+                              }
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    }
                   )}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-extrabold text-white transition hover:bg-emerald-800"
-                >
-                  Berikutnya
+                </div>
 
-                  <ArrowRight
-                    size={15}
-                  />
-                </Link>
-              ) : (
-                <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-xl bg-slate-100 px-4 text-xs font-extrabold text-slate-300">
-                  Berikutnya
+                {/* NEXT */}
 
-                  <ArrowRight
-                    size={15}
-                  />
-                </span>
-              )}
+                {safeCurrentPage <
+                totalPages ? (
+                  <Link
+                    href={buildPageUrl(
+                      {
+                        q:
+                          params.q ??
+                          '',
+
+                        status:
+                          statusFilter,
+
+                        layanan:
+                          layananFilter,
+                      },
+                      safeCurrentPage +
+                        1
+                    )}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-extrabold text-white transition hover:bg-emerald-800"
+                  >
+                    Berikutnya
+
+                    <ArrowRight
+                      size={15}
+                    />
+                  </Link>
+                ) : (
+                  <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-xl bg-slate-100 px-4 text-xs font-extrabold text-slate-300">
+                    Berikutnya
+
+                    <ArrowRight
+                      size={15}
+                    />
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -1270,10 +1888,15 @@ export default async function AdminPermohonanPage({
   );
 }
 
+/* =========================================================
+   TABLE HEAD
+========================================================= */
+
 function TableHead({
   children,
 }: {
-  children: ReactNode;
+  children:
+    ReactNode;
 }) {
   return (
     <th className="px-6 py-4 text-left text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
@@ -1282,12 +1905,20 @@ function TableHead({
   );
 }
 
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
 function StatusBadge({
   status,
 }: {
-  status: StatusPermohonan;
+  status:
+    StatusPermohonan;
 }) {
-  if (status === 'Selesai') {
+  if (
+    status ===
+    'Selesai'
+  ) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
         <CheckCircle2
@@ -1299,7 +1930,10 @@ function StatusBadge({
     );
   }
 
-  if (status === 'Diproses') {
+  if (
+    status ===
+    'Diproses'
+  ) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-extrabold text-blue-700">
         <CircleEllipsis
@@ -1311,7 +1945,10 @@ function StatusBadge({
     );
   }
 
-  if (status === 'Ditolak') {
+  if (
+    status ===
+    'Ditolak'
+  ) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-extrabold text-red-700">
         <XCircle

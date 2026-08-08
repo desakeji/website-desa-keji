@@ -76,7 +76,7 @@ const navItems: NavItem[] = [
       {
         name: 'RPJMDes 2022–2030',
         href:
-          'https://drive.google.com/file/d/144eXukbqxtmsCkPqBc7TxskQIQXhBw5E/view?usp=sharing',
+          'https://drive.google.com/drive/folders/1WoU0pmZI8WWEI0pL0Zse908dqvhxCIwD',
         external: true,
       },
     ],
@@ -122,10 +122,9 @@ const navItems: NavItem[] = [
           '/data-desa/galeri',
       },
       {
-        name: 'SDGs',
-        href:
-          '/data-desa/sdgs',
-      },
+      name: 'Data Pertanahan',
+      href: '/data-desa/pertanahan',
+    },
     ],
   },
 

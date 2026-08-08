@@ -201,17 +201,12 @@ const menuDataDesa:
   },
 
   {
-    title:
-      'SDGs Desa',
-
-    description:
-      'Informasi capaian Sustainable Development Goals dan arah pembangunan berkelanjutan desa.',
-
-    href:
-      '/data-desa/sdgs',
-
-    icon: Target,
-  },
+  title: 'SDGs Desa',
+  description:
+    'Informasi capaian dan arah pembangunan berkelanjutan atau Sustainable Development Goals Desa.',
+  href: '/data-desa/sdgs',
+  icon: Target,
+},
 ];
 
 function safeString(

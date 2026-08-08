@@ -2,6 +2,8 @@
 
 'use client';
 
+import Image from 'next/image';
+
 import {
   useEffect,
   useState,
@@ -18,8 +20,11 @@ import {
    CONFIG
 ========================================================= */
 
-const INSTAGRAM_DESA_KEJI =
-  'https://www.instagram.com/desakeji/';
+const INSTAGRAM_DESA_WISATA =
+  'https://www.instagram.com/desa.wisatakeji?igsh=OHhtanAweGxxamQ0';
+
+const LOGO_DWK =
+  '/desa-wisata/Logo%20DWK.png';
 
 /* =========================================================
    COMPONENT
@@ -81,10 +86,10 @@ export default function SosialMediaDesaWisataPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="social-media-desa-title"
+      aria-labelledby="social-media-desa-wisata-title"
     >
       {/* =====================================================
           BACKDROP
@@ -96,219 +101,248 @@ export default function SosialMediaDesaWisataPopup() {
         onClick={() =>
           setIsOpen(false)
         }
-        className="absolute inset-0 cursor-default bg-emerald-950/75 backdrop-blur-[5px]"
+        className="absolute inset-0 cursor-default bg-emerald-950/80 backdrop-blur-[6px]"
       />
 
       {/* =====================================================
-          MODAL
+          MODAL WRAPPER
+
+          Wrapper tidak ikut scroll supaya tombol close
+          selalu terlihat.
       ===================================================== */}
 
-      <div className="relative w-full max-w-[520px] overflow-hidden rounded-[2rem] border border-white/20 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.35)]">
+      <div className="relative z-10 w-full max-w-[490px]">
         {/* ===================================================
-            HEADER
+            CLOSE BUTTON
         =================================================== */}
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 px-6 pb-8 pt-6 text-white sm:px-8">
-          {/* Pattern */}
-
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.15]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
-
-              backgroundSize:
-                '24px 24px',
-            }}
+        <button
+          type="button"
+          onClick={() =>
+            setIsOpen(false)
+          }
+          aria-label="Tutup"
+          className="absolute right-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-emerald-950/50 text-white shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-emerald-950/80 sm:right-4 sm:top-4"
+        >
+          <X
+            size={18}
+            strokeWidth={2.5}
           />
-
-          {/* Glow */}
-
-          <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-emerald-300/15 blur-3xl" />
-
-          <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-teal-300/10 blur-3xl" />
-
-          {/* Close */}
-
-          <button
-            type="button"
-            onClick={() =>
-              setIsOpen(false)
-            }
-            aria-label="Tutup"
-            className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
-          >
-            <X
-              size={19}
-            />
-          </button>
-
-          {/* Content */}
-
-          <div className="relative pr-12">
-            {/* Instagram Icon */}
-
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg backdrop-blur">
-              <InstagramIcon
-                className="h-7 w-7 text-white"
-              />
-            </div>
-
-            {/* Badge */}
-
-            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-              <Sparkles
-                size={13}
-                className="text-emerald-300"
-              />
-
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-100">
-                Sosial Media Desa
-              </span>
-            </div>
-
-            {/* Judul */}
-
-            <h2
-              id="social-media-desa-title"
-              className="mt-4 text-2xl font-black leading-tight tracking-tight sm:text-3xl"
-            >
-              Ikuti Cerita
-
-              <span className="block text-emerald-300">
-                Desa Keji
-              </span>
-            </h2>
-
-            {/* Deskripsi */}
-
-            <p className="mt-4 max-w-md text-sm font-medium leading-7 text-emerald-50/80">
-              Temukan dokumentasi
-              kegiatan, informasi
-              terbaru, budaya,
-              masyarakat, serta
-              berbagai cerita dari
-              Desa Keji melalui sosial
-              media resmi desa.
-            </p>
-          </div>
-        </div>
+        </button>
 
         {/* ===================================================
-            CONTENT
+            SCROLLABLE MODAL
         =================================================== */}
 
-        <div className="p-6 sm:p-8">
+        <div className="max-h-[calc(100dvh-24px)] overflow-y-auto rounded-[1.75rem] border border-white/20 bg-white shadow-[0_30px_100px_rgba(0,0,0,0.4)] sm:max-h-[calc(100dvh-32px)]">
           {/* =================================================
-              INSTAGRAM CARD
+              HEADER
           ================================================= */}
 
-          <a
-            href={
-              INSTAGRAM_DESA_KEJI
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative block overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-5 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-100"
-          >
-            <div className="flex items-center gap-4">
-              {/* Icon */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#052e24] via-emerald-900 to-emerald-700 px-5 pb-6 pt-5 text-white sm:px-7 sm:pb-7 sm:pt-6">
+            {/* Pattern */}
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md">
-                <InstagramIcon
-                  className="h-6 w-6"
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-[0.13]"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
+
+                backgroundSize:
+                  '24px 24px',
+              }}
+            />
+
+            {/* Glow kanan */}
+
+            <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-emerald-300/15 blur-3xl" />
+
+            {/* Glow kiri */}
+
+            <div className="pointer-events-none absolute -bottom-24 -left-20 h-48 w-48 rounded-full bg-amber-300/[0.08] blur-3xl" />
+
+            {/* Decorative Circle */}
+
+            <div className="pointer-events-none absolute -right-16 bottom-0 h-44 w-44 rounded-full border-[32px] border-white/[0.04]" />
+
+            {/* ===============================================
+                CONTENT HEADER
+            =============================================== */}
+
+            <div className="relative flex flex-col items-center text-center">
+              {/* LOGO */}
+
+              <div className="relative flex h-[105px] w-[105px] items-center justify-center rounded-[1.5rem] border border-white/15 bg-white/[0.08] p-3 shadow-2xl backdrop-blur sm:h-[120px] sm:w-[120px]">
+                <div className="pointer-events-none absolute inset-2 rounded-[1.2rem] border border-white/[0.08]" />
+
+                <Image
+                  src={
+                    LOGO_DWK
+                  }
+                  alt="Logo Desa Wisata Keji"
+                  width={160}
+                  height={160}
+                  priority
+                  className="relative h-full w-full object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.28)]"
                 />
               </div>
 
-              {/* Text */}
+              {/* BADGE */}
 
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
-                  Instagram
-                </p>
-
-                <h3 className="mt-1 text-base font-black text-emerald-950">
-                  @desakeji
-                </h3>
-
-                <p className="mt-1 text-xs font-medium text-emerald-700">
-                  Instagram resmi
-                  Desa Keji
-                </p>
-              </div>
-
-              {/* Arrow */}
-
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-700 shadow-sm transition group-hover:bg-emerald-700 group-hover:text-white">
-                <ArrowUpRight
-                  size={17}
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+                <Sparkles
+                  size={12}
+                  className="text-emerald-300"
                 />
+
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.17em] text-emerald-100">
+                  Sosial Media Resmi
+                </span>
               </div>
-            </div>
-          </a>
 
-          {/* =================================================
-              LOCATION
-          ================================================= */}
+              {/* JUDUL */}
 
-          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-              <MapPin
-                size={17}
-              />
-            </div>
+              <h2
+                id="social-media-desa-wisata-title"
+                className="mt-3 text-xl font-black leading-tight tracking-tight sm:text-2xl"
+              >
+                Ikuti Cerita
 
-            <div>
-              <p className="text-xs font-black text-slate-700">
-                Desa Keji
-              </p>
+                <span className="block text-emerald-300">
+                  Desa Wisata Keji
+                </span>
+              </h2>
 
-              <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                Kecamatan Ungaran
-                Barat, Kabupaten
-                Semarang, Jawa Tengah
+              {/* DESKRIPSI */}
+
+              <p className="mt-3 max-w-sm text-xs font-medium leading-6 text-emerald-50/80 sm:text-[13px]">
+                Temukan dokumentasi
+                wisata, budaya,
+                kesenian, kuliner,
+                agenda kegiatan, serta
+                berbagai cerita dari
+                Desa Wisata Keji melalui
+                Instagram resmi.
               </p>
             </div>
           </div>
 
           {/* =================================================
-              BUTTON INSTAGRAM
+              CONTENT
           ================================================= */}
 
-          <a
-            href={
-              INSTAGRAM_DESA_KEJI
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800"
-          >
-            <InstagramIcon
-              className="h-[18px] w-[18px]"
-            />
+          <div className="p-4 sm:p-5">
+            {/* ===============================================
+                INSTAGRAM CARD
+            =============================================== */}
 
-            Kunjungi Instagram
+            <a
+              href={
+                INSTAGRAM_DESA_WISATA
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative block overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg"
+            >
+              <div className="flex items-center gap-3.5">
+                {/* ICON */}
 
-            <ArrowUpRight
-              size={16}
-              className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </a>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-md">
+                  <InstagramIcon
+                    className="h-[21px] w-[21px]"
+                  />
+                </div>
 
-          {/* =================================================
-              CLOSE BUTTON
-          ================================================= */}
+                {/* TEXT */}
 
-          <button
-            type="button"
-            onClick={() =>
-              setIsOpen(false)
-            }
-            className="mt-3 flex min-h-11 w-full items-center justify-center rounded-xl text-xs font-extrabold text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
-          >
-            Lanjut Jelajahi Desa Wisata
-          </button>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
+                    Instagram
+                  </p>
+
+                  <h3 className="mt-0.5 text-sm font-black text-emerald-950">
+                    @desa.wisatakeji
+                  </h3>
+
+                  <p className="mt-0.5 text-[11px] font-medium text-emerald-700">
+                    Instagram resmi
+                    Desa Wisata Keji
+                  </p>
+                </div>
+
+                {/* ARROW */}
+
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700 shadow-sm transition group-hover:bg-emerald-700 group-hover:text-white">
+                  <ArrowUpRight
+                    size={15}
+                  />
+                </div>
+              </div>
+            </a>
+
+            {/* ===============================================
+                LOCATION
+            =============================================== */}
+
+            <div className="mt-3 flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                <MapPin
+                  size={15}
+                />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[11px] font-black text-slate-700">
+                  Desa Wisata Keji
+                </p>
+
+                <p className="mt-0.5 text-[10px] font-medium leading-5 text-slate-500 sm:text-[11px]">
+                  Kecamatan Ungaran
+                  Barat, Kabupaten
+                  Semarang, Jawa Tengah
+                </p>
+              </div>
+            </div>
+
+            {/* ===============================================
+                INSTAGRAM BUTTON
+            =============================================== */}
+
+            <a
+              href={
+                INSTAGRAM_DESA_WISATA
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-xs font-extrabold text-white shadow-md transition hover:bg-emerald-800"
+            >
+              <InstagramIcon
+                className="h-[17px] w-[17px]"
+              />
+
+              Kunjungi Instagram
+
+              <ArrowUpRight
+                size={15}
+                className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
+            </a>
+
+            {/* ===============================================
+                CLOSE BUTTON BOTTOM
+            =============================================== */}
+
+            <button
+              type="button"
+              onClick={() =>
+                setIsOpen(false)
+              }
+              className="mt-2 flex min-h-10 w-full items-center justify-center rounded-xl text-[11px] font-extrabold text-slate-500 transition hover:bg-slate-50 hover:text-emerald-700"
+            >
+              Lanjut Jelajahi Desa Wisata
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -355,7 +389,7 @@ function InstagramIcon({
       <circle
         cx="17.5"
         cy="6.5"
-        r="1" 
+        r="1"
         fill="currentColor"
       />
     </svg>
