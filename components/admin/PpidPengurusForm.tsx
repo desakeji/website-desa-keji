@@ -3,31 +3,21 @@
 'use client';
 
 import {
-  useActionState,
-  useEffect,
-  useRef,
-} from 'react';
-
-import {
-  CircleAlert,
-  LoaderCircle,
   UserPlus,
   Users,
 } from 'lucide-react';
 
 import {
-  createPengurusPpidAction,
+  useFormStatus,
+} from 'react-dom';
+
+import {
+  tambahPengurusPpidAction,
 } from '@/app/admin/ppid/actions';
 
-import type {
-  PpidActionState,
-} from '@/types/ppid';
-
-const initialState:
-  PpidActionState = {
-    error: null,
-    success: null,
-  };
+/* =========================================================
+   PILIHAN JABATAN PPID
+========================================================= */
 
 const JABATAN_PPID = [
   'Atasan PPID',
@@ -39,36 +29,27 @@ const JABATAN_PPID = [
   'Bidang Pengaduan dan Penyelesaian Sengketa',
 ];
 
+/* =========================================================
+   FORM
+========================================================= */
+
 export default function PpidPengurusForm() {
-  const formRef =
-    useRef<HTMLFormElement>(
-      null
-    );
-
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    createPengurusPpidAction,
-    initialState
-  );
-
-  useEffect(() => {
-    if (state.success) {
-      formRef.current?.reset();
-    }
-  }, [state.success]);
-
   return (
     <form
-      ref={formRef}
-      action={formAction}
+      action={
+        tambahPengurusPpidAction
+      }
       className="space-y-6 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm md:p-8"
     >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
       <div className="flex items-start gap-3 border-b border-slate-100 pb-5">
         <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
-          <Users size={24} />
+          <Users
+            size={24}
+          />
         </div>
 
         <div>
@@ -77,29 +58,20 @@ export default function PpidPengurusForm() {
           </h2>
 
           <p className="mt-1 text-sm leading-relaxed text-slate-500">
-            Masukkan nama perangkat desa dan jabatan resminya dalam struktur PPID.
+            Masukkan nama perangkat
+            desa dan jabatan resminya
+            dalam struktur PPID.
           </p>
         </div>
       </div>
 
-      {state.error && (
-        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-          <CircleAlert
-            size={18}
-            className="mt-0.5 shrink-0"
-          />
-
-          <p>{state.error}</p>
-        </div>
-      )}
-
-      {state.success && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
-          {state.success}
-        </div>
-      )}
+      {/* ===================================================
+          FORM INPUT
+      =================================================== */}
 
       <div className="grid gap-5 md:grid-cols-2">
+        {/* NAMA */}
+
         <div>
           <label
             htmlFor="nama"
@@ -113,20 +85,22 @@ export default function PpidPengurusForm() {
             name="nama"
             type="text"
             required
-            minLength={3}
+            minLength={2}
             maxLength={150}
-            disabled={isPending}
             placeholder="Nama pengurus PPID"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
+
+        {/* JABATAN DESA */}
 
         <div>
           <label
             htmlFor="jabatan_desa"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
-            Jabatan di Pemerintah Desa
+            Jabatan di Pemerintah
+            Desa
           </label>
 
           <input
@@ -134,13 +108,14 @@ export default function PpidPengurusForm() {
             name="jabatan_desa"
             type="text"
             required
-            minLength={3}
+            minLength={2}
             maxLength={150}
-            disabled={isPending}
             placeholder="Contoh: Kepala Desa"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
+
+        {/* JABATAN PPID */}
 
         <div>
           <label
@@ -155,8 +130,7 @@ export default function PpidPengurusForm() {
             name="jabatan_ppid"
             required
             defaultValue=""
-            disabled={isPending}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           >
             <option
               value=""
@@ -166,17 +140,27 @@ export default function PpidPengurusForm() {
             </option>
 
             {JABATAN_PPID.map(
-              (jabatan) => (
+              (
+                jabatan
+              ) => (
                 <option
-                  key={jabatan}
-                  value={jabatan}
+                  key={
+                    jabatan
+                  }
+                  value={
+                    jabatan
+                  }
                 >
-                  {jabatan}
+                  {
+                    jabatan
+                  }
                 </option>
               )
             )}
           </select>
         </div>
+
+        {/* URUTAN */}
 
         <div>
           <label
@@ -190,21 +174,22 @@ export default function PpidPengurusForm() {
             id="urutan"
             name="urutan"
             type="number"
-            min={0}
+            min={1}
             max={999}
             required
             defaultValue={1}
-            disabled={isPending}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
+
+        {/* AKTIF */}
 
         <label className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 md:col-span-2">
           <input
             name="aktif"
             type="checkbox"
+            value="true"
             defaultChecked
-            disabled={isPending}
             className="mt-0.5 h-4 w-4 rounded border-emerald-300 text-emerald-700"
           />
 
@@ -214,35 +199,55 @@ export default function PpidPengurusForm() {
             </span>
 
             <span className="mt-1 block text-xs text-emerald-700">
-              Pengurus langsung ditampilkan pada halaman Profil PPID.
+              Pengurus langsung
+              ditampilkan pada
+              halaman Profil PPID.
             </span>
           </span>
         </label>
       </div>
 
-      <div className="flex justify-end border-t border-slate-100 pt-6">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800 disabled:bg-slate-400 md:w-auto"
-        >
-          {isPending ? (
-            <>
-              <LoaderCircle
-                size={18}
-                className="animate-spin"
-              />
+      {/* ===================================================
+          BUTTON
+      =================================================== */}
 
-              Menyimpan...
-            </>
-          ) : (
-            <>
-              <UserPlus size={18} />
-              Tambah Pengurus
-            </>
-          )}
-        </button>
+      <div className="flex justify-end border-t border-slate-100 pt-6">
+        <SubmitButton />
       </div>
     </form>
+  );
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+function SubmitButton() {
+  const {
+    pending,
+  } =
+    useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={
+        pending
+      }
+      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800 disabled:cursor-wait disabled:bg-slate-400 md:w-auto"
+    >
+      <UserPlus
+        size={18}
+        className={
+          pending
+            ? 'animate-pulse'
+            : ''
+        }
+      />
+
+      {pending
+        ? 'Menyimpan...'
+        : 'Tambah Pengurus'}
+    </button>
   );
 }

@@ -3,55 +3,51 @@
 'use client';
 
 import {
-  useActionState,
-} from 'react';
-
-import {
   Building2,
-  CircleAlert,
   LoaderCircle,
   Save,
 } from 'lucide-react';
 
 import {
-  updateProfilPpidAction,
+  useFormStatus,
+} from 'react-dom';
+
+import {
+  simpanProfilPpidAction,
 } from '@/app/admin/ppid/actions';
 
 import type {
-  PpidActionState,
   ProfilPpid,
 } from '@/types/ppid';
 
 interface PpidProfilFormProps {
-  profil: ProfilPpid;
+  profil:
+    ProfilPpid;
 }
 
-const initialState:
-  PpidActionState = {
-    error: null,
-    success: null,
-  };
+/* =========================================================
+   FORM
+========================================================= */
 
 export default function PpidProfilForm({
   profil,
 }: PpidProfilFormProps) {
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    updateProfilPpidAction,
-    initialState
-  );
-
   return (
     <form
-      action={formAction}
+      action={
+        simpanProfilPpidAction
+      }
       className="space-y-6 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm md:p-8"
     >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
+
       <div className="flex items-start gap-3 border-b border-slate-100 pb-5">
         <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
-          <Building2 size={24} />
+          <Building2
+            size={24}
+          />
         </div>
 
         <div>
@@ -60,166 +56,175 @@ export default function PpidProfilForm({
           </h2>
 
           <p className="mt-1 text-sm leading-relaxed text-slate-500">
-            Informasi ini ditampilkan pada halaman profil PPID Desa Keji.
+            Informasi ini
+            ditampilkan pada halaman
+            profil PPID Desa Keji.
           </p>
         </div>
       </div>
 
-      {state.error && (
-        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-          <CircleAlert
-            size={18}
-            className="mt-0.5 shrink-0"
-          />
-
-          <p>{state.error}</p>
-        </div>
-      )}
-
-      {state.success && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
-          {state.success}
-        </div>
-      )}
+      {/* ===================================================
+          INPUT
+      =================================================== */}
 
       <div className="grid gap-5 md:grid-cols-2">
+        {/* JUDUL */}
+
         <div className="md:col-span-2">
           <label
-            htmlFor="judul"
+            htmlFor="profil_judul"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Judul Profil
           </label>
 
           <input
-            id="judul"
-            name="judul"
+            id="profil_judul"
+            name="profil_judul"
             type="text"
             required
-            minLength={5}
+            minLength={3}
             maxLength={180}
-            defaultValue={profil.judul}
-            disabled={isPending}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            defaultValue={
+              profil.judul
+            }
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* DESKRIPSI */}
+
         <div className="md:col-span-2">
           <label
-            htmlFor="deskripsi"
+            htmlFor="profil_deskripsi"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Deskripsi PPID
           </label>
 
           <textarea
-            id="deskripsi"
-            name="deskripsi"
+            id="profil_deskripsi"
+            name="profil_deskripsi"
             rows={6}
             required
             minLength={20}
             maxLength={5000}
-            defaultValue={profil.deskripsi}
-            disabled={isPending}
-            className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-relaxed text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            defaultValue={
+              profil.deskripsi
+            }
+            className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-relaxed text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* EMAIL */}
+
         <div>
           <label
-            htmlFor="email"
+            htmlFor="profil_email"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Email PPID
           </label>
 
           <input
-            id="email"
-            name="email"
+            id="profil_email"
+            name="profil_email"
             type="email"
             maxLength={150}
             defaultValue={
-              profil.email ?? ''
+              profil.email ??
+              ''
             }
-            disabled={isPending}
             placeholder="ppid@desakeji.id"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* TELEPON */}
+
         <div>
           <label
-            htmlFor="telepon"
+            htmlFor="profil_telepon"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Nomor Telepon
           </label>
 
           <input
-            id="telepon"
-            name="telepon"
+            id="profil_telepon"
+            name="profil_telepon"
             type="tel"
             maxLength={20}
             defaultValue={
-              profil.telepon ?? ''
+              profil.telepon ??
+              ''
             }
-            disabled={isPending}
             placeholder="081234567890"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* ALAMAT */}
+
         <div className="md:col-span-2">
           <label
-            htmlFor="alamat"
+            htmlFor="profil_alamat"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Alamat Sekretariat
           </label>
 
           <textarea
-            id="alamat"
-            name="alamat"
+            id="profil_alamat"
+            name="profil_alamat"
             rows={3}
+            required
+            minLength={5}
             maxLength={1000}
             defaultValue={
-              profil.alamat ?? ''
+              profil.alamat ??
+              ''
             }
-            disabled={isPending}
-            className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* JAM LAYANAN */}
+
         <div className="md:col-span-2">
           <label
-            htmlFor="jam_layanan"
+            htmlFor="profil_jam_layanan"
             className="mb-2 block text-sm font-bold text-slate-700"
           >
             Jam Pelayanan
           </label>
 
           <input
-            id="jam_layanan"
-            name="jam_layanan"
+            id="profil_jam_layanan"
+            name="profil_jam_layanan"
             type="text"
+            required
+            minLength={5}
             maxLength={180}
             defaultValue={
-              profil.jam_layanan ?? ''
+              profil.jam_layanan ??
+              ''
             }
-            disabled={isPending}
             placeholder="Senin–Kamis 08.00–15.00 WIB"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 disabled:opacity-60"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
 
+        {/* AKTIF */}
+
         <label className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 md:col-span-2">
           <input
-            name="aktif"
+            name="profil_aktif"
             type="checkbox"
+            value="true"
             defaultChecked={
               profil.aktif
             }
-            disabled={isPending}
             className="mt-0.5 h-4 w-4 rounded border-emerald-300 text-emerald-700"
           />
 
@@ -229,35 +234,61 @@ export default function PpidProfilForm({
             </span>
 
             <span className="mt-1 block text-xs text-emerald-700">
-              Profil PPID akan ditampilkan pada halaman publik.
+              Profil PPID akan
+              ditampilkan pada
+              halaman publik.
             </span>
           </span>
         </label>
       </div>
 
-      <div className="flex justify-end border-t border-slate-100 pt-6">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800 disabled:bg-slate-400 md:w-auto"
-        >
-          {isPending ? (
-            <>
-              <LoaderCircle
-                size={18}
-                className="animate-spin"
-              />
+      {/* ===================================================
+          SUBMIT
+      =================================================== */}
 
-              Menyimpan...
-            </>
-          ) : (
-            <>
-              <Save size={18} />
-              Simpan Profil PPID
-            </>
-          )}
-        </button>
+      <div className="flex justify-end border-t border-slate-100 pt-6">
+        <SubmitButton />
       </div>
     </form>
+  );
+}
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+function SubmitButton() {
+  const {
+    pending,
+  } =
+    useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={
+        pending
+      }
+      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 py-3 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-800 disabled:cursor-wait disabled:bg-slate-400 md:w-auto"
+    >
+      {pending ? (
+        <>
+          <LoaderCircle
+            size={18}
+            className="animate-spin"
+          />
+
+          Menyimpan...
+        </>
+      ) : (
+        <>
+          <Save
+            size={18}
+          />
+
+          Simpan Profil PPID
+        </>
+      )}
+    </button>
   );
 }
