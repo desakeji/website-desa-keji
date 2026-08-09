@@ -9,6 +9,10 @@ import type {
   DistributionItem,
 } from '@/lib/desa-wisata-survei';
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface Props {
   dashboard:
     DashboardSurvei;
@@ -16,6 +20,10 @@ interface Props {
   showHero?:
     boolean;
 }
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function formatRating(
   value: number,
@@ -52,6 +60,10 @@ function cleanPackageLabel(
   return value;
 }
 
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
 export default function DashboardSurveiWisata({
   dashboard,
   showHero = true,
@@ -68,6 +80,8 @@ export default function DashboardSurveiWisata({
 
       {showHero && (
         <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-700 px-6 pb-20 pt-8 text-white shadow-xl sm:px-8">
+          {/* PATTERN */}
+
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-[0.1]"
@@ -81,6 +95,8 @@ export default function DashboardSurveiWisata({
           />
 
           <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border-[48px] border-white/[0.04]" />
+
+          {/* CONTENT */}
 
           <div className="relative">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
@@ -115,16 +131,20 @@ export default function DashboardSurveiWisata({
             : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7'
         }
       >
+        {/* TOTAL */}
+
         <MetricCard
           label="Total Responden"
           value={
             hasData
-              ? String(
-                  dashboard.totalResponden
+              ? dashboard.totalResponden.toLocaleString(
+                  'id-ID'
                 )
               : '—'
           }
         />
+
+        {/* KEPUASAN */}
 
         <MetricCard
           label="Rata-rata Kepuasan"
@@ -135,6 +155,8 @@ export default function DashboardSurveiWisata({
           suffix="/4"
         />
 
+        {/* KEBERSIHAN */}
+
         <MetricCard
           label="Rata-rata Kebersihan"
           value={formatRating(
@@ -143,6 +165,8 @@ export default function DashboardSurveiWisata({
           )}
           suffix="/4"
         />
+
+        {/* KERAMAHAN */}
 
         <MetricCard
           label="Rata-rata Keramahan"
@@ -153,6 +177,8 @@ export default function DashboardSurveiWisata({
           suffix="/4"
         />
 
+        {/* FASILITAS */}
+
         <MetricCard
           label="Rata-rata Fasilitas"
           value={formatRating(
@@ -162,15 +188,20 @@ export default function DashboardSurveiWisata({
           suffix="/4"
         />
 
+        {/* EXPECTATION */}
+
         <MetricCard
           label="Kesesuaian Ekspektasi"
           value={formatRating(
             dashboard.rataEkspektasi,
+
             dashboard.jumlahEkspektasi >
               0
           )}
           suffix="/4"
         />
+
+        {/* REKOMENDASI */}
 
         <MetricCard
           label="Akan Merekomendasikan"
@@ -186,21 +217,24 @@ export default function DashboardSurveiWisata({
       </div>
 
       {/* =====================================================
-          TREND
+          TREND KUNJUNGAN
       ===================================================== */}
 
       <section className="mt-7 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <SectionTitle>
-          Tren Kunjungan
-          Wisatawan
+          Tren Kunjungan Wisatawan
         </SectionTitle>
 
         <p className="mt-2 text-xs font-medium leading-5 text-slate-400">
           Jumlah respons berdasarkan
-          tanggal kunjungan pada tahun{' '}
-          {
-            dashboard.tahunTrend
-          }.
+          tanggal kunjungan pada
+          tahun{' '}
+          <strong className="font-extrabold text-slate-500">
+            {
+              dashboard.tahunTrend
+            }
+          </strong>
+          .
         </p>
 
         <div className="mt-6">
@@ -213,11 +247,29 @@ export default function DashboardSurveiWisata({
       </section>
 
       {/* =====================================================
-          PROJECTION
+          PROYEKSI KUNJUNGAN TAHUNAN
       ===================================================== */}
 
-      <section className="mt-7 overflow-hidden rounded-[2rem] bg-emerald-950 px-6 py-7 text-white sm:px-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <section className="relative mt-7 overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 px-6 py-7 text-white shadow-sm sm:px-8">
+        {/* ORNAMEN */}
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px)',
+
+            backgroundSize:
+              '24px 24px',
+          }}
+        />
+
+        <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full border-[38px] border-white/[0.04]" />
+
+        {/* CONTENT */}
+
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <SectionTitle
               light
@@ -225,28 +277,35 @@ export default function DashboardSurveiWisata({
               Proyeksi Kunjungan
             </SectionTitle>
 
-            <p className="mt-4 max-w-lg text-sm font-medium leading-6 text-emerald-50/70">
-              Estimasi jumlah respons
-              kunjungan untuk{' '}
+            <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-emerald-50/75">
+              Estimasi total respons
+              kunjungan hingga akhir{' '}
               <strong className="font-extrabold text-white">
+                tahun{' '}
                 {
                   dashboard.labelProyeksi
                 }
               </strong>
               , berdasarkan tren data
-              yang terkumpul.
+              kunjungan yang telah
+              terkumpul.
             </p>
           </div>
 
-          <div className="shrink-0 sm:text-right">
-            <p className="text-4xl font-black text-amber-300">
+          {/* NUMBER */}
+
+          <div className="shrink-0 sm:min-w-[180px] sm:text-right">
+            <p className="text-4xl font-black tracking-tight text-amber-300 sm:text-5xl">
               {hasData
-                ? dashboard.proyeksi
+                ? dashboard.proyeksi.toLocaleString(
+                    'id-ID'
+                  )
                 : '—'}
             </p>
 
-            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
-              Proyeksi Respons
+            <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
+              Estimasi Respons
+              Tahunan
             </p>
           </div>
         </div>
@@ -257,6 +316,8 @@ export default function DashboardSurveiWisata({
       ===================================================== */}
 
       <div className="mt-7 grid gap-6 xl:grid-cols-3">
+        {/* PAKET */}
+
         <DistributionCard
           title="Paket Terpopuler"
           data={
@@ -268,11 +329,15 @@ export default function DashboardSurveiWisata({
           }
         />
 
+        {/* ASAL */}
+
         <OriginCard
           data={
             dashboard.asal
           }
         />
+
+        {/* JENIS */}
 
         <DistributionCard
           title="Jenis Kunjungan"
@@ -287,7 +352,7 @@ export default function DashboardSurveiWisata({
 }
 
 /* =========================================================
-   METRIC
+   METRIC CARD
 ========================================================= */
 
 function MetricCard({
@@ -295,22 +360,33 @@ function MetricCard({
   value,
   suffix,
 }: {
-  label: string;
-  value: string;
-  suffix?: string;
+  label:
+    string;
+
+  value:
+    string;
+
+  suffix?:
+    string;
 }) {
   return (
     <article className="min-h-[108px] rounded-2xl border border-emerald-100 bg-white p-5 shadow-lg shadow-slate-900/[0.05]">
       <p className="text-[10px] font-extrabold uppercase tracking-[0.07em] text-slate-500">
-        {label}
+        {
+          label
+        }
       </p>
 
       <p className="mt-4 text-2xl font-black text-emerald-950">
-        {value}
+        {
+          value
+        }
 
         {suffix && (
           <span className="ml-1 text-sm font-medium text-slate-400">
-            {suffix}
+            {
+              suffix
+            }
           </span>
         )}
       </p>
@@ -319,7 +395,7 @@ function MetricCard({
 }
 
 /* =========================================================
-   TITLE
+   SECTION TITLE
 ========================================================= */
 
 function SectionTitle({
@@ -329,7 +405,8 @@ function SectionTitle({
   children:
     ReactNode;
 
-  light?: boolean;
+  light?:
+    boolean;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -348,7 +425,9 @@ function SectionTitle({
             : 'text-slate-900'
         }`}
       >
-        {children}
+        {
+          children
+        }
       </h3>
     </div>
   );
@@ -362,21 +441,34 @@ function TrendChart({
   data,
 }: {
   data: {
-    label: string;
-    value: number;
+    label:
+      string;
+
+    value:
+      number;
   }[];
 }) {
+  /* =======================================================
+     EMPTY
+  ======================================================= */
+
   if (
-    data.length === 0
+    data.length ===
+    0
   ) {
     return (
       <div className="flex min-h-[240px] items-center justify-center rounded-2xl bg-slate-50">
         <p className="text-sm font-semibold text-slate-400">
-          Data tren belum tersedia.
+          Data tren belum
+          tersedia.
         </p>
       </div>
     );
   }
+
+  /* =======================================================
+     CHART CONFIG
+  ======================================================= */
 
   const width =
     1000;
@@ -406,11 +498,18 @@ function TrendChart({
     top -
     bottom;
 
+  /* =======================================================
+     MAX VALUE
+  ======================================================= */
+
   const maxValue =
     Math.max(
       5,
+
       ...data.map(
-        (item) =>
+        (
+          item
+        ) =>
           item.value
       )
     );
@@ -421,6 +520,10 @@ function TrendChart({
         5
     ) *
     5;
+
+  /* =======================================================
+     POINTS
+  ======================================================= */
 
   const points =
     data.map(
@@ -455,7 +558,9 @@ function TrendChart({
 
         return {
           ...item,
+
           x,
+
           y,
         };
       }
@@ -464,10 +569,14 @@ function TrendChart({
   const linePoints =
     points
       .map(
-        (point) =>
+        (
+          point
+        ) =>
           `${point.x},${point.y}`
       )
-      .join(' ');
+      .join(
+        ' '
+      );
 
   const bottomY =
     top +
@@ -484,10 +593,15 @@ function TrendChart({
         },${bottomY}`
       : '';
 
+  /* =======================================================
+     GRID
+  ======================================================= */
+
   const gridValues =
     Array.from(
       {
-        length: 5,
+        length:
+          5,
       },
       (
         _,
@@ -500,6 +614,10 @@ function TrendChart({
         index
     );
 
+  /* =======================================================
+     SVG
+  ======================================================= */
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -507,6 +625,8 @@ function TrendChart({
       aria-label="Grafik tren kunjungan wisatawan"
       className="h-auto w-full overflow-visible"
     >
+      {/* GRID */}
+
       {gridValues.map(
         (
           value,
@@ -528,13 +648,19 @@ function TrendChart({
               }
             >
               <line
-                x1={left}
-                y1={y}
+                x1={
+                  left
+                }
+                y1={
+                  y
+                }
                 x2={
                   width -
                   right
                 }
-                y2={y}
+                y2={
+                  y
+                }
                 stroke="#e7e5db"
                 strokeWidth="1"
               />
@@ -561,6 +687,8 @@ function TrendChart({
         }
       )}
 
+      {/* AREA */}
+
       <polygon
         points={
           areaPoints
@@ -568,6 +696,8 @@ function TrendChart({
         fill="#dcebe5"
         opacity="0.75"
       />
+
+      {/* LINE */}
 
       {data.length >
       1 ? (
@@ -582,6 +712,8 @@ function TrendChart({
           strokeLinejoin="round"
         />
       ) : null}
+
+      {/* POINTS */}
 
       {points.map(
         (
@@ -602,6 +734,8 @@ function TrendChart({
               fill="#13725c"
             />
 
+            {/* VALUE */}
+
             <text
               x={
                 point.x
@@ -619,6 +753,8 @@ function TrendChart({
                 point.value
               }
             </text>
+
+            {/* MONTH */}
 
             <text
               x={
@@ -644,7 +780,7 @@ function TrendChart({
 }
 
 /* =========================================================
-   DISTRIBUTION
+   DISTRIBUTION CARD
 ========================================================= */
 
 function DistributionCard({
@@ -653,7 +789,8 @@ function DistributionCard({
   variant,
   formatLabel,
 }: {
-  title: string;
+  title:
+    string;
 
   data:
     DistributionItem[];
@@ -675,17 +812,23 @@ function DistributionCard({
   return (
     <article className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <SectionTitle>
-        {title}
+        {
+          title
+        }
       </SectionTitle>
 
       <div className="mt-7 space-y-5">
         {data.map(
-          (item) => (
+          (
+            item
+          ) => (
             <div
               key={
                 item.label
               }
             >
+              {/* LABEL */}
+
               <div className="mb-2 flex items-center justify-between gap-4">
                 <span className="text-xs font-semibold leading-5 text-slate-500">
                   {formatLabel
@@ -703,11 +846,14 @@ function DistributionCard({
                 </span>
               </div>
 
+              {/* BAR */}
+
               <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                 <div
                   className={`h-full rounded-full ${barClass}`}
                   style={{
-                    width: `${item.percentage}%`,
+                    width:
+                      `${item.percentage}%`,
                   }}
                 />
               </div>
@@ -720,7 +866,7 @@ function DistributionCard({
 }
 
 /* =========================================================
-   ORIGIN
+   ORIGIN CARD
 ========================================================= */
 
 function OriginCard({
@@ -736,11 +882,22 @@ function OriginCard({
     '#87531f',
   ];
 
+  /* =======================================================
+     HAS DATA
+  ======================================================= */
+
   const hasData =
     data.some(
-      (item) =>
-        item.count > 0
+      (
+        item
+      ) =>
+        item.count >
+        0
     );
+
+  /* =======================================================
+     BUILD PIE
+  ======================================================= */
 
   let cursor =
     0;
@@ -761,6 +918,7 @@ function OriginCard({
             ? 100
             : Math.min(
                 100,
+
                 cursor +
                   item.percentage
               );
@@ -779,11 +937,17 @@ function OriginCard({
         )})`
       : '#e2e8f0';
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <article className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <SectionTitle>
         Asal Wisatawan
       </SectionTitle>
+
+      {/* PIE */}
 
       <div className="mt-6 flex justify-center">
         <div
@@ -801,6 +965,8 @@ function OriginCard({
           </div>
         </div>
       </div>
+
+      {/* LEGEND */}
 
       <div className="mt-6 space-y-2.5">
         {data.map(

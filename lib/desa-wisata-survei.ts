@@ -94,13 +94,17 @@ export interface SurveiRespon {
 
 export interface DistributionItem {
   label: string;
+
   count: number;
+
   percentage: number;
 }
 
 export interface TrendItem {
   label: string;
+
   value: number;
+
   monthIndex: number;
 }
 
@@ -152,9 +156,14 @@ function nullableString(
   value: unknown
 ) {
   const result =
-    safeString(value);
+    safeString(
+      value
+    );
 
-  return result || null;
+  return (
+    result ||
+    null
+  );
 }
 
 function safeNumber(
@@ -162,7 +171,9 @@ function safeNumber(
   fallback = 0
 ) {
   const number =
-    Number(value);
+    Number(
+      value
+    );
 
   return Number.isFinite(
     number
@@ -183,7 +194,9 @@ function safeNullableNumber(
   }
 
   const number =
-    Number(value);
+    Number(
+      value
+    );
 
   if (
     !Number.isFinite(
@@ -205,7 +218,9 @@ export function isAsalWisatawan(
 ): value is AsalWisatawan {
   return (
     ASAL_WISATAWAN_OPTIONS as readonly string[]
-  ).includes(value);
+  ).includes(
+    value
+  );
 }
 
 export function isJenisKunjungan(
@@ -213,7 +228,9 @@ export function isJenisKunjungan(
 ): value is JenisKunjungan {
   return (
     JENIS_KUNJUNGAN_OPTIONS as readonly string[]
-  ).includes(value);
+  ).includes(
+    value
+  );
 }
 
 export function isPaketWisata(
@@ -221,7 +238,9 @@ export function isPaketWisata(
 ): value is PaketWisata {
   return (
     PAKET_WISATA_OPTIONS as readonly string[]
-  ).includes(value);
+  ).includes(
+    value
+  );
 }
 
 /* =========================================================
@@ -233,8 +252,11 @@ export function normalizeSurveiRow(
 ): SurveiRespon | null {
   if (
     !value ||
-    typeof value !== 'object' ||
-    Array.isArray(value)
+    typeof value !==
+      'object' ||
+    Array.isArray(
+      value
+    )
   ) {
     return null;
   }
@@ -365,7 +387,8 @@ export function normalizeSurveiRow(
 
     valid:
       row.valid === null ||
-      row.valid === undefined
+      row.valid ===
+        undefined
         ? true
         : Boolean(
             row.valid
@@ -386,7 +409,8 @@ function average(
   values: number[]
 ) {
   if (
-    values.length === 0
+    values.length ===
+    0
   ) {
     return 0;
   }
@@ -413,9 +437,11 @@ function average(
 ========================================================= */
 
 function buildDistribution(
-  rows: SurveiRespon[],
+  rows:
+    SurveiRespon[],
 
-  options: readonly string[],
+  options:
+    readonly string[],
 
   getter: (
     row: SurveiRespon
@@ -425,11 +451,17 @@ function buildDistribution(
     rows.length;
 
   return options.map(
-    (label) => {
+    (
+      label
+    ) => {
       const count =
         rows.filter(
-          (row) =>
-            getter(row) ===
+          (
+            row
+          ) =>
+            getter(
+              row
+            ) ===
             label
         ).length;
 
@@ -439,7 +471,8 @@ function buildDistribution(
         count,
 
         percentage:
-          total > 0
+          total >
+          0
             ? Math.round(
                 (
                   count /
@@ -454,30 +487,87 @@ function buildDistribution(
 }
 
 /* =========================================================
-   PROJECTION
+   PROYEKSI TAHUNAN
 ========================================================= */
 
-function calculateProjection(
-  values: number[]
-) {
+function calculateYearProjection({
+  values,
+  lastMonth,
+}: {
+  values:
+    number[];
+
+  lastMonth:
+    number;
+}) {
   if (
-    values.length === 0
+    values.length ===
+    0
   ) {
     return 0;
   }
 
+  /*
+   * Jumlah respons aktual
+   * yang sudah terkumpul.
+   */
+
+  const actualTotal =
+    values.reduce(
+      (
+        total,
+        value
+      ) =>
+        total +
+        value,
+      0
+    );
+
+  /*
+   * Jika data baru tersedia
+   * satu bulan, gunakan jumlah
+   * bulan tersebut sebagai
+   * estimasi rata-rata hingga
+   * bulan Desember.
+   */
+
   if (
-    values.length === 1
+    values.length ===
+    1
   ) {
-    return values[0];
+    const remainingMonths =
+      Math.max(
+        0,
+        11 -
+          lastMonth
+      );
+
+    return Math.max(
+      actualTotal,
+      Math.round(
+        actualTotal +
+          values[0] *
+            remainingMonths
+      )
+    );
   }
+
+  /*
+   * Linear regression
+   * sederhana berdasarkan
+   * tren jumlah respons
+   * per bulan.
+   */
 
   const n =
     values.length;
 
   let sumX = 0;
+
   let sumY = 0;
+
   let sumXY = 0;
+
   let sumXX = 0;
 
   values.forEach(
@@ -507,16 +597,33 @@ function calculateProjection(
     sumX *
       sumX;
 
+  /*
+   * Fallback apabila
+   * regresi tidak dapat
+   * dihitung.
+   */
+
   if (
-    denominator === 0
+    denominator ===
+    0
   ) {
+    const averageMonthly =
+      actualTotal /
+      values.length;
+
+    const remainingMonths =
+      Math.max(
+        0,
+        11 -
+          lastMonth
+      );
+
     return Math.max(
-      0,
+      actualTotal,
       Math.round(
-        values[
-          values.length -
-            1
-        ]
+        actualTotal +
+          averageMonthly *
+            remainingMonths
       )
     );
   }
@@ -538,15 +645,57 @@ function calculateProjection(
     ) /
     n;
 
-  const projected =
-    intercept +
-    slope *
-      n;
+  /*
+   * Hitung jumlah bulan
+   * setelah bulan terakhir
+   * hingga Desember.
+   *
+   * Januari = 0
+   * Desember = 11
+   */
+
+  const remainingMonths =
+    Math.max(
+      0,
+      11 -
+        lastMonth
+    );
+
+  let futureTotal =
+    0;
+
+  for (
+    let offset = 0;
+    offset <
+    remainingMonths;
+    offset += 1
+  ) {
+    const nextIndex =
+      n +
+      offset;
+
+    const prediction =
+      intercept +
+      slope *
+        nextIndex;
+
+    /*
+     * Prediksi tidak boleh
+     * bernilai negatif.
+     */
+
+    futureTotal +=
+      Math.max(
+        0,
+        prediction
+      );
+  }
 
   return Math.max(
-    0,
+    actualTotal,
     Math.round(
-      projected
+      actualTotal +
+        futureTotal
     )
   );
 }
@@ -556,28 +705,42 @@ function calculateProjection(
 ========================================================= */
 
 export function hitungDashboardSurvei(
-  rows: SurveiRespon[]
+  rows:
+    SurveiRespon[]
 ): DashboardSurvei {
   const totalResponden =
     rows.length;
 
+  /* =======================================================
+     EXPECTATION
+  ======================================================= */
+
   const expectationValues =
     rows
       .map(
-        (row) =>
+        (
+          row
+        ) =>
           row.kesesuaianEkspektasi
       )
       .filter(
         (
           value
         ): value is number =>
-          value !== null
+          value !==
+          null
       );
+
+  /* =======================================================
+     TAHUN DATA
+  ======================================================= */
 
   const years =
     rows
       .map(
-        (row) =>
+        (
+          row
+        ) =>
           Number(
             row.tanggalKunjungan.slice(
               0,
@@ -586,24 +749,34 @@ export function hitungDashboardSurvei(
           )
       )
       .filter(
-        (year) =>
+        (
+          year
+        ) =>
           Number.isInteger(
             year
           ) &&
-          year > 2000
+          year >
+            2000
       );
 
   const tahunTrend =
-    years.length > 0
+    years.length >
+    0
       ? Math.max(
           ...years
         )
       : new Date()
           .getFullYear();
 
+  /* =======================================================
+     DATA TAHUN TERBARU
+  ======================================================= */
+
   const rowsTahun =
     rows.filter(
-      (row) =>
+      (
+        row
+      ) =>
         Number(
           row.tanggalKunjungan.slice(
             0,
@@ -613,10 +786,16 @@ export function hitungDashboardSurvei(
         tahunTrend
     );
 
+  /* =======================================================
+     BULAN YANG MEMILIKI DATA
+  ======================================================= */
+
   const months =
     rowsTahun
       .map(
-        (row) =>
+        (
+          row
+        ) =>
           Number(
             row.tanggalKunjungan.slice(
               5,
@@ -626,23 +805,33 @@ export function hitungDashboardSurvei(
           1
       )
       .filter(
-        (month) =>
+        (
+          month
+        ) =>
           Number.isInteger(
             month
           ) &&
-          month >= 0 &&
-          month <= 11
+          month >=
+            0 &&
+          month <=
+            11
       );
 
   let trend:
-    TrendItem[] = [];
+    TrendItem[] =
+    [];
 
   let lastMonth =
     new Date()
       .getMonth();
 
+  /* =======================================================
+     BUILD TREND
+  ======================================================= */
+
   if (
-    months.length > 0
+    months.length >
+    0
   ) {
     const firstMonth =
       Math.min(
@@ -672,7 +861,9 @@ export function hitungDashboardSurvei(
 
           const value =
             rowsTahun.filter(
-              (row) =>
+              (
+                row
+              ) =>
                 Number(
                   row.tanggalKunjungan.slice(
                     5,
@@ -696,7 +887,7 @@ export function hitungDashboardSurvei(
             ).format(
               new Date(
                 Date.UTC(
-                  2026,
+                  tahunTrend,
                   monthIndex,
                   1
                 )
@@ -705,47 +896,40 @@ export function hitungDashboardSurvei(
 
           return {
             label,
+
             value,
+
             monthIndex,
           };
         }
       );
   }
 
-  const nextMonthDate =
-    new Date(
-      Date.UTC(
-        tahunTrend,
-        lastMonth +
-          1,
-        1
-      )
-    );
+  /* =======================================================
+     PROYEKSI TAHUNAN
+  ======================================================= */
 
   const labelProyeksi =
-    new Intl.DateTimeFormat(
-      'id-ID',
-      {
-        month:
-          'long',
-
-        year:
-          'numeric',
-
-        timeZone:
-          'UTC',
-      }
-    ).format(
-      nextMonthDate
+    String(
+      tahunTrend
     );
 
   const proyeksi =
-    calculateProjection(
-      trend.map(
-        (item) =>
-          item.value
-      )
-    );
+    calculateYearProjection({
+      values:
+        trend.map(
+          (
+            item
+          ) =>
+            item.value
+        ),
+
+      lastMonth,
+    });
+
+  /* =======================================================
+     RETURN DASHBOARD
+  ======================================================= */
 
   return {
     totalResponden,
@@ -753,7 +937,9 @@ export function hitungDashboardSurvei(
     rataKepuasan:
       average(
         rows.map(
-          (row) =>
+          (
+            row
+          ) =>
             row.kepuasanKeseluruhan
         )
       ),
@@ -761,7 +947,9 @@ export function hitungDashboardSurvei(
     rataKebersihan:
       average(
         rows.map(
-          (row) =>
+          (
+            row
+          ) =>
             row.kebersihan
         )
       ),
@@ -769,7 +957,9 @@ export function hitungDashboardSurvei(
     rataKeramahan:
       average(
         rows.map(
-          (row) =>
+          (
+            row
+          ) =>
             row.keramahan
         )
       ),
@@ -777,7 +967,9 @@ export function hitungDashboardSurvei(
     rataFasilitas:
       average(
         rows.map(
-          (row) =>
+          (
+            row
+          ) =>
             row.fasilitas
         )
       ),
@@ -796,7 +988,9 @@ export function hitungDashboardSurvei(
         ? Math.round(
             (
               rows.filter(
-                (row) =>
+                (
+                  row
+                ) =>
                   row.merekomendasikan
               ).length /
               totalResponden
@@ -813,7 +1007,9 @@ export function hitungDashboardSurvei(
 
         PAKET_WISATA_OPTIONS,
 
-        (row) =>
+        (
+          row
+        ) =>
           row.paketAktivitas
       ),
 
@@ -823,7 +1019,9 @@ export function hitungDashboardSurvei(
 
         ASAL_WISATAWAN_OPTIONS,
 
-        (row) =>
+        (
+          row
+        ) =>
           row.asal
       ),
 
@@ -833,7 +1031,9 @@ export function hitungDashboardSurvei(
 
         JENIS_KUNJUNGAN_OPTIONS,
 
-        (row) =>
+        (
+          row
+        ) =>
           row.jenisKunjungan
       ),
 

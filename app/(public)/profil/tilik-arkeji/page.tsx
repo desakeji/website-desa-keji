@@ -782,41 +782,49 @@ export default async function TilikArkejiPage() {
       <main className="mx-auto max-w-[1500px] space-y-16 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         {/* Biografi Kepala Desa */}
         <section
-          id="mantan-kades"
-          className="scroll-mt-28"
-        >
-          <SectionTitle
-            label="Arsip Kepemimpinan"
-            title="Biografi Kepala Desa dari Masa ke Masa"
-            description="Mengenal tokoh yang pernah memimpin dan berkontribusi terhadap perkembangan Desa Keji."
-            icon={Users}
-            driveUrl={
-              pengaturan.biografi_drive_url
-            }
-            driveLabel="Buka Arsip Biografi"
-          />
+  id="kepala-desa"
+  className="scroll-mt-28"
+>
+  <SectionTitle
+    label="Arsip Kepemimpinan"
+    title="Biografi Kepala Desa Keji"
+    description="Mengenal tokoh yang pernah memimpin dan berkontribusi terhadap perkembangan Desa Keji."
+    icon={Users}
+  />
 
-          {daftarMantanKades.length >
-          0 ? (
-            <div className="mt-8 space-y-6">
-              {daftarMantanKades.map(
-                (item, index) => (
-                  <MantanKadesCard
-                    key={item.id}
-                    data={item}
-                    nomor={index + 1}
-                  />
-                )
-              )}
-            </div>
-          ) : (
-            <EmptyState
-              icon={Landmark}
-              title="Arsip kepala desa belum tersedia"
-              description="Biografi akan ditampilkan setelah data dipublikasikan melalui halaman administrator."
-            />
-          )}
-        </section>
+  {daftarMantanKades.length >
+  0 ? (
+    <div className="mt-8 space-y-6">
+      {daftarMantanKades.map(
+        (
+          item,
+          index
+        ) => (
+          <MantanKadesCard
+            key={
+              item.id
+            }
+            data={
+              item
+            }
+            nomor={
+              index +
+              1
+            }
+          />
+        )
+      )}
+    </div>
+  ) : (
+    <EmptyState
+      icon={
+        Landmark
+      }
+      title="Biografi kepala desa belum tersedia"
+      description="Biografi akan tampil setelah dipublikasikan melalui halaman administrator."
+    />
+  )}
+</section>
 
         {/* Struktur Organisasi */}
         <section
@@ -859,41 +867,51 @@ export default async function TilikArkejiPage() {
 
         {/* Penghargaan */}
         <section
-          id="penghargaan"
-          className="scroll-mt-28"
-        >
-          <SectionTitle
-            label="Arsip Prestasi"
-            title="Pencapaian dan Penghargaan Desa"
-            description="Catatan penghargaan, apresiasi, dan pencapaian yang pernah diraih oleh Desa Keji."
-            icon={BadgeCheck}
-            driveUrl={
-              pengaturan.penghargaan_drive_url
-            }
-            driveLabel="Buka Arsip Pencapaian"
-          />
+  id="penghargaan"
+  className="scroll-mt-28"
+>
+  <SectionTitle
+    label="Arsip Prestasi"
+    title="Penghargaan Desa Keji"
+    description="Catatan penghargaan, apresiasi, dan pencapaian yang pernah diraih Desa Keji."
+    icon={
+      BadgeCheck
+    }
+  />
 
-          {daftarPenghargaan.length >
-          0 ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {daftarPenghargaan.map(
-                (item, index) => (
-                  <PenghargaanCard
-                    key={item.id}
-                    data={item}
-                    nomor={index + 1}
-                  />
-                )
-              )}
-            </div>
-          ) : (
-            <EmptyState
-              icon={BadgeCheck}
-              title="Arsip penghargaan belum tersedia"
-              description="Catatan penghargaan akan muncul setelah dipublikasikan oleh administrator."
-            />
-          )}
-        </section>
+  {daftarPenghargaan.length >
+  0 ? (
+    <div className="mt-8 space-y-6">
+      {daftarPenghargaan.map(
+        (
+          item,
+          index
+        ) => (
+          <PenghargaanCard
+            key={
+              item.id
+            }
+            data={
+              item
+            }
+            nomor={
+              index +
+              1
+            }
+          />
+        )
+      )}
+    </div>
+  ) : (
+    <EmptyState
+      icon={
+        BadgeCheck
+      }
+      title="Penghargaan desa belum tersedia"
+      description="Catatan penghargaan akan tampil setelah dipublikasikan melalui halaman administrator."
+    />
+  )}
+</section>
 
         {/* Galeri */}
         <section
@@ -1007,60 +1025,96 @@ function PenghargaanCard({
   data,
   nomor,
 }: {
-  data: PenghargaanPublik;
-  nomor: number;
+  data:
+    PenghargaanPublik;
+
+  nomor:
+    number;
 }) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-emerald-100 to-emerald-50">
-        {data.foto_url ? (
-          <img
-            src={data.foto_url}
-            alt={`Dokumentasi ${data.nama_penghargaan}`}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center text-emerald-700">
-            <BadgeCheck
-              size={48}
-            />
+    <article className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm transition duration-300 hover:border-emerald-300 hover:shadow-lg">
+      <div className="grid md:grid-cols-[260px_minmax(0,1fr)]">
+        {/* FOTO */}
 
-            <p className="mt-3 text-xs font-extrabold uppercase tracking-wider">
-              Penghargaan Desa
+        <div className="relative min-h-72 overflow-hidden bg-gradient-to-br from-emerald-950 to-emerald-700">
+          {data.foto_url ? (
+            <img
+              src={
+                data.foto_url
+              }
+              alt={`Dokumentasi ${data.nama_penghargaan}`}
+              loading="lazy"
+              className="h-full min-h-72 w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full min-h-72 flex-col items-center justify-center p-6 text-center text-white">
+              <BadgeCheck
+                size={52}
+              />
+
+              <p className="mt-4 text-xs font-extrabold uppercase tracking-wider text-emerald-200">
+                Penghargaan
+                Desa Keji
+              </p>
+            </div>
+          )}
+
+          <span className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-xs font-black text-white backdrop-blur">
+            {String(
+              nomor
+            ).padStart(
+              2,
+              '0'
+            )}
+          </span>
+        </div>
+
+        {/* CONTENT */}
+
+        <div className="p-6 sm:p-8 lg:p-9">
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
+              {
+                data.tahun
+              }
+            </span>
+
+            <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700">
+              Tingkat{' '}
+              {
+                data.tingkat
+              }
+            </span>
+          </div>
+
+          <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+            Arsip Prestasi
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+            {
+              data.nama_penghargaan
+            }
+          </h2>
+
+          <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-emerald-600">
+              Penyelenggara
+            </p>
+
+            <p className="mt-1 text-sm font-black text-emerald-900">
+              {
+                data.penyelenggara
+              }
             </p>
           </div>
-        )}
 
-        <span className="absolute left-4 top-4 rounded-full bg-emerald-700 px-3 py-1.5 text-xs font-black text-white">
-          {data.tahun}
-        </span>
-
-        <span className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1.5 text-xs font-black text-white backdrop-blur">
-          {String(nomor).padStart(
-            2,
-            '0'
-          )}
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col p-6">
-        <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
-          Tingkat {data.tingkat}
-        </span>
-
-        <h3 className="mt-4 text-lg font-black leading-7 text-slate-900">
-          {data.nama_penghargaan}
-        </h3>
-
-        <p className="mt-2 text-xs font-extrabold text-emerald-700">
-          Penyelenggara:{' '}
-          {data.penyelenggara}
-        </p>
-
-        <p className="mt-4 flex-1 text-sm font-medium leading-7 text-slate-500">
-          {data.deskripsi}
-        </p>
+          <p className="mt-5 whitespace-pre-line text-sm font-medium leading-8 text-slate-600 sm:text-[15px]">
+            {
+              data.deskripsi
+            }
+          </p>
+        </div>
       </div>
     </article>
   );
@@ -1126,57 +1180,41 @@ function SectionTitle({
   title,
   description,
   icon: Icon,
-  driveUrl,
-  driveLabel,
 }: {
-  label: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  driveUrl: string | null;
-  driveLabel: string;
+  label:
+    string;
+
+  title:
+    string;
+
+  description:
+    string;
+
+  icon:
+    LucideIcon;
 }) {
   return (
     <div className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-7">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md shadow-emerald-900/10">
-            <Icon size={23} />
-          </div>
-
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-              {label}
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">
-              {title}
-            </h2>
-
-            <p className="mt-3 max-w-4xl text-sm font-medium leading-7 text-slate-500">
-              {description}
-            </p>
-          </div>
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white shadow-md shadow-emerald-900/10">
+          <Icon
+            size={23}
+          />
         </div>
 
-        {driveUrl && (
-          <a
-            href={driveUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-5 text-xs font-extrabold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
-          >
-            <FolderOpen
-              size={16}
-            />
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+            {label}
+          </p>
 
-            {driveLabel}
+          <h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">
+            {title}
+          </h2>
 
-            <ExternalLink
-              size={14}
-            />
-          </a>
-        )}
+          <p className="mt-3 max-w-4xl text-sm font-medium leading-7 text-slate-500">
+            {description}
+          </p>
+        </div>
       </div>
     </div>
   );
