@@ -35,7 +35,7 @@ export interface PemerintahanDesaData {
 }
 
 export interface PerangkatDesaData {
-  id: number;
+  id: string;
 
   nama: string;
 
@@ -80,9 +80,7 @@ export interface PemerintahanActionState {
 
 export const INITIAL_PEMERINTAHAN_ACTION_STATE:
   PemerintahanActionState = {
-  success:
-    false,
+  success: false,
 
-  message:
-    '',
+  message: '',
 };
