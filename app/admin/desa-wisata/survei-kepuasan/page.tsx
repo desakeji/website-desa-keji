@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import {
   AlertCircle,
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   ExternalLink,
@@ -46,11 +47,15 @@ export const dynamic =
 export const revalidate =
   0;
 
+const ADMIN_PATH =
+  '/admin/desa-wisata/survei-kepuasan';
+
 interface PageProps {
   searchParams:
     Promise<{
       success?: string;
       error?: string;
+      tahun?: string;
     }>;
 }
 
@@ -266,6 +271,140 @@ function getAverage(
   ).toFixed(1);
 }
 
+
+const SURVEY_START_YEAR =
+  2026;
+
+function getCurrentYearJakarta() {
+  return Number(
+    new Intl.DateTimeFormat(
+      'en-US',
+      {
+        year:
+          'numeric',
+
+        timeZone:
+          'Asia/Jakarta',
+      }
+    ).format(
+      new Date()
+    )
+  );
+}
+
+function getYearFromDate(
+  value:
+    string
+) {
+  const match =
+    /^(\d{4})-\d{2}-\d{2}$/.exec(
+      value
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const year =
+    Number(
+      match[1]
+    );
+
+  if (
+    !Number.isInteger(
+      year
+    ) ||
+    year <
+      SURVEY_START_YEAR ||
+    year > 2100
+  ) {
+    return null;
+  }
+
+  return year;
+}
+
+function getAvailableYears(
+  responses:
+    SurveiRespon[],
+  currentYear:
+    number
+) {
+  const years =
+    new Set<number>();
+
+  if (
+    currentYear >=
+    SURVEY_START_YEAR
+  ) {
+    years.add(
+      currentYear
+    );
+  }
+
+  for (
+    const item of responses
+  ) {
+    const year =
+      getYearFromDate(
+        item.tanggalKunjungan
+      );
+
+    if (
+      year !== null
+    ) {
+      years.add(
+        year
+      );
+    }
+  }
+
+  return Array.from(
+    years
+  ).sort(
+    (first, second) =>
+      second - first
+  );
+}
+
+function resolveSelectedYear(
+  rawYear:
+    string | undefined,
+  availableYears:
+    number[],
+  currentYear:
+    number
+) {
+  const requestedYear =
+    Number(
+      rawYear
+    );
+
+  if (
+    Number.isInteger(
+      requestedYear
+    ) &&
+    availableYears.includes(
+      requestedYear
+    )
+  ) {
+    return requestedYear;
+  }
+
+  if (
+    availableYears.includes(
+      currentYear
+    )
+  ) {
+    return currentYear;
+  }
+
+  return (
+    availableYears[0] ??
+    currentYear
+  );
+}
+
 export default async function AdminSurveiKepuasanPage({
   searchParams,
 }: PageProps) {
@@ -394,8 +533,33 @@ export default async function AdminSurveiKepuasanPage({
           item !== null
       );
 
-  const validResponses =
+  const currentYear =
+    getCurrentYearJakarta();
+
+  const availableYears =
+    getAvailableYears(
+      responses,
+      currentYear
+    );
+
+  const selectedYear =
+    resolveSelectedYear(
+      params.tahun,
+      availableYears,
+      currentYear
+    );
+
+  const responsesTahun =
     responses.filter(
+      (item) =>
+        getYearFromDate(
+          item.tanggalKunjungan
+        ) ===
+        selectedYear
+    );
+
+  const validResponses =
+    responsesTahun.filter(
       (item) =>
         item.valid
     );
@@ -471,7 +635,7 @@ export default async function AdminSurveiKepuasanPage({
             </Link>
 
             <Link
-              href="/desa-wisata/hasil-survei"
+              href={`/desa-wisata/hasil-survei?tahun=${selectedYear}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
@@ -525,6 +689,14 @@ export default async function AdminSurveiKepuasanPage({
         }
         className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
       >
+        <input
+          type="hidden"
+          name="tahun"
+          value={
+            selectedYear
+          }
+        />
+
         <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-white px-6 py-5 sm:px-7">
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
             Pengaturan
@@ -618,6 +790,75 @@ export default async function AdminSurveiKepuasanPage({
       </form>
 
       {/* =====================================================
+          FILTER TAHUN
+      ===================================================== */}
+
+      <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+        <div className="flex flex-col gap-4 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white">
+              <CalendarDays
+                size={20}
+              />
+            </div>
+
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-700">
+                Periode Data
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Survei Tahun{' '}
+                {
+                  selectedYear
+                }
+              </h2>
+
+              <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                Tahun ditentukan otomatis dari tanggal kunjungan wisatawan.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs font-semibold text-slate-500">
+            {
+              responsesTahun.length
+            }{' '}
+            respons tahun ini ·{' '}
+            {
+              responses.length
+            }{' '}
+            seluruh tahun
+          </p>
+        </div>
+
+        <div className="overflow-x-auto p-4 sm:p-5">
+          <div className="flex min-w-max gap-2">
+            {availableYears.map(
+              (year) => (
+                <Link
+                  key={
+                    year
+                  }
+                  href={`${ADMIN_PATH}?tahun=${year}`}
+                  className={`inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-xs font-extrabold transition ${
+                    year ===
+                    selectedYear
+                      ? 'bg-emerald-700 text-white shadow-sm'
+                      : 'border border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
+                >
+                  {
+                    year
+                  }
+                </Link>
+              )
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
           DASHBOARD
       ===================================================== */}
 
@@ -628,13 +869,14 @@ export default async function AdminSurveiKepuasanPage({
           </p>
 
           <h2 className="mt-1 text-2xl font-black text-slate-900">
-            Dashboard Hasil Survei
+            Dashboard Hasil Survei{' '}
+            {
+              selectedYear
+            }
           </h2>
 
           <p className="mt-2 text-sm font-medium text-slate-500">
-            Hanya respons berstatus
-            valid yang masuk ke
-            perhitungan.
+            Hanya respons berstatus valid pada periode yang dipilih yang masuk ke perhitungan.
           </p>
         </div>
 
@@ -644,6 +886,13 @@ export default async function AdminSurveiKepuasanPage({
           }
           showHero={
             false
+          }
+          periodeTahun={
+            selectedYear
+          }
+          periodeBerjalan={
+            selectedYear ===
+            currentYear
           }
         />
       </section>
@@ -668,13 +917,16 @@ export default async function AdminSurveiKepuasanPage({
             }{' '}
             respons valid dari{' '}
             {
-              responses.length
+              responsesTahun.length
             }{' '}
-            total respons.
+            total respons pada tahun{' '}
+            {
+              selectedYear
+            }.
           </p>
         </div>
 
-        {responses.length ===
+        {responsesTahun.length ===
         0 ? (
           <div className="px-6 py-16 text-center">
             <ClipboardCheck
@@ -687,14 +939,15 @@ export default async function AdminSurveiKepuasanPage({
             </h3>
 
             <p className="mt-2 text-sm font-medium text-slate-500">
-              Respons wisatawan akan
-              muncul di sini setelah
-              kuesioner dikirim.
+              Belum ada respons survei dengan tanggal kunjungan pada tahun{' '}
+              {
+                selectedYear
+              }.
             </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {responses.map(
+            {responsesTahun.map(
               (
                 item,
                 index
@@ -709,6 +962,9 @@ export default async function AdminSurveiKepuasanPage({
                   number={
                     index +
                     1
+                  }
+                  tahun={
+                    selectedYear
                   }
                 />
               )
@@ -727,11 +983,15 @@ export default async function AdminSurveiKepuasanPage({
 function ResponseCard({
   item,
   number,
+  tahun,
 }: {
   item:
     SurveiRespon;
 
   number:
+    number;
+
+  tahun:
     number;
 }) {
   const jenis =
@@ -983,6 +1243,14 @@ function ResponseCard({
 
             <input
               type="hidden"
+              name="tahun"
+              value={
+                tahun
+              }
+            />
+
+            <input
+              type="hidden"
               name="valid"
               value={
                 item.valid
@@ -1025,6 +1293,14 @@ function ResponseCard({
               name="id"
               value={
                 item.id
+              }
+            />
+
+            <input
+              type="hidden"
+              name="tahun"
+              value={
+                tahun
               }
             />
 

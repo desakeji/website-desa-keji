@@ -29,6 +29,9 @@ const RESULT_PATH =
 const ADMIN_PATH =
   '/admin/desa-wisata/survei-kepuasan';
 
+const SURVEY_START_DATE =
+  '2026-01-01';
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -413,6 +416,18 @@ export async function kirimSurveiWisataAction(
       buildUrl(
         'error',
         'Tanggal kunjungan tidak valid.'
+      )
+    );
+  }
+
+  if (
+    tanggalKunjungan <
+    SURVEY_START_DATE
+  ) {
+    redirect(
+      buildUrl(
+        'error',
+        'Tanggal kunjungan minimal 1 Januari 2026.'
       )
     );
   }

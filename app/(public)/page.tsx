@@ -33,6 +33,7 @@ import {
   Navigation,
   Quote,
   Recycle,
+  House,
   Scale,
   ShoppingCart,
   UserRound,
@@ -185,7 +186,7 @@ const quickLinks = [
       'Pengelolaan Sampah',
 
     icon:
-      Recycle,
+      House,
 
     href:
       '/pengelolaan-sampah',

@@ -18,6 +18,7 @@ import {
   ExternalLink,
   FileText,
   Leaf,
+
   MapPinned,
   MapPin,
   Navigation,
@@ -28,6 +29,7 @@ import {
   TreePine,
   UsersRound,
   type LucideIcon,
+  House,
 } from 'lucide-react';
 
 import {
@@ -475,7 +477,7 @@ const pengelolaanSampah:
         'Pemilahan sampah berdasarkan jenisnya membantu proses pengumpulan dan pengelolaan sampah menjadi lebih terarah.',
 
       icon:
-        Recycle,
+        House,
     },
 
     {

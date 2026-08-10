@@ -9,6 +9,7 @@ import type {
 } from 'react';
 
 import {
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   Mail,
@@ -45,6 +46,9 @@ export const dynamic =
 
 export const revalidate =
   0;
+
+const SURVEY_START_DATE =
+  '2026-01-01';
 
 interface PageProps {
   searchParams:
@@ -214,6 +218,14 @@ export default async function SurveiKepuasanPage({
   const today =
     getTodayJakarta();
 
+  const tahunSurvei =
+    Number(
+      today.slice(
+        0,
+        4
+      )
+    );
+
   return (
     <div className="min-h-screen bg-[#f5f2e8]">
       {/* =====================================================
@@ -255,6 +267,17 @@ export default async function SurveiKepuasanPage({
               settings.deskripsi
             }
           </p>
+
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold text-emerald-100 backdrop-blur">
+            <CalendarDays
+              size={14}
+            />
+
+            Periode Survei{' '}
+            {
+              tahunSurvei
+            }
+          </div>
         </div>
       </section>
 
@@ -381,6 +404,9 @@ export default async function SurveiKepuasanPage({
                       required
                       defaultValue={
                         today
+                      }
+                      min={
+                        SURVEY_START_DATE
                       }
                       max={
                         today
@@ -540,12 +566,15 @@ export default async function SurveiKepuasanPage({
                       />
 
                       <p className="max-w-2xl text-xs font-medium leading-6 text-slate-500">
-                        Email dan nomor
-                        WhatsApp tidak
-                        akan ditampilkan
-                        pada dashboard
-                        hasil survei
-                        publik.
+                        Nama akan ditampilkan
+                        secara ringkas pada
+                        ulasan publik. Rating,
+                        kesan, dan saran dapat
+                        ditampilkan setelah
+                        respons dinyatakan valid.
+                        Email dan nomor WhatsApp
+                        tidak akan ditampilkan
+                        kepada publik.
                       </p>
                     </div>
 
@@ -632,6 +661,7 @@ function InputField({
   required = false,
   placeholder,
   defaultValue,
+  min,
   max,
   autoComplete,
 }: {
@@ -641,6 +671,7 @@ function InputField({
   required?: boolean;
   placeholder?: string;
   defaultValue?: string;
+  min?: string;
   max?: string;
   autoComplete?: string;
 }) {
@@ -672,6 +703,7 @@ function InputField({
         defaultValue={
           defaultValue
         }
+        min={min}
         max={max}
         autoComplete={
           autoComplete

@@ -19,6 +19,12 @@ interface Props {
 
   showHero?:
     boolean;
+
+  periodeTahun?:
+    number;
+
+  periodeBerjalan?:
+    boolean;
 }
 
 /* =========================================================
@@ -67,10 +73,16 @@ function cleanPackageLabel(
 export default function DashboardSurveiWisata({
   dashboard,
   showHero = true,
+  periodeTahun,
+  periodeBerjalan = true,
 }: Props) {
   const hasData =
     dashboard.totalResponden >
     0;
+
+  const tahunTampil =
+    periodeTahun ??
+    dashboard.tahunTrend;
 
   return (
     <div>
@@ -111,10 +123,14 @@ export default function DashboardSurveiWisata({
 
             <p className="mt-4 max-w-4xl text-sm font-medium leading-7 text-emerald-50/75">
               Dashboard kepuasan dan
-              kunjungan diperbarui
-              otomatis berdasarkan
-              respons survei valid
-              dari wisatawan.
+              kunjungan tahun{' '}
+              {
+                tahunTampil
+              }{' '}
+              diperbarui otomatis
+              berdasarkan respons
+              survei valid dari
+              wisatawan.
             </p>
           </div>
         </section>
@@ -231,7 +247,7 @@ export default function DashboardSurveiWisata({
           tahun{' '}
           <strong className="font-extrabold text-slate-500">
             {
-              dashboard.tahunTrend
+              tahunTampil
             }
           </strong>
           .
@@ -247,7 +263,7 @@ export default function DashboardSurveiWisata({
       </section>
 
       {/* =====================================================
-          PROYEKSI KUNJUNGAN TAHUNAN
+          PROYEKSI / RINGKASAN TAHUNAN
       ===================================================== */}
 
       <section className="relative mt-7 overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 px-6 py-7 text-white shadow-sm sm:px-8">
@@ -274,21 +290,39 @@ export default function DashboardSurveiWisata({
             <SectionTitle
               light
             >
-              Proyeksi Kunjungan
+              {periodeBerjalan
+                ? 'Proyeksi Kunjungan'
+                : `Ringkasan Tahun ${tahunTampil}`}
             </SectionTitle>
 
             <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-emerald-50/75">
-              Estimasi total respons
-              kunjungan hingga akhir{' '}
-              <strong className="font-extrabold text-white">
-                tahun{' '}
-                {
-                  dashboard.labelProyeksi
-                }
-              </strong>
-              , berdasarkan tren data
-              kunjungan yang telah
-              terkumpul.
+              {periodeBerjalan ? (
+                <>
+                  Estimasi total respons
+                  kunjungan hingga akhir{' '}
+                  <strong className="font-extrabold text-white">
+                    tahun{' '}
+                    {
+                      tahunTampil
+                    }
+                  </strong>
+                  , berdasarkan tren data
+                  kunjungan yang telah
+                  terkumpul.
+                </>
+              ) : (
+                <>
+                  Total respons survei valid
+                  yang tercatat berdasarkan
+                  tanggal kunjungan pada tahun{' '}
+                  <strong className="font-extrabold text-white">
+                    {
+                      tahunTampil
+                    }
+                  </strong>
+                  .
+                </>
+              )}
             </p>
           </div>
 
@@ -297,15 +331,19 @@ export default function DashboardSurveiWisata({
           <div className="shrink-0 sm:min-w-[180px] sm:text-right">
             <p className="text-4xl font-black tracking-tight text-amber-300 sm:text-5xl">
               {hasData
-                ? dashboard.proyeksi.toLocaleString(
+                ? (periodeBerjalan
+                    ? dashboard.proyeksi
+                    : dashboard.totalResponden
+                  ).toLocaleString(
                     'id-ID'
                   )
                 : '—'}
             </p>
 
             <p className="mt-2 text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
-              Estimasi Respons
-              Tahunan
+              {periodeBerjalan
+                ? 'Estimasi Respons Tahunan'
+                : 'Respons Valid'}
             </p>
           </div>
         </div>
