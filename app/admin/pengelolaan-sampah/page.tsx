@@ -4,8 +4,10 @@ import Link from 'next/link';
 
 import {
   AlertCircle,
+  BookOpen,
   CheckCircle2,
   ExternalLink,
+  FileText,
   Info,
   Link2,
   MapPin,
@@ -22,6 +24,7 @@ import {
 } from '@/lib/supabase-admin';
 
 import {
+  simpanBookletPengelolaanSampahAction,
   simpanLokasiPengelolaanSampahAction,
 } from './actions';
 
@@ -37,6 +40,18 @@ export const revalidate =
 
 const MAP_IMAGE =
   '/Peta%20Persebaran%20TPS%20dan%20Pengepul%20Desa%20Keji.jpeg';
+
+const BOOKLET_COVER =
+  '/Cover%20Booklet%20Pengepul.png';
+
+const BOOKLET_PDF =
+  '/Booklet%20Pengepul.pdf';
+
+const FLIPBOOK_URL =
+  'https://heyzine.com/flip-book/eca71a5fa8.html';
+
+const SETTINGS_KEY =
+  'utama';
 
 /* =========================================================
    TYPES
@@ -72,6 +87,17 @@ interface LokasiAdmin {
     number;
 }
 
+interface BookletAdmin {
+  judul:
+    string;
+
+  deskripsi:
+    string;
+
+  aktif:
+    boolean;
+}
+
 interface PageProps {
   searchParams:
     Promise<{
@@ -82,6 +108,22 @@ interface PageProps {
         string;
     }>;
 }
+
+/* =========================================================
+   DEFAULT
+========================================================= */
+
+const DEFAULT_BOOKLET:
+  BookletAdmin = {
+  judul:
+    'Booklet Informasi Pengepul Desa Keji',
+
+  deskripsi:
+    'Booklet digital yang menyediakan informasi mengenai pengepul di Desa Keji sebagai bagian dari penyediaan informasi pengelolaan sampah dan lingkungan desa.',
+
+  aktif:
+    true,
+};
 
 /* =========================================================
    HELPERS
@@ -96,6 +138,10 @@ function safeString(
       ''
   ).trim();
 }
+
+/* =========================================================
+   NORMALIZE LOCATION
+========================================================= */
 
 function normalizeLokasi(
   value:
@@ -193,6 +239,60 @@ function normalizeLokasi(
 }
 
 /* =========================================================
+   NORMALIZE BOOKLET
+========================================================= */
+
+function normalizeBooklet(
+  value:
+    unknown
+): BookletAdmin {
+  if (
+    !value ||
+    typeof value !==
+      'object' ||
+    Array.isArray(
+      value
+    )
+  ) {
+    return (
+      DEFAULT_BOOKLET
+    );
+  }
+
+  const row =
+    value as Record<
+      string,
+      unknown
+    >;
+
+  return {
+    judul:
+      safeString(
+        row.booklet_judul
+      ) ||
+      DEFAULT_BOOKLET
+        .judul,
+
+    deskripsi:
+      safeString(
+        row.booklet_deskripsi
+      ) ||
+      DEFAULT_BOOKLET
+        .deskripsi,
+
+    aktif:
+      row.booklet_aktif ===
+        null ||
+      row.booklet_aktif ===
+        undefined
+        ? true
+        : Boolean(
+            row.booklet_aktif
+          ),
+  };
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -201,7 +301,8 @@ export default async function AdminPengelolaanSampahPage({
 }: PageProps) {
   const [
     params,
-    result,
+    lokasiResult,
+    settingsResult,
   ] =
     await Promise.all([
       searchParams,
@@ -236,32 +337,85 @@ export default async function AdminPengelolaanSampahPage({
               true,
           }
         ),
+
+      supabaseAdmin
+        .from(
+          'pengelolaan_sampah_settings'
+        )
+        .select(`
+          booklet_judul,
+          booklet_deskripsi,
+          booklet_aktif,
+          updated_at
+        `)
+        .eq(
+          'setting_key',
+          SETTINGS_KEY
+        )
+        .maybeSingle(),
     ]);
 
+  /* =======================================================
+     ERRORS
+  ======================================================= */
+
   if (
-    result.error
+    lokasiResult.error
   ) {
     console.error(
       'Gagal mengambil data pengelolaan sampah:',
       {
         message:
-          result.error.message,
+          lokasiResult.error
+            .message,
 
         code:
-          result.error.code,
+          lokasiResult.error
+            .code,
 
         details:
-          result.error.details,
+          lokasiResult.error
+            .details,
 
         hint:
-          result.error.hint,
+          lokasiResult.error
+            .hint,
       }
     );
   }
 
+  if (
+    settingsResult.error
+  ) {
+    console.error(
+      'Gagal mengambil pengaturan Booklet Pengepul:',
+      {
+        message:
+          settingsResult.error
+            .message,
+
+        code:
+          settingsResult.error
+            .code,
+
+        details:
+          settingsResult.error
+            .details,
+
+        hint:
+          settingsResult.error
+            .hint,
+      }
+    );
+  }
+
+  /* =======================================================
+     DATA
+  ======================================================= */
+
   const items =
     (
-      result.data ??
+      lokasiResult.data ??
       []
     )
       .map(
@@ -274,6 +428,15 @@ export default async function AdminPengelolaanSampahPage({
           item !==
           null
       );
+
+  const booklet =
+    normalizeBooklet(
+      settingsResult.data
+    );
+
+  /* =======================================================
+     STATISTICS
+  ======================================================= */
 
   const jumlahAktif =
     items.filter(
@@ -310,6 +473,10 @@ export default async function AdminPengelolaanSampahPage({
         item.jenis ===
         'Pengepul'
     ).length;
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
@@ -350,13 +517,12 @@ export default async function AdminPengelolaanSampahPage({
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola enam titik TPS
-                dan pengepul serta
-                tautan Google Maps
-                yang digunakan pada
-                Peta Persebaran TPS
-                dan Pengepul Desa
-                Keji.
+                Kelola titik TPS,
+                pengepul, tautan
+                Google Maps, Booklet
+                Informasi Pengepul,
+                dan Flipbook Pengepul
+                Desa Keji.
               </p>
             </div>
           </div>
@@ -398,10 +564,17 @@ export default async function AdminPengelolaanSampahPage({
         />
       )}
 
-      {result.error && (
+      {lokasiResult.error && (
         <Message
           type="error"
           text="Data lokasi gagal dimuat. Pastikan tabel pengelolaan_sampah_lokasi sudah dibuat."
+        />
+      )}
+
+      {settingsResult.error && (
+        <Message
+          type="error"
+          text="Pengaturan booklet gagal dimuat. Pastikan tabel pengelolaan_sampah_settings sudah dibuat."
         />
       )}
 
@@ -479,11 +652,10 @@ export default async function AdminPengelolaanSampahPage({
                 tetap dari folder
                 public. Admin dapat
                 mengatur enam titik
-                lokasi, termasuk nama,
-                jenis, tautan Google
-                Maps, keterangan,
-                urutan, dan status
-                publikasi.
+                lokasi, nama, jenis,
+                tautan Google Maps,
+                keterangan, urutan,
+                dan status publikasi.
               </p>
             </div>
           </div>
@@ -499,6 +671,356 @@ export default async function AdminPengelolaanSampahPage({
               className="block h-auto w-full"
             />
           </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          BOOKLET PENGEPUL
+      ===================================================== */}
+
+      <section
+        id="booklet-pengepul"
+        className="scroll-mt-24 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
+      >
+        <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-white p-6 sm:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+              <BookOpen
+                size={23}
+              />
+            </div>
+
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                Dokumen Informasi
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Booklet Pengepul
+              </h2>
+
+              <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                Kelola judul,
+                deskripsi, dan status
+                publikasi Booklet
+                Informasi Pengepul
+                Desa Keji.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-[300px_minmax(0,1fr)]">
+          {/* COVER */}
+
+          <div className="relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#eef7bf] via-[#fffde7] to-emerald-50 p-6 sm:p-8">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-25"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle, rgba(6,78,59,0.15) 1px, transparent 1px)',
+
+                backgroundSize:
+                  '22px 22px',
+              }}
+            />
+
+            <div className="relative w-full max-w-[220px] overflow-hidden rounded-2xl bg-white shadow-xl">
+              <img
+                src={
+                  BOOKLET_COVER
+                }
+                alt="Cover Booklet Pengepul Desa Keji"
+                className="h-auto w-full"
+              />
+            </div>
+          </div>
+
+          {/* FORM */}
+
+          <form
+            action={
+              simpanBookletPengelolaanSampahAction
+            }
+            className="p-6 sm:p-7"
+          >
+            <label className="block">
+              <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                Judul Booklet
+
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
+              </span>
+
+              <input
+                name="booklet_judul"
+                type="text"
+                required
+                maxLength={200}
+                defaultValue={
+                  booklet.judul
+                }
+                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+              />
+            </label>
+
+            <label className="mt-5 block">
+              <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                Deskripsi
+
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
+              </span>
+
+              <textarea
+                name="booklet_deskripsi"
+                rows={6}
+                required
+                maxLength={1500}
+                defaultValue={
+                  booklet.deskripsi
+                }
+                className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+              />
+
+              <p className="mt-2 text-[10px] font-medium text-slate-400">
+                Maksimal 1.500
+                karakter.
+              </p>
+            </label>
+
+            {/* FILE INFO */}
+
+            <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+              <div className="flex items-start gap-3">
+                <FileText
+                  size={18}
+                  className="mt-0.5 shrink-0 text-blue-600"
+                />
+
+                <div>
+                  <p className="text-xs font-extrabold text-blue-900">
+                    Dokumen Booklet
+                  </p>
+
+                  <p className="mt-1 text-xs font-medium leading-5 text-blue-700">
+                    Cover dan PDF
+                    menggunakan file
+                    tetap dari folder
+                    public. Versi
+                    flipbook menggunakan
+                    Heyzine.
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <a
+                      href={
+                        BOOKLET_COVER
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-[10px] font-extrabold text-blue-700"
+                    >
+                      <ExternalLink
+                        size={12}
+                      />
+
+                      Lihat Cover
+                    </a>
+
+                    <a
+                      href={
+                        BOOKLET_PDF
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-[10px] font-extrabold text-blue-700"
+                    >
+                      <BookOpen
+                        size={12}
+                      />
+
+                      Buka PDF
+                    </a>
+
+                    <a
+                      href={
+                        FLIPBOOK_URL
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[10px] font-extrabold text-emerald-700"
+                    >
+                      <BookOpen
+                        size={12}
+                      />
+
+                      Buka Flipbook
+
+                      <ExternalLink
+                        size={11}
+                      />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* STATUS */}
+
+            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+              <input
+                type="checkbox"
+                name="booklet_aktif"
+                value="true"
+                defaultChecked={
+                  booklet.aktif
+                }
+                className="mt-1 h-4 w-4 accent-emerald-700"
+              />
+
+              <span>
+                <span className="block text-sm font-extrabold text-emerald-900">
+                  Tampilkan Booklet
+                  dan Flipbook
+                </span>
+
+                <span className="mt-1 block text-xs font-medium leading-5 text-emerald-800/70">
+                  Jika aktif, booklet
+                  PDF dan Flipbook
+                  Heyzine akan tampil
+                  pada halaman publik.
+                </span>
+              </span>
+            </label>
+
+            {/* ACTION */}
+
+            <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href={
+                    BOOKLET_PDF
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-5 text-xs font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+                >
+                  <BookOpen
+                    size={15}
+                  />
+
+                  Preview PDF
+                </a>
+
+                <a
+                  href={
+                    FLIPBOOK_URL
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+                >
+                  <ExternalLink
+                    size={15}
+                  />
+
+                  Preview Flipbook
+                </a>
+              </div>
+
+              <button
+                type="submit"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+              >
+                <Save
+                  size={16}
+                />
+
+                Simpan Booklet
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* =====================================================
+          FLIPBOOK PREVIEW
+      ===================================================== */}
+
+      <section
+        id="flipbook-pengepul"
+        className="scroll-mt-24 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
+      >
+        <div className="flex flex-col gap-5 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-white p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+              <BookOpen
+                size={23}
+              />
+            </div>
+
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                Flipbook Digital
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Preview Flipbook
+                Pengepul
+              </h2>
+
+              <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                Tampilan berikut sama
+                dengan flipbook yang
+                akan ditampilkan pada
+                halaman publik.
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={
+              FLIPBOOK_URL
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 text-xs font-extrabold text-emerald-700 transition hover:bg-emerald-50"
+          >
+            Buka Heyzine
+
+            <ExternalLink
+              size={13}
+            />
+          </a>
+        </div>
+
+        <div className="bg-slate-100 p-4 sm:p-6">
+          <div className="mx-auto max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+            <div className="aspect-[16/10] w-full">
+              <iframe
+                src={
+                  FLIPBOOK_URL
+                }
+                title="Flipbook Booklet Pengepul Desa Keji"
+                loading="lazy"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 px-6 py-4">
+          <p className="text-xs font-medium leading-5 text-slate-500">
+            Flipbook menggunakan
+            layanan Heyzine dan
+            membutuhkan koneksi
+            internet untuk dimuat.
+          </p>
         </div>
       </section>
 
@@ -520,13 +1042,14 @@ export default async function AdminPengelolaanSampahPage({
           <p className="mt-1 text-xs font-medium leading-6">
             Masukkan tautan hasil
             Google Maps atau Google
-            Maps Share untuk masing-
-            masing titik. Tautan dapat
-            berupa maps.app.goo.gl
-            maupun google.com/maps.
-            Kolom dapat dikosongkan
-            jika titik Google Maps
-            belum tersedia.
+            Maps Share untuk
+            masing-masing titik.
+            Tautan dapat berupa
+            maps.app.goo.gl maupun
+            google.com/maps. Kolom
+            dapat dikosongkan jika
+            titik Google Maps belum
+            tersedia.
           </p>
         </div>
       </section>
@@ -654,10 +1177,6 @@ function LocationForm({
       />
 
       <div className="grid gap-6 xl:grid-cols-[190px_minmax(0,1fr)]">
-        {/* ===================================================
-            STATUS / IDENTITAS
-        =================================================== */}
-
         <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div
             className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
@@ -728,13 +1247,7 @@ function LocationForm({
           </div>
         </aside>
 
-        {/* ===================================================
-            FORM
-        =================================================== */}
-
         <div className="grid gap-5 md:grid-cols-2">
-          {/* NAMA */}
-
           <TextInput
             name="nama"
             label="Nama Lokasi"
@@ -742,8 +1255,6 @@ function LocationForm({
               item.nama
             }
           />
-
-          {/* JENIS */}
 
           <label className="block">
             <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
@@ -771,8 +1282,6 @@ function LocationForm({
               </option>
             </select>
           </label>
-
-          {/* GOOGLE MAPS */}
 
           <div className="md:col-span-2">
             <label className="block">
@@ -808,8 +1317,6 @@ function LocationForm({
             </label>
           </div>
 
-          {/* KETERANGAN */}
-
           <div className="md:col-span-2">
             <label className="block">
               <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
@@ -828,8 +1335,6 @@ function LocationForm({
             </label>
           </div>
 
-          {/* URUTAN */}
-
           <TextInput
             name="urutan"
             label="Urutan"
@@ -839,8 +1344,6 @@ function LocationForm({
             type="number"
             min="0"
           />
-
-          {/* STATUS */}
 
           <label className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
             <input
@@ -866,8 +1369,6 @@ function LocationForm({
               </span>
             </span>
           </label>
-
-          {/* ACTION */}
 
           <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 md:col-span-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -979,7 +1480,8 @@ function TextInput({
 function StatCard({
   label,
   value,
-  icon: Icon,
+  icon:
+    Icon,
 }: {
   label:
     string;

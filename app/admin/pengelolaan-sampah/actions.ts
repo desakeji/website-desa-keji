@@ -31,6 +31,12 @@ const PUBLIC_PATH =
 const TABLE =
   'pengelolaan_sampah_lokasi';
 
+const SETTINGS_TABLE =
+  'pengelolaan_sampah_settings';
+
+const SETTINGS_KEY =
+  'utama';
+
 const ALLOWED_TYPES = [
   'TPS',
   'Pengepul',
@@ -68,12 +74,13 @@ async function requireAdmin() {
 }
 
 /* =========================================================
-   FORM
+   FORM HELPERS
 ========================================================= */
 
 function getString(
   formData:
     FormData,
+
   key:
     string
 ) {
@@ -88,6 +95,7 @@ function getString(
 function getBoolean(
   formData:
     FormData,
+
   key:
     string
 ) {
@@ -103,6 +111,7 @@ function getBoolean(
 function getNumber(
   formData:
     FormData,
+
   key:
     string
 ) {
@@ -133,7 +142,9 @@ function isValidExternalUrl(
   value:
     string
 ) {
-  if (!value) {
+  if (
+    !value
+  ) {
     return true;
   }
 
@@ -162,7 +173,11 @@ function buildAdminUrl(
   type:
     | 'success'
     | 'error',
+
   message:
+    string,
+
+  anchor?:
     string
 ) {
   const params =
@@ -171,7 +186,15 @@ function buildAdminUrl(
         message,
     });
 
-  return `${ADMIN_PATH}?${params.toString()}`;
+  return (
+    `${ADMIN_PATH}?` +
+    `${params.toString()}` +
+    `${
+      anchor
+        ? `#${anchor}`
+        : ''
+    }`
+  );
 }
 
 /* =========================================================
@@ -193,6 +216,154 @@ function revalidatePengelolaanSampah() {
 
   revalidatePath(
     '/'
+  );
+}
+
+/* =========================================================
+   UPDATE BOOKLET
+========================================================= */
+
+export async function simpanBookletPengelolaanSampahAction(
+  formData:
+    FormData
+) {
+  await requireAdmin();
+
+  const judul =
+    getString(
+      formData,
+      'booklet_judul'
+    );
+
+  const deskripsi =
+    getString(
+      formData,
+      'booklet_deskripsi'
+    );
+
+  const aktif =
+    getBoolean(
+      formData,
+      'booklet_aktif'
+    );
+
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
+
+  if (
+    judul.length <
+    3
+  ) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        'Judul booklet minimal terdiri dari 3 karakter.',
+        'booklet-pengepul'
+      )
+    );
+  }
+
+  if (
+    judul.length >
+    200
+  ) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        'Judul booklet maksimal 200 karakter.',
+        'booklet-pengepul'
+      )
+    );
+  }
+
+  if (
+    deskripsi.length <
+    10
+  ) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        'Deskripsi booklet minimal terdiri dari 10 karakter.',
+        'booklet-pengepul'
+      )
+    );
+  }
+
+  if (
+    deskripsi.length >
+    1500
+  ) {
+    redirect(
+      buildAdminUrl(
+        'error',
+        'Deskripsi booklet maksimal 1.500 karakter.',
+        'booklet-pengepul'
+      )
+    );
+  }
+
+  /* =======================================================
+     UPSERT
+  ======================================================= */
+
+  const {
+    error,
+  } =
+    await supabaseAdmin
+      .from(
+        SETTINGS_TABLE
+      )
+      .upsert(
+        {
+          setting_key:
+            SETTINGS_KEY,
+
+          booklet_judul:
+            judul,
+
+          booklet_deskripsi:
+            deskripsi,
+
+          booklet_aktif:
+            aktif,
+
+          updated_at:
+            new Date()
+              .toISOString(),
+        },
+        {
+          onConflict:
+            'setting_key',
+        }
+      );
+
+  if (
+    error
+  ) {
+    console.error(
+      'Gagal menyimpan pengaturan booklet pengepul:',
+      error
+    );
+
+    redirect(
+      buildAdminUrl(
+        'error',
+        error.message ||
+          'Pengaturan booklet gagal disimpan.',
+        'booklet-pengepul'
+      )
+    );
+  }
+
+  revalidatePengelolaanSampah();
+
+  redirect(
+    buildAdminUrl(
+      'success',
+      'Pengaturan Booklet Pengepul berhasil diperbarui.',
+      'booklet-pengepul'
+    )
   );
 }
 
@@ -252,7 +423,9 @@ export async function simpanLokasiPengelolaanSampahAction(
      VALIDATION
   ======================================================= */
 
-  if (!id) {
+  if (
+    !id
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -376,7 +549,9 @@ export async function simpanLokasiPengelolaanSampahAction(
         id
       );
 
-  if (error) {
+  if (
+    error
+  ) {
     console.error(
       'Gagal memperbarui lokasi pengelolaan sampah:',
       error

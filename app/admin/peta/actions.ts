@@ -22,7 +22,12 @@ import type {
   PetaActionState,
 } from '@/types/peta';
 
-const PETA_KEY = 'utama';
+const PETA_KEY =
+  'utama';
+
+/* =========================================================
+   AUTH
+========================================================= */
 
 async function requireAdmin() {
   const supabase =
@@ -33,45 +38,99 @@ async function requireAdmin() {
       user,
     },
     error,
-  } = await supabase.auth.getUser();
+  } =
+    await supabase.auth.getUser();
 
   if (
     error ||
     !user
   ) {
-    redirect('/login');
+    redirect(
+      '/login'
+    );
   }
 }
 
+/* =========================================================
+   HELPERS
+========================================================= */
+
 function getString(
-  formData: FormData,
-  key: string
+  formData:
+    FormData,
+
+  key:
+    string
 ) {
   return String(
-    formData.get(key) ?? ''
+    formData.get(
+      key
+    ) ??
+      ''
   ).trim();
 }
 
+function getBoolean(
+  formData:
+    FormData,
+
+  key:
+    string
+) {
+  return (
+    getString(
+      formData,
+      key
+    ) ===
+    'true'
+  );
+}
+
 function isHttpUrl(
-  value: string
+  value:
+    string
 ) {
   try {
     const url =
-      new URL(value);
+      new URL(
+        value
+      );
 
     return (
-      url.protocol === 'http:' ||
-      url.protocol === 'https:'
+      url.protocol ===
+        'http:' ||
+      url.protocol ===
+        'https:'
     );
   } catch {
     return false;
   }
 }
 
+function revalidatePeta() {
+  revalidatePath(
+    '/admin/peta'
+  );
+
+  revalidatePath(
+    '/peta'
+  );
+
+  revalidatePath(
+    '/admin'
+  );
+}
+
+/* =========================================================
+   PETA DESA UTAMA
+========================================================= */
+
 export async function simpanPetaDesaAction(
   previousState:
     PetaActionState,
-  formData: FormData
+
+  formData:
+    FormData
 ): Promise<PetaActionState> {
   void previousState;
 
@@ -139,12 +198,17 @@ export async function simpanPetaDesaAction(
 
   if (
     requiredValues.some(
-      (value) =>
-        value.length === 0
+      (
+        value
+      ) =>
+        value.length ===
+        0
     )
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Semua kolom wajib harus diisi.',
     };
@@ -155,7 +219,9 @@ export async function simpanPetaDesaAction(
     100
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Label bagian maksimal 100 karakter.',
     };
@@ -166,7 +232,9 @@ export async function simpanPetaDesaAction(
     200
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Judul halaman maksimal 200 karakter.',
     };
@@ -177,7 +245,9 @@ export async function simpanPetaDesaAction(
     1000
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Deskripsi maksimal 1.000 karakter.',
     };
@@ -188,7 +258,9 @@ export async function simpanPetaDesaAction(
     100
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Label tombol maksimal 100 karakter.',
     };
@@ -199,7 +271,9 @@ export async function simpanPetaDesaAction(
     200
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Judul iframe maksimal 200 karakter.',
     };
@@ -211,7 +285,9 @@ export async function simpanPetaDesaAction(
     )
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'URL aplikasi Maps tidak valid.',
     };
@@ -223,7 +299,9 @@ export async function simpanPetaDesaAction(
     )
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'URL embed Google Maps tidak valid.',
     };
@@ -233,11 +311,15 @@ export async function simpanPetaDesaAction(
     !Number.isInteger(
       tinggiPeta
     ) ||
-    tinggiPeta < 300 ||
-    tinggiPeta > 900
+    tinggiPeta <
+      300 ||
+    tinggiPeta >
+      900
   ) {
     return {
-      success: false,
+      success:
+        false,
+
       message:
         'Tinggi peta harus berupa angka antara 300 sampai 900 piksel.',
     };
@@ -246,47 +328,52 @@ export async function simpanPetaDesaAction(
   try {
     const {
       error,
-    } = await supabaseAdmin
-      .from('peta_desa')
-      .upsert(
-        {
-          peta_key:
-            PETA_KEY,
+    } =
+      await supabaseAdmin
+        .from(
+          'peta_desa'
+        )
+        .upsert(
+          {
+            peta_key:
+              PETA_KEY,
 
-          label_seksi:
-            labelSekseksi,
+            label_seksi:
+              labelSekseksi,
 
-          judul_halaman:
-            judulHalaman,
+            judul_halaman:
+              judulHalaman,
 
-          deskripsi,
+            deskripsi,
 
-          tombol_label:
-            tombolLabel,
+            tombol_label:
+              tombolLabel,
 
-          maps_link_url:
-            mapsLinkUrl,
+            maps_link_url:
+              mapsLinkUrl,
 
-          maps_embed_url:
-            mapsEmbedUrl,
+            maps_embed_url:
+              mapsEmbedUrl,
 
-          iframe_title:
-            iframeTitle,
+            iframe_title:
+              iframeTitle,
 
-          tinggi_peta:
-            tinggiPeta,
+            tinggi_peta:
+              tinggiPeta,
 
-          updated_at:
-            new Date()
-              .toISOString(),
-        },
-        {
-          onConflict:
-            'peta_key',
-        }
-      );
+            updated_at:
+              new Date()
+                .toISOString(),
+          },
+          {
+            onConflict:
+              'peta_key',
+          }
+        );
 
-    if (error) {
+    if (
+      error
+    ) {
       console.error(
         'Gagal menyimpan peta desa:',
         {
@@ -305,42 +392,461 @@ export async function simpanPetaDesaAction(
       );
 
       return {
-        success: false,
+        success:
+          false,
+
         message:
           error.message ||
           'Konfigurasi peta gagal disimpan.',
       };
     }
 
-    revalidatePath(
-      '/admin/peta'
-    );
-
-    revalidatePath(
-      '/peta'
-    );
-
-    revalidatePath(
-      '/admin'
-    );
+    revalidatePeta();
 
     return {
-      success: true,
+      success:
+        true,
+
       message:
         'Konfigurasi peta desa berhasil diperbarui.',
     };
-  } catch (error) {
+  } catch (
+    error
+  ) {
     console.error(
       'Kesalahan menyimpan peta desa:',
       error
     );
 
     return {
-      success: false,
+      success:
+        false,
+
       message:
-        error instanceof Error
+        error instanceof
+        Error
           ? error.message
           : 'Terjadi kesalahan saat menyimpan peta desa.',
     };
   }
+}
+
+/* =========================================================
+   UPDATE TITIK PETA ADMINISTRASI
+========================================================= */
+
+export async function simpanLokasiAdministrasiAction(
+  formData:
+    FormData
+) {
+  await requireAdmin();
+
+  const id =
+    getString(
+      formData,
+      'id'
+    );
+
+  const nama =
+    getString(
+      formData,
+      'nama'
+    );
+
+  const kategori =
+    getString(
+      formData,
+      'kategori'
+    );
+
+  const mapsUrl =
+    getString(
+      formData,
+      'maps_url'
+    );
+
+  const posisiX =
+    Number(
+      getString(
+        formData,
+        'posisi_x'
+      )
+    );
+
+  const posisiY =
+    Number(
+      getString(
+        formData,
+        'posisi_y'
+      )
+    );
+
+  const urutan =
+    Number(
+      getString(
+        formData,
+        'urutan'
+      )
+    );
+
+  const aktif =
+    getBoolean(
+      formData,
+      'aktif'
+    );
+
+  if (!id) {
+    throw new Error(
+      'ID lokasi tidak valid.'
+    );
+  }
+
+  if (
+    nama.length <
+      2 ||
+    nama.length >
+      150
+  ) {
+    throw new Error(
+      'Nama lokasi harus terdiri dari 2 sampai 150 karakter.'
+    );
+  }
+
+  if (
+    kategori.length <
+      2 ||
+    kategori.length >
+      100
+  ) {
+    throw new Error(
+      'Kategori lokasi harus terdiri dari 2 sampai 100 karakter.'
+    );
+  }
+
+  if (
+    mapsUrl &&
+    !isHttpUrl(
+      mapsUrl
+    )
+  ) {
+    throw new Error(
+      'URL Google Maps lokasi tidak valid.'
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      posisiX
+    ) ||
+    posisiX <
+      0 ||
+    posisiX >
+      100
+  ) {
+    throw new Error(
+      'Posisi X harus berada antara 0 sampai 100.'
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      posisiY
+    ) ||
+    posisiY <
+      0 ||
+    posisiY >
+      100
+  ) {
+    throw new Error(
+      'Posisi Y harus berada antara 0 sampai 100.'
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      urutan
+    ) ||
+    urutan <
+      0
+  ) {
+    throw new Error(
+      'Urutan lokasi tidak valid.'
+    );
+  }
+
+  const {
+    error,
+  } =
+    await supabaseAdmin
+      .from(
+        'peta_administrasi_lokasi'
+      )
+      .update({
+        nama,
+
+        kategori,
+
+        maps_url:
+          mapsUrl ||
+          null,
+
+        posisi_x:
+          posisiX,
+
+        posisi_y:
+          posisiY,
+
+        aktif,
+
+        urutan,
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        'id',
+        id
+      );
+
+  if (
+    error
+  ) {
+    throw new Error(
+      `Lokasi gagal diperbarui: ${error.message}`
+    );
+  }
+
+  revalidatePeta();
+
+  redirect(
+    '/admin/peta?status=lokasi-updated#lokasi-administrasi'
+  );
+}
+
+/* =========================================================
+   TAMBAH TITIK ADMINISTRASI
+========================================================= */
+
+export async function tambahLokasiAdministrasiAction(
+  formData:
+    FormData
+) {
+  await requireAdmin();
+
+  const kode =
+    getString(
+      formData,
+      'kode'
+    )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]+/g,
+        '-'
+      )
+      .replace(
+        /^-+|-+$/g,
+        ''
+      );
+
+  const nama =
+    getString(
+      formData,
+      'nama'
+    );
+
+  const kategori =
+    getString(
+      formData,
+      'kategori'
+    );
+
+  const mapsUrl =
+    getString(
+      formData,
+      'maps_url'
+    );
+
+  const posisiX =
+    Number(
+      getString(
+        formData,
+        'posisi_x'
+      )
+    );
+
+  const posisiY =
+    Number(
+      getString(
+        formData,
+        'posisi_y'
+      )
+    );
+
+  const urutan =
+    Number(
+      getString(
+        formData,
+        'urutan'
+      )
+    );
+
+  if (
+    !kode ||
+    !nama ||
+    !kategori
+  ) {
+    throw new Error(
+      'Kode, nama, dan kategori wajib diisi.'
+    );
+  }
+
+  if (
+    mapsUrl &&
+    !isHttpUrl(
+      mapsUrl
+    )
+  ) {
+    throw new Error(
+      'URL Google Maps tidak valid.'
+    );
+  }
+
+  if (
+    !Number.isFinite(
+      posisiX
+    ) ||
+    posisiX <
+      0 ||
+    posisiX >
+      100 ||
+    !Number.isFinite(
+      posisiY
+    ) ||
+    posisiY <
+      0 ||
+    posisiY >
+      100
+  ) {
+    throw new Error(
+      'Posisi titik harus berada antara 0 sampai 100 persen.'
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      urutan
+    ) ||
+    urutan <
+      0
+  ) {
+    throw new Error(
+      'Urutan lokasi tidak valid.'
+    );
+  }
+
+  const {
+    error,
+  } =
+    await supabaseAdmin
+      .from(
+        'peta_administrasi_lokasi'
+      )
+      .insert({
+        kode,
+
+        nama,
+
+        kategori,
+
+        maps_url:
+          mapsUrl ||
+          null,
+
+        posisi_x:
+          posisiX,
+
+        posisi_y:
+          posisiY,
+
+        aktif:
+          true,
+
+        urutan,
+
+        created_at:
+          new Date()
+            .toISOString(),
+
+        updated_at:
+          new Date()
+            .toISOString(),
+      });
+
+  if (
+    error
+  ) {
+    throw new Error(
+      error.code ===
+      '23505'
+        ? 'Kode lokasi sudah digunakan.'
+        : `Lokasi gagal ditambahkan: ${error.message}`
+    );
+  }
+
+  revalidatePeta();
+
+  redirect(
+    '/admin/peta?status=lokasi-created#lokasi-administrasi'
+  );
+}
+
+/* =========================================================
+   HAPUS TITIK
+========================================================= */
+
+export async function hapusLokasiAdministrasiAction(
+  formData:
+    FormData
+) {
+  await requireAdmin();
+
+  const id =
+    getString(
+      formData,
+      'id'
+    );
+
+  if (!id) {
+    throw new Error(
+      'ID lokasi tidak valid.'
+    );
+  }
+
+  const {
+    error,
+  } =
+    await supabaseAdmin
+      .from(
+        'peta_administrasi_lokasi'
+      )
+      .delete()
+      .eq(
+        'id',
+        id
+      );
+
+  if (
+    error
+  ) {
+    throw new Error(
+      `Lokasi gagal dihapus: ${error.message}`
+    );
+  }
+
+  revalidatePeta();
+
+  redirect(
+    '/admin/peta?status=lokasi-deleted#lokasi-administrasi'
+  );
 }

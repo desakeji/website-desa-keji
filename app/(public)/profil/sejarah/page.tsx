@@ -42,6 +42,9 @@ export const dynamic =
 export const revalidate =
   0;
 
+const SETTINGS_KEY =
+  'utama';
+
 const JENIS_EBOOK =
   'ebook-sejarah';
 
@@ -51,76 +54,166 @@ const JENIS_EBOOK =
 
 interface LayananDatabase {
   id:
-    | number
-    | string
-    | null;
+    number |
+    string |
+    null;
 
   nama:
-    | string
-    | null;
+    string |
+    null;
 
   slug:
-    | string
-    | null;
+    string |
+    null;
+}
+
+interface SejarahSettings {
+  judul_halaman: string;
+
+  tanggal_publikasi: string;
+
+  penulis: string;
+
+  kategori: string;
+
+  gambar_url: string;
+
+  pengantar_utama: string;
+
+  pengantar_kedua: string;
+
+  ebook_label: string;
+
+  ebook_judul: string;
+
+  ebook_deskripsi: string;
+
+  ebook_empty_judul: string;
+
+  ebook_empty_deskripsi: string;
 }
 
 interface EbookSejarahPublik {
-  id:
-    string;
+  id: string;
 
-  judul:
-    string;
+  judul: string;
 
-  deskripsi:
-    string;
+  deskripsi: string;
 
-  penyusun:
-    string;
+  penyusun: string;
 
   tahun:
-    | number
-    | null;
+    number | null;
 
   jumlah_halaman:
-    | number
-    | null;
+    number | null;
 
-  file_url:
-    string;
+  file_url: string;
 
   cover_url:
-    | string
-    | null;
+    string | null;
 
-  urutan:
-    number;
+  urutan: number;
 }
+
+/* =========================================================
+   DEFAULT SETTINGS
+========================================================= */
+
+const DEFAULT_SETTINGS:
+  SejarahSettings = {
+  judul_halaman:
+    'Sejarah dan Potensi Desa Keji',
+
+  tanggal_publikasi:
+    '2026-07-05',
+
+  penulis:
+    'Admin Desa',
+
+  kategori:
+    'Informasi Publik',
+
+  gambar_url:
+    '/background.png',
+
+  pengantar_utama:
+    'Desa Keji merupakan salah satu desa yang berada di Kecamatan Ungaran Barat, Kabupaten Semarang. Letaknya di kawasan lereng Gunung Ungaran memberikan Desa Keji potensi alam, budaya, kesenian, kuliner, usaha masyarakat, dan wisata yang beragam.',
+
+  pengantar_kedua:
+    'Berbagai potensi tersebut masih dipertahankan dan dikembangkan oleh masyarakat. Selain menjadi bagian dari kehidupan sehari-hari warga, potensi tersebut juga menjadi identitas Desa Keji dan modal pengembangan Desa Wisata Keji.',
+
+  ebook_label:
+    'Arsip Digital',
+
+  ebook_judul:
+    'Ebook Sejarah Desa Keji',
+
+  ebook_deskripsi:
+    'Baca dan unduh dokumentasi sejarah Desa Keji dalam bentuk buku digital.',
+
+  ebook_empty_judul:
+    'Ebook sejarah sedang disiapkan',
+
+  ebook_empty_deskripsi:
+    'Ebook akan ditampilkan setelah ditambahkan dan dipublikasikan melalui halaman administrator.',
+};
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
 function safeString(
-  value:
-    unknown
+  value: unknown
 ) {
   return String(
-    value ??
-      ''
+    value ?? ''
   ).trim();
 }
 
+function formatTanggalPublikasi(
+  value: string
+) {
+  const date =
+    new Date(
+      `${value}T00:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return '05 Juli 2026';
+  }
+
+  return new Intl.DateTimeFormat(
+    'id-ID',
+    {
+      day:
+        '2-digit',
+
+      month:
+        'long',
+
+      year:
+        'numeric',
+    }
+  ).format(date);
+}
+
+/* =========================================================
+   NORMALIZE EBOOK
+========================================================= */
+
 function normalizeEbook(
-  value:
-    unknown
+  value: unknown
 ): EbookSejarahPublik | null {
   if (
     !value ||
     typeof value !==
       'object' ||
-    Array.isArray(
-      value
-    )
+    Array.isArray(value)
   ) {
     return null;
   }
@@ -195,11 +288,6 @@ function normalizeEbook(
           row.jumlah_halaman
         );
 
-  const coverUrl =
-    safeString(
-      row.cover_url
-    );
-
   return {
     id,
 
@@ -210,8 +298,7 @@ function normalizeEbook(
     penyusun,
 
     tahun:
-      tahun !==
-        null &&
+      tahun !== null &&
       Number.isInteger(
         tahun
       )
@@ -231,7 +318,9 @@ function normalizeEbook(
       fileUrl,
 
     cover_url:
-      coverUrl ||
+      safeString(
+        row.cover_url
+      ) ||
       null,
 
     urutan,
@@ -239,13 +328,157 @@ function normalizeEbook(
 }
 
 /* =========================================================
-   DATA
+   DATA SETTINGS
+========================================================= */
+
+async function getSejarahSettings():
+  Promise<SejarahSettings> {
+  const {
+    data,
+    error,
+  } =
+    await supabaseAdmin
+      .from(
+        'profil_sejarah_settings'
+      )
+      .select(`
+        judul_halaman,
+        tanggal_publikasi,
+        penulis,
+        kategori,
+        gambar_url,
+        pengantar_utama,
+        pengantar_kedua,
+        ebook_label,
+        ebook_judul,
+        ebook_deskripsi,
+        ebook_empty_judul,
+        ebook_empty_deskripsi
+      `)
+      .eq(
+        'setting_key',
+        SETTINGS_KEY
+      )
+      .maybeSingle();
+
+  if (error) {
+    console.error(
+      'Gagal mengambil pengaturan halaman sejarah:',
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
+    );
+
+    return DEFAULT_SETTINGS;
+  }
+
+  if (!data) {
+    return DEFAULT_SETTINGS;
+  }
+
+  return {
+    judul_halaman:
+      safeString(
+        data.judul_halaman
+      ) ||
+      DEFAULT_SETTINGS
+        .judul_halaman,
+
+    tanggal_publikasi:
+      safeString(
+        data.tanggal_publikasi
+      ) ||
+      DEFAULT_SETTINGS
+        .tanggal_publikasi,
+
+    penulis:
+      safeString(
+        data.penulis
+      ) ||
+      DEFAULT_SETTINGS
+        .penulis,
+
+    kategori:
+      safeString(
+        data.kategori
+      ) ||
+      DEFAULT_SETTINGS
+        .kategori,
+
+    gambar_url:
+      safeString(
+        data.gambar_url
+      ) ||
+      DEFAULT_SETTINGS
+        .gambar_url,
+
+    pengantar_utama:
+      safeString(
+        data.pengantar_utama
+      ) ||
+      DEFAULT_SETTINGS
+        .pengantar_utama,
+
+    pengantar_kedua:
+      safeString(
+        data.pengantar_kedua
+      ) ||
+      DEFAULT_SETTINGS
+        .pengantar_kedua,
+
+    ebook_label:
+      safeString(
+        data.ebook_label
+      ) ||
+      DEFAULT_SETTINGS
+        .ebook_label,
+
+    ebook_judul:
+      safeString(
+        data.ebook_judul
+      ) ||
+      DEFAULT_SETTINGS
+        .ebook_judul,
+
+    ebook_deskripsi:
+      safeString(
+        data.ebook_deskripsi
+      ) ||
+      DEFAULT_SETTINGS
+        .ebook_deskripsi,
+
+    ebook_empty_judul:
+      safeString(
+        data.ebook_empty_judul
+      ) ||
+      DEFAULT_SETTINGS
+        .ebook_empty_judul,
+
+    ebook_empty_deskripsi:
+      safeString(
+        data.ebook_empty_deskripsi
+      ) ||
+      DEFAULT_SETTINGS
+        .ebook_empty_deskripsi,
+  };
+}
+
+/* =========================================================
+   DATA LAYANAN
 ========================================================= */
 
 async function getDaftarLayanan():
-  Promise<
-    PilihanLayanan[]
-  > {
+  Promise<PilihanLayanan[]> {
   const {
     data,
     error,
@@ -278,9 +511,7 @@ async function getDaftarLayanan():
         }
       );
 
-  if (
-    error
-  ) {
+  if (error) {
     console.error(
       'Gagal mengambil layanan pada halaman sejarah:',
       {
@@ -346,10 +577,12 @@ async function getDaftarLayanan():
     );
 }
 
+/* =========================================================
+   DATA EBOOK
+========================================================= */
+
 async function getEbookSejarah():
-  Promise<
-    EbookSejarahPublik[]
-  > {
+  Promise<EbookSejarahPublik[]> {
   const {
     data,
     error,
@@ -395,11 +628,9 @@ async function getEbookSejarah():
         }
       );
 
-  if (
-    error
-  ) {
+  if (error) {
     console.error(
-      'Gagal mengambil ebook sejarah:',
+      'Gagal mengambil Ebook Sejarah:',
       {
         message:
           error.message,
@@ -427,10 +658,9 @@ async function getEbookSejarah():
     )
     .filter(
       (
-        item
-      ): item is EbookSejarahPublik =>
-        item !==
-        null
+        ebook
+      ): ebook is EbookSejarahPublik =>
+        ebook !== null
     );
 }
 
@@ -441,10 +671,13 @@ async function getEbookSejarah():
 export default async function SejarahDesaPage() {
   const [
     daftarLayanan,
+    settings,
     daftarEbook,
   ] =
     await Promise.all([
       getDaftarLayanan(),
+
+      getSejarahSettings(),
 
       getEbookSejarah(),
     ]);
@@ -492,15 +725,15 @@ export default async function SejarahDesaPage() {
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="animate-scrolling-sejarah-info">
               Untuk permohonan
-              informasi silakan
-              masuk ke menu PPID
-              website ini. ***
-              Potensi alam, budaya,
-              kesenian, kuliner,
-              UMKM, dan wisata Desa
-              Keji, Kecamatan
-              Ungaran Barat,
-              Kabupaten Semarang ***
+              informasi silakan masuk
+              ke menu PPID website ini.
+              *** Potensi alam,
+              budaya, kesenian,
+              kuliner, UMKM, dan
+              wisata Desa Keji,
+              Kecamatan Ungaran
+              Barat, Kabupaten
+              Semarang ***
             </div>
           </div>
         </div>
@@ -511,7 +744,7 @@ export default async function SejarahDesaPage() {
 
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           {/* =================================================
-              KONTEN UTAMA
+              KONTEN
           ================================================= */}
 
           <main className="min-w-0 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 lg:w-2/3">
@@ -525,8 +758,9 @@ export default async function SejarahDesaPage() {
               </p>
 
               <h1 className="mt-2 text-2xl font-extrabold leading-tight text-gray-800 md:text-3xl">
-                Sejarah dan Potensi
-                Desa Keji
+                {
+                  settings.judul_halaman
+                }
               </h1>
             </div>
 
@@ -541,7 +775,9 @@ export default async function SejarahDesaPage() {
                   className="text-emerald-500"
                 />
 
-                05 Juli 2026
+                {formatTanggalPublikasi(
+                  settings.tanggal_publikasi
+                )}
               </span>
 
               <span className="flex items-center gap-1.5">
@@ -550,7 +786,9 @@ export default async function SejarahDesaPage() {
                   className="text-emerald-500"
                 />
 
-                Admin Desa
+                {
+                  settings.penulis
+                }
               </span>
 
               <span className="flex items-center gap-1.5">
@@ -559,7 +797,9 @@ export default async function SejarahDesaPage() {
                   className="text-emerald-500"
                 />
 
-                Informasi Publik
+                {
+                  settings.kategori
+                }
               </span>
             </div>
 
@@ -567,10 +807,14 @@ export default async function SejarahDesaPage() {
                 GAMBAR UTAMA
             =============================================== */}
 
-            <div className="mb-8 h-[300px] w-full overflow-hidden rounded-xl shadow-sm md:h-[400px]">
+            <div className="mb-8 h-[300px] w-full overflow-hidden rounded-xl bg-slate-100 shadow-sm md:h-[400px]">
               <img
-                src="/background.png"
-                alt="Potensi Desa Keji"
+                src={
+                  settings.gambar_url
+                }
+                alt={
+                  settings.judul_halaman
+                }
                 className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
               />
             </div>
@@ -581,33 +825,15 @@ export default async function SejarahDesaPage() {
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
               <p className="mb-5 text-lg font-medium text-gray-800">
-                Desa Keji merupakan
-                salah satu desa yang
-                berada di Kecamatan
-                Ungaran Barat,
-                Kabupaten Semarang.
-                Letaknya di kawasan
-                lereng Gunung Ungaran
-                memberikan Desa Keji
-                potensi alam, budaya,
-                kesenian, kuliner,
-                usaha masyarakat, dan
-                wisata yang beragam.
+                {
+                  settings.pengantar_utama
+                }
               </p>
 
               <p>
-                Berbagai potensi
-                tersebut masih
-                dipertahankan dan
-                dikembangkan oleh
-                masyarakat. Selain
-                menjadi bagian dari
-                kehidupan sehari-hari
-                warga, potensi tersebut
-                juga menjadi identitas
-                Desa Keji dan modal
-                pengembangan Desa
-                Wisata Keji.
+                {
+                  settings.pengantar_kedua
+                }
               </p>
             </div>
 
@@ -628,20 +854,21 @@ export default async function SejarahDesaPage() {
 
                 <div>
                   <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-                    Arsip Digital
+                    {
+                      settings.ebook_label
+                    }
                   </p>
 
                   <h2 className="mt-1 text-2xl font-black text-slate-900">
-                    Ebook Sejarah Desa
-                    Keji
+                    {
+                      settings.ebook_judul
+                    }
                   </h2>
 
                   <p className="mt-2 text-sm font-medium leading-7 text-slate-500">
-                    Baca dan unduh
-                    dokumentasi
-                    sejarah Desa Keji
-                    dalam bentuk buku
-                    digital.
+                    {
+                      settings.ebook_deskripsi
+                    }
                   </p>
                 </div>
               </div>
@@ -677,17 +904,15 @@ export default async function SejarahDesaPage() {
                   />
 
                   <h3 className="mt-4 text-lg font-black text-slate-800">
-                    Ebook sejarah
-                    sedang disiapkan
+                    {
+                      settings.ebook_empty_judul
+                    }
                   </h3>
 
                   <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-slate-500">
-                    Ebook akan
-                    ditampilkan setelah
-                    ditambahkan dan
-                    dipublikasikan
-                    melalui halaman
-                    administrator.
+                    {
+                      settings.ebook_empty_deskripsi
+                    }
                   </p>
                 </div>
               )}
@@ -741,7 +966,9 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.1"
               title="Potensi Alam"
-              icon={Droplets}
+              icon={
+                Droplets
+              }
             />
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
@@ -797,9 +1024,10 @@ export default async function SejarahDesaPage() {
                   Sabtu Pahing
                 </strong>
                 , dan biasanya
-                diselenggarakan dengan
-                kirab sesaji menuju
-                sumber mata air.
+                diselenggarakan
+                dengan kirab sesaji
+                menuju sumber mata
+                air.
               </p>
 
               <p>
@@ -835,7 +1063,9 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.2"
               title="Potensi Budaya"
-              icon={Landmark}
+              icon={
+                Landmark
+              }
             />
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
@@ -863,19 +1093,21 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.3"
               title="Potensi Kesenian"
-              icon={Music2}
+              icon={
+                Music2
+              }
             />
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
               <p>
-                Kesenian yang terdapat
-                di Desa Keji masih
-                terus dilestarikan
-                hingga saat ini.
-                Beberapa kesenian yang
-                masih ada dan
-                dikembangkan oleh
-                masyarakat antara
+                Kesenian yang
+                terdapat di Desa Keji
+                masih terus
+                dilestarikan hingga
+                saat ini. Beberapa
+                kesenian yang masih
+                ada dan dikembangkan
+                oleh masyarakat antara
                 lain:
               </p>
             </div>
@@ -888,13 +1120,11 @@ export default async function SejarahDesaPage() {
               ]}
             />
 
-            {/* ===============================================
-                LINK DESTINASI & POTENSI
-            =============================================== */}
-
             <SectionLinkCard
               href="/desa-wisata/destinasi"
-              icon={Sparkles}
+              icon={
+                Sparkles
+              }
               label="Dokumentasi Budaya"
               title="Lihat Destinasi dan Potensi Desa Keji"
               description="Temukan dokumentasi Iriban Banyu Kemloso, kesenian, tradisi, potensi alam, serta berbagai destinasi Desa Wisata Keji."
@@ -909,12 +1139,12 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.4"
               title="Potensi Kuliner"
-              icon={Utensils}
+              icon={
+                Utensils
+              }
             />
 
             <div className="space-y-5">
-              {/* TETEK MELEK */}
-
               <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 sm:p-6">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
                   5.4.1
@@ -928,12 +1158,13 @@ export default async function SejarahDesaPage() {
                   <p>
                     Tetek Melek
                     merupakan makanan
-                    khas Desa Keji yang
-                    berbahan dasar
-                    singkong. Makanan
-                    ini memiliki
-                    kemiripan dengan
-                    kue tradisional
+                    khas Desa Keji
+                    yang berbahan
+                    dasar singkong.
+                    Makanan ini
+                    memiliki kemiripan
+                    dengan kue
+                    tradisional
                     jongkong, tetapi
                     memiliki perbedaan
                     pada cara
@@ -944,8 +1175,8 @@ export default async function SejarahDesaPage() {
                     Proses
                     pembuatannya
                     dimulai dengan
-                    singkong yang telah
-                    dikupas dan
+                    singkong yang
+                    telah dikupas dan
                     dibersihkan,
                     kemudian diparut.
                     Setelah itu,
@@ -969,8 +1200,6 @@ export default async function SejarahDesaPage() {
                   </p>
                 </div>
               </article>
-
-              {/* PECEL GABLOK */}
 
               <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 sm:p-6">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
@@ -1025,21 +1254,24 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.5"
               title="Potensi UMKM"
-              icon={ShoppingBag}
+              icon={
+                ShoppingBag
+              }
             />
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
               <p>
-                Terdapat banyak pelaku
-                UMKM di Desa Keji.
-                Salah satu usaha yang
-                berkembang adalah
-                produksi berbagai
-                jenis keripik yang
-                dibuat secara langsung
-                oleh masyarakat desa
-                dan dapat bertahan
-                selama beberapa hari.
+                Terdapat banyak
+                pelaku UMKM di Desa
+                Keji. Salah satu
+                usaha yang berkembang
+                adalah produksi
+                berbagai jenis
+                keripik yang dibuat
+                secara langsung oleh
+                masyarakat desa dan
+                dapat bertahan selama
+                beberapa hari.
               </p>
 
               <p>
@@ -1061,11 +1293,13 @@ export default async function SejarahDesaPage() {
 
             <SectionLinkCard
               href="/umkm"
-              icon={ShoppingBag}
+              icon={
+                ShoppingBag
+              }
               label="Produk Lokal Desa"
               title="Temukan Produk UMKM Desa Keji"
-              description="Lihat berbagai produk makanan, minuman, dan usaha masyarakat Desa Keji melalui Lapak UMKM."
-              buttonText="Lihat Lapak UMKM"
+              description="Lihat berbagai produk makanan, minuman, dan usaha masyarakat Desa Keji melalui halaman UMKM."
+              buttonText="Lihat UMKM"
               color="emerald"
             />
 
@@ -1076,7 +1310,9 @@ export default async function SejarahDesaPage() {
             <PotensiHeading
               number="5.6"
               title="Potensi Wisata"
-              icon={Map}
+              icon={
+                Map
+              }
             />
 
             <div className="prose prose-emerald max-w-none text-justify leading-relaxed text-gray-700">
@@ -1121,8 +1357,9 @@ export default async function SejarahDesaPage() {
               <p>
                 Sanggar Tari Budi
                 Utomo menjadi salah
-                satu pusat pelestarian
-                seni tari. Tempat ini
+                satu pusat
+                pelestarian seni
+                tari. Tempat ini
                 digunakan untuk
                 melatih generasi muda
                 menari sekaligus
@@ -1181,13 +1418,11 @@ export default async function SejarahDesaPage() {
               </p>
             </div>
 
-            {/* ===============================================
-                DESTINASI CTA
-            =============================================== */}
-
             <SectionLinkCard
               href="/desa-wisata/destinasi"
-              icon={Map}
+              icon={
+                Map
+              }
               label="Desa Wisata Keji"
               title="Jelajahi Destinasi dan Potensi Desa Keji"
               description="Lihat informasi lebih lanjut mengenai wisata budaya, wisata alam, destinasi, serta potensi yang dimiliki Desa Wisata Keji."
@@ -1197,8 +1432,7 @@ export default async function SejarahDesaPage() {
           </main>
 
           {/* =================================================
-              SIDEBAR KANAN
-              STATIS / TIDAK STICKY
+              SIDEBAR
           ================================================= */}
 
           <aside className="min-w-0 lg:w-1/3">
@@ -1217,86 +1451,6 @@ export default async function SejarahDesaPage() {
           </aside>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   POTENSI HEADING
-========================================================= */
-
-function PotensiHeading({
-  number,
-  title,
-  icon:
-    Icon,
-}: {
-  number:
-    string;
-
-  title:
-    string;
-
-  icon:
-    LucideIcon;
-}) {
-  return (
-    <div className="mb-5 mt-10 border-b-2 border-emerald-100 pb-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-          <Icon
-            size={21}
-          />
-        </div>
-
-        <div>
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
-            {number}
-          </p>
-
-          <h3 className="mt-0.5 text-xl font-black text-gray-800">
-            {title}
-          </h3>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   POTENSI LIST
-========================================================= */
-
-function PotensiList({
-  items,
-}: {
-  items:
-    string[];
-}) {
-  return (
-    <div className="not-prose mt-5 grid gap-3 sm:grid-cols-2">
-      {items.map(
-        (
-          item,
-          index
-        ) => (
-          <article
-            key={
-              item
-            }
-            className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-xs font-black text-white">
-              {index +
-                1}
-            </span>
-
-            <p className="text-sm font-extrabold text-emerald-950">
-              {item}
-            </p>
-          </article>
-        )
-      )}
     </div>
   );
 }
@@ -1441,6 +1595,88 @@ function EbookSejarahCard({
 }
 
 /* =========================================================
+   POTENSI HEADING
+========================================================= */
+
+function PotensiHeading({
+  number,
+  title,
+  icon:
+    Icon,
+}: {
+  number: string;
+
+  title: string;
+
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="mb-5 mt-10 border-b-2 border-emerald-100 pb-3">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+          <Icon
+            size={21}
+          />
+        </div>
+
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-emerald-600">
+            {
+              number
+            }
+          </p>
+
+          <h3 className="mt-0.5 text-xl font-black text-gray-800">
+            {
+              title
+            }
+          </h3>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   POTENSI LIST
+========================================================= */
+
+function PotensiList({
+  items,
+}: {
+  items: string[];
+}) {
+  return (
+    <div className="not-prose mt-5 grid gap-3 sm:grid-cols-2">
+      {items.map(
+        (
+          item,
+          index
+        ) => (
+          <article
+            key={
+              item
+            }
+            className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-xs font-black text-white">
+              {index +
+                1}
+            </span>
+
+            <p className="text-sm font-extrabold text-emerald-950">
+              {
+                item
+              }
+            </p>
+          </article>
+        )
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    LINK CARD
 ========================================================= */
 
@@ -1454,23 +1690,17 @@ function SectionLinkCard({
   buttonText,
   color,
 }: {
-  href:
-    string;
+  href: string;
 
-  icon:
-    LucideIcon;
+  icon: LucideIcon;
 
-  label:
-    string;
+  label: string;
 
-  title:
-    string;
+  title: string;
 
-  description:
-    string;
+  description: string;
 
-  buttonText:
-    string;
+  buttonText: string;
 
   color:
     | 'emerald'
@@ -1510,7 +1740,9 @@ function SectionLinkCard({
                   : 'text-emerald-700'
               }`}
             >
-              {label}
+              {
+                label
+              }
             </p>
 
             <h4
@@ -1520,7 +1752,9 @@ function SectionLinkCard({
                   : 'text-slate-900'
               }`}
             >
-              {title}
+              {
+                title
+              }
             </h4>
 
             <p
@@ -1530,7 +1764,9 @@ function SectionLinkCard({
                   : 'text-slate-500'
               }`}
             >
-              {description}
+              {
+                description
+              }
             </p>
           </div>
         </div>
@@ -1545,7 +1781,9 @@ function SectionLinkCard({
               : 'bg-emerald-700 text-white hover:bg-emerald-800'
           }`}
         >
-          {buttonText}
+          {
+            buttonText
+          }
 
           <ArrowRight
             size={15}

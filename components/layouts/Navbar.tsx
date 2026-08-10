@@ -201,7 +201,7 @@ const navItems: NavItem[] = [
   },
 
   {
-    name: 'Lapak',
+    name: 'UMKM',
     href: '/umkm',
   },
 
