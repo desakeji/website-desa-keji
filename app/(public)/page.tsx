@@ -186,7 +186,7 @@ const quickLinks = [
       'Pengelolaan Sampah',
 
     icon:
-      House,
+      Recycle,
 
     href:
       '/pengelolaan-sampah',
