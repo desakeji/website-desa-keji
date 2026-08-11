@@ -48,6 +48,12 @@ const SETTINGS_KEY =
 const JENIS_EBOOK =
   'ebook-sejarah';
 
+const EBOOK_UTAMA_PDF =
+  '/BUKU%20SEJARAH%20DESA%20KEJI.pdf';
+
+const EBOOK_UTAMA_COVER =
+  '/cover%20sejarah.png';
+
 /* =========================================================
    TYPES
 ========================================================= */
@@ -873,47 +879,45 @@ export default async function SejarahDesaPage() {
                 </div>
               </div>
 
-              {daftarEbook.length >
-              0 ? (
-                <div className="space-y-5">
-                  {daftarEbook.map(
-                    (
-                      ebook,
-                      index
-                    ) => (
-                      <EbookSejarahCard
-                        key={
-                          ebook.id
-                        }
-                        ebook={
-                          ebook
-                        }
-                        nomor={
-                          index +
-                          1
-                        }
-                      />
-                    )
-                  )}
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-                  <FileText
-                    size={46}
-                    className="mx-auto text-slate-300"
-                  />
+              {/* EBOOK UTAMA BAWAAN */}
 
-                  <h3 className="mt-4 text-lg font-black text-slate-800">
-                    {
-                      settings.ebook_empty_judul
-                    }
-                  </h3>
+              <EbookUtamaSejarahCard />
 
-                  <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-slate-500">
-                    {
-                      settings.ebook_empty_deskripsi
-                    }
-                  </p>
+              {/* EBOOK TAMBAHAN DARI ADMIN */}
+
+              {daftarEbook.length > 0 && (
+                <div className="mt-8">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="h-px flex-1 bg-slate-200" />
+
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+                      Ebook Sejarah Lainnya
+                    </span>
+
+                    <span className="h-px flex-1 bg-slate-200" />
+                  </div>
+
+                  <div className="space-y-5">
+                    {daftarEbook.map(
+                      (
+                        ebook,
+                        index
+                      ) => (
+                        <EbookSejarahCard
+                          key={
+                            ebook.id
+                          }
+                          ebook={
+                            ebook
+                          }
+                          nomor={
+                            index +
+                            2
+                          }
+                        />
+                      )
+                    )}
+                  </div>
                 </div>
               )}
             </section>
@@ -1457,6 +1461,158 @@ export default async function SejarahDesaPage() {
 
 /* =========================================================
    EBOOK CARD
+========================================================= */
+
+function EbookUtamaSejarahCard() {
+  return (
+    <article className="group relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#f7f1e8] via-white to-emerald-50 shadow-[0_20px_55px_rgba(6,78,59,0.10)]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, rgba(6,78,59,0.32) 1px, transparent 1px)',
+
+          backgroundSize:
+            '24px 24px',
+        }}
+      />
+
+      <div className="relative grid lg:grid-cols-[290px_minmax(0,1fr)]">
+        {/* COVER */}
+
+        <div className="relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#efe7dc] via-[#f9f4ed] to-emerald-50 p-7 sm:p-9">
+          <div className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-amber-200/30 blur-3xl" />
+
+          <div className="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-emerald-300/25 blur-3xl" />
+
+          <a
+            href={
+              EBOOK_UTAMA_PDF
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Buka Buku Sejarah Desa Keji"
+            className="relative block w-full max-w-[240px]"
+          >
+            <div className="absolute -bottom-4 left-1/2 h-8 w-[78%] -translate-x-1/2 rounded-full bg-emerald-950/20 blur-xl" />
+
+            <div className="relative overflow-hidden rounded-[1.4rem] bg-white p-2 shadow-[0_22px_55px_rgba(15,23,42,0.22)] transition duration-500 group-hover:-translate-y-1">
+              <img
+                src={
+                  EBOOK_UTAMA_COVER
+                }
+                alt="Cover Sejarah Desa Keji Kabupaten Semarang"
+                loading="lazy"
+                className="h-auto w-full rounded-[1rem] object-contain"
+              />
+            </div>
+          </a>
+        </div>
+
+        {/* CONTENT */}
+
+        <div className="relative flex flex-col p-6 sm:p-8 lg:p-9">
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-emerald-700 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.13em] text-white">
+              Ebook Utama
+            </span>
+
+            <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.13em] text-emerald-700">
+              Sejarah Desa
+            </span>
+
+            <span className="rounded-full bg-amber-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.13em] text-amber-700">
+              PDF Digital
+            </span>
+          </div>
+
+          <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
+            Desa Keji · Kabupaten Semarang
+          </p>
+
+          <h3 className="mt-2 max-w-2xl text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+            Sejarah Desa Keji
+          </h3>
+
+          <p className="mt-2 text-sm font-extrabold text-emerald-700">
+            Mengungkap Jejak Sejarah,
+            Budaya, dan Perkembangan
+            Desa
+          </p>
+
+          <p className="mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-600">
+            Buku digital yang
+            mendokumentasikan sejarah,
+            budaya, dan perkembangan
+            Desa Keji sebagai bagian
+            dari arsip serta
+            dokumentasi pengetahuan
+            desa yang dapat dibaca
+            oleh masyarakat secara
+            terbuka.
+          </p>
+
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-white/80 p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+              <User
+                size={18}
+              />
+            </div>
+
+            <div>
+              <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                Disusun oleh
+              </p>
+
+              <p className="mt-1 text-sm font-black text-slate-800">
+                Umi Nurhabibah
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-col gap-3 border-t border-emerald-100 pt-6 sm:flex-row">
+            <a
+              href={
+                EBOOK_UTAMA_PDF
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-800"
+            >
+              <BookOpen
+                size={17}
+              />
+
+              Baca Ebook
+
+              <ExternalLink
+                size={14}
+              />
+            </a>
+
+            <a
+              href={
+                EBOOK_UTAMA_PDF
+              }
+              download="BUKU SEJARAH DESA KEJI.pdf"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-6 text-sm font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+            >
+              <Download
+                size={17}
+              />
+
+              Unduh PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* =========================================================
+   EBOOK CARD DATABASE
 ========================================================= */
 
 function EbookSejarahCard({

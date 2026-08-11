@@ -1,8 +1,8 @@
 // components/admin/UmkmVideoTutorialAdmin.tsx
 
 import {
-  AlertCircle,
   ExternalLink,
+  Info,
   Pencil,
   PlayCircle,
   Power,
@@ -25,12 +25,30 @@ import type {
   UmkmVideoTutorial,
 } from '@/types/umkm-video';
 
-const MAX_VIDEO = 8;
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const YOUTUBE_CHANNEL_URL =
+  'https://youtube.com/@kejikknt?si=QQauteO1ifT36f91';
+
+const YOUTUBE_CHANNEL_NAME =
+  '@kejikknt';
+
+const PUBLIC_VIDEO_LIMIT =
+  8;
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function thumbnailUrl(
   youtubeId: string
 ) {
-  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+  return (
+    'https://img.youtube.com/vi/' +
+    `${youtubeId}/hqdefault.jpg`
+  );
 }
 
 function safeString(
@@ -40,6 +58,10 @@ function safeString(
     value ?? ''
   ).trim();
 }
+
+/* =========================================================
+   NORMALIZE
+========================================================= */
 
 function normalizeVideo(
   value: unknown
@@ -76,7 +98,8 @@ function normalizeVideo(
     deskripsi:
       safeString(
         row.deskripsi
-      ) || null,
+      ) ||
+      null,
 
     youtube_url:
       safeString(
@@ -90,7 +113,8 @@ function normalizeVideo(
 
     urutan:
       Number(
-        row.urutan ?? 0
+        row.urutan ??
+          0
       ),
 
     aktif:
@@ -120,37 +144,44 @@ function normalizeVideo(
   return item;
 }
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default async function UmkmVideoTutorialAdmin() {
   const {
     data,
     error,
-  } = await supabaseAdmin
-    .from(
-      'umkm_video_tutorial'
-    )
-    .select(`
-      id,
-      judul,
-      deskripsi,
-      youtube_url,
-      youtube_id,
-      urutan,
-      aktif,
-      created_at,
-      updated_at
-    `)
-    .order(
-      'urutan',
-      {
-        ascending: true,
-      }
-    )
-    .order(
-      'created_at',
-      {
-        ascending: true,
-      }
-    );
+  } =
+    await supabaseAdmin
+      .from(
+        'umkm_video_tutorial'
+      )
+      .select(`
+        id,
+        judul,
+        deskripsi,
+        youtube_url,
+        youtube_id,
+        urutan,
+        aktif,
+        created_at,
+        updated_at
+      `)
+      .order(
+        'urutan',
+        {
+          ascending:
+            true,
+        }
+      )
+      .order(
+        'created_at',
+        {
+          ascending:
+            true,
+        }
+      );
 
   if (error) {
     console.error(
@@ -172,7 +203,10 @@ export default async function UmkmVideoTutorialAdmin() {
   }
 
   const videos =
-    (data ?? [])
+    (
+      data ??
+      []
+    )
       .map(
         normalizeVideo
       )
@@ -188,10 +222,6 @@ export default async function UmkmVideoTutorialAdmin() {
       (item) =>
         item.aktif
     ).length;
-
-  const sudahPenuh =
-    videos.length >=
-    MAX_VIDEO;
 
   return (
     <section
@@ -217,49 +247,151 @@ export default async function UmkmVideoTutorialAdmin() {
               </p>
 
               <h2 className="mt-1 text-xl font-black text-slate-900">
-                Video Tutorial UMKM
+                YouTube & Video Tutorial
               </h2>
 
               <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
                 Kelola video panduan
                 dan tutorial UMKM yang
-                terhubung langsung ke
-                YouTube.
+                terhubung dengan
+                channel YouTube KKN-T
+                Desa Keji.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-extrabold text-slate-600">
-              {videos.length} /{' '}
-              {MAX_VIDEO} video
+              {videos.length}{' '}
+              video tersimpan
             </span>
 
             <span className="rounded-full bg-emerald-100 px-4 py-2 text-xs font-extrabold text-emerald-700">
-              {videoAktif} tayang
+              {videoAktif}{' '}
+              aktif
             </span>
           </div>
         </div>
       </div>
 
       {/* =====================================================
-          INFORMASI TARGET
+          CHANNEL YOUTUBE
       ===================================================== */}
 
-      <div className="border-b border-slate-100 bg-amber-50 px-6 py-4 sm:px-7">
-        <div className="flex items-start gap-3">
-          <AlertCircle
-            size={18}
-            className="mt-0.5 shrink-0 text-amber-600"
+      <div className="border-b border-slate-100 p-6 sm:p-7">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#062f27] via-emerald-800 to-teal-700 p-6 text-white shadow-lg sm:p-7">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 opacity-[0.12]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,.7) 1px, transparent 1px)',
+
+              backgroundSize:
+                '24px 24px',
+            }}
           />
 
-          <p className="text-xs font-semibold leading-6 text-amber-800">
-            Target program adalah
-            6–8 video tutorial.
-            Sistem membatasi maksimal
-            8 video agar tampilan
-            Lapak UMKM tetap ringkas.
-          </p>
+          <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full border-[42px] border-white/[0.05]" />
+
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 shadow-lg">
+                <PlayCircle
+                  size={29}
+                />
+              </div>
+
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-emerald-200">
+                  Channel YouTube Utama
+                </p>
+
+                <h3 className="mt-2 text-xl font-black sm:text-2xl">
+                  KKN-T Desa Keji
+                </h3>
+
+                <p className="mt-1 text-sm font-bold text-emerald-100">
+                  {
+                    YOUTUBE_CHANNEL_NAME
+                  }
+                </p>
+
+                <p className="mt-3 max-w-2xl text-xs font-medium leading-6 text-emerald-50/75">
+                  Channel ini menjadi
+                  tautan utama untuk
+                  mengakses seluruh
+                  video publikasi,
+                  dokumentasi, dan
+                  tutorial yang
+                  tersedia di YouTube.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href={
+                YOUTUBE_CHANNEL_URL
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
+            >
+              <PlayCircle
+                size={17}
+              />
+
+              Buka Channel
+
+              <ExternalLink
+                size={14}
+              />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          INFORMASI
+      ===================================================== */}
+
+      <div className="border-b border-emerald-100 bg-emerald-50 px-6 py-4 sm:px-7">
+        <div className="flex items-start gap-3">
+          <Info
+            size={18}
+            className="mt-0.5 shrink-0 text-emerald-700"
+          />
+
+          <div>
+            <p className="text-xs font-extrabold text-emerald-900">
+              Link channel dan link
+              video memiliki fungsi
+              yang berbeda.
+            </p>
+
+            <p className="mt-1 text-xs font-medium leading-6 text-emerald-800/80">
+              Kolom URL YouTube pada
+              formulir di bawah khusus
+              untuk link video
+              individual, bukan link
+              channel. Admin dapat
+              menyimpan video sebanyak
+              yang diperlukan.
+              Halaman publik
+              menampilkan maksimal{' '}
+              {
+                PUBLIC_VIDEO_LIMIT
+              }{' '}
+              video berdasarkan nomor
+              urutan agar tetap
+              ringkas. Seluruh video
+              tetap dapat diakses
+              melalui channel{' '}
+              {
+                YOUTUBE_CHANNEL_NAME
+              }.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -267,67 +399,73 @@ export default async function UmkmVideoTutorialAdmin() {
           FORM TAMBAH VIDEO
       ===================================================== */}
 
-      {!sudahPenuh ? (
-        <form
-          action={
-            tambahVideoTutorialUmkmAction
-          }
-          className="border-b border-slate-100 p-6 sm:p-7"
-        >
-          <div className="mb-5">
-            <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-              Video Baru
-            </p>
+      <form
+        action={
+          tambahVideoTutorialUmkmAction
+        }
+        className="border-b border-slate-100 p-6 sm:p-7"
+      >
+        <div className="mb-5">
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+            Video Baru
+          </p>
 
-            <h3 className="mt-1 text-lg font-black text-slate-900">
-              Tambah Video Tutorial
-            </h3>
+          <h3 className="mt-1 text-lg font-black text-slate-900">
+            Tambah Video Tutorial
+          </h3>
 
-            <p className="mt-1 text-sm font-medium text-slate-500">
-              Masukkan URL video
-              YouTube. Thumbnail akan
-              ditampilkan otomatis
-              berdasarkan ID video.
+          <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            Masukkan URL video
+            individual YouTube.
+            Thumbnail akan diambil
+            otomatis berdasarkan ID
+            video.
+          </p>
+
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-xs font-semibold leading-5 text-slate-500">
+              Contoh URL:{' '}
+              <span className="font-mono text-emerald-700">
+                https://www.youtube.com/watch?v=XXXXXXXXXXX
+              </span>
+              ,{' '}
+              <span className="font-mono text-emerald-700">
+                https://youtu.be/XXXXXXXXXXX
+              </span>
+              , atau URL YouTube
+              Shorts.
             </p>
           </div>
-
-          <VideoFormFields
-            idPrefix="tambah-video"
-            defaultUrutan={
-              videos.length
-            }
-          />
-
-          <div className="mt-6 flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
-            >
-              <PlayCircle
-                size={17}
-              />
-
-              Tambah Video
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="border-b border-slate-100 bg-slate-50 px-6 py-5 text-sm font-bold text-slate-500 sm:px-7">
-          Maksimal 8 video sudah
-          tercapai. Hapus salah satu
-          video untuk menambahkan
-          video baru.
         </div>
-      )}
+
+        <VideoFormFields
+          idPrefix="tambah-video"
+          defaultUrutan={
+            videos.length
+          }
+        />
+
+        <div className="mt-6 flex justify-end">
+          <button
+            type="submit"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800 sm:w-auto"
+          >
+            <PlayCircle
+              size={17}
+            />
+
+            Tambah Video
+          </button>
+        </div>
+      </form>
 
       {/* =====================================================
           DAFTAR VIDEO
       ===================================================== */}
 
-      {videos.length ===
-      0 ? (
+      {videos.length === 0 ? (
         <div className="px-6 py-14 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
             <PlayCircle
               size={32}
             />
@@ -335,13 +473,37 @@ export default async function UmkmVideoTutorialAdmin() {
 
           <h3 className="mt-4 font-black text-slate-700">
             Belum ada video tutorial
+            individual
           </h3>
 
-          <p className="mt-2 text-sm font-medium text-slate-500">
-            Masukkan URL video
-            YouTube melalui formulir
-            di atas.
+          <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-6 text-slate-500">
+            Channel YouTube sudah
+            terhubung. Tambahkan link
+            video individual melalui
+            formulir di atas apabila
+            video ingin ditampilkan
+            langsung pada halaman
+            UMKM.
           </p>
+
+          <a
+            href={
+              YOUTUBE_CHANNEL_URL
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+          >
+            <PlayCircle
+              size={16}
+            />
+
+            Lihat Channel
+
+            <ExternalLink
+              size={13}
+            />
+          </a>
         </div>
       ) : (
         <div className="grid gap-5 p-5 sm:p-7 xl:grid-cols-2">
@@ -363,15 +525,20 @@ export default async function UmkmVideoTutorialAdmin() {
   );
 }
 
+/* =========================================================
+   VIDEO CARD
+========================================================= */
+
 function VideoAdminCard({
   video,
 }: {
-  video: UmkmVideoTutorial;
+  video:
+    UmkmVideoTutorial;
 }) {
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
       <div className="grid sm:grid-cols-[220px_minmax(0,1fr)]">
-        {/* Thumbnail */}
+        {/* THUMBNAIL */}
 
         <a
           href={
@@ -403,7 +570,7 @@ function VideoAdminCard({
           </div>
         </a>
 
-        {/* Informasi */}
+        {/* INFORMASI */}
 
         <div className="min-w-0 p-5">
           <div className="flex flex-wrap gap-2">
@@ -419,14 +586,18 @@ function VideoAdminCard({
                 : 'Disembunyikan'}
             </span>
 
-            <span className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-extrabold text-red-700">
+            <span className="rounded-full bg-slate-200 px-3 py-1 text-[10px] font-extrabold text-slate-600">
               Urutan{' '}
-              {video.urutan}
+              {
+                video.urutan
+              }
             </span>
           </div>
 
           <h3 className="mt-3 text-lg font-black leading-6 text-slate-900">
-            {video.judul}
+            {
+              video.judul
+            }
           </h3>
 
           {video.deskripsi && (
@@ -443,7 +614,7 @@ function VideoAdminCard({
             }
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-red-600 transition hover:text-red-700"
+            className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold text-emerald-700 transition hover:text-emerald-800"
           >
             Buka di YouTube
 
@@ -454,9 +625,7 @@ function VideoAdminCard({
         </div>
       </div>
 
-      {/* =====================================================
-          ACTION
-      ===================================================== */}
+      {/* ACTION */}
 
       <div className="grid gap-2 border-t border-slate-200 bg-white p-4 sm:grid-cols-2">
         <form
@@ -520,9 +689,7 @@ function VideoAdminCard({
         </form>
       </div>
 
-      {/* =====================================================
-          EDIT VIDEO
-      ===================================================== */}
+      {/* EDIT */}
 
       <details className="border-t border-slate-200 bg-white">
         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 p-4 text-sm font-extrabold text-slate-700">
@@ -572,17 +739,23 @@ function VideoAdminCard({
   );
 }
 
+/* =========================================================
+   VIDEO FORM
+========================================================= */
+
 function VideoFormFields({
   idPrefix,
   video,
   defaultUrutan = 0,
 }: {
-  idPrefix: string;
+  idPrefix:
+    string;
 
   video?:
     UmkmVideoTutorial;
 
-  defaultUrutan?: number;
+  defaultUrutan?:
+    number;
 }) {
   return (
     <div className="grid gap-5 md:grid-cols-2">
@@ -619,7 +792,7 @@ function VideoFormFields({
             idPrefix
           }
           name="youtube_url"
-          label="URL YouTube"
+          label="URL Video YouTube"
           type="url"
           value={
             video?.youtube_url ??
@@ -627,6 +800,16 @@ function VideoFormFields({
           }
           placeholder="https://www.youtube.com/watch?v=..."
         />
+
+        <p className="mt-2 text-xs font-medium leading-5 text-slate-400">
+          Masukkan link video
+          individual. Link channel{' '}
+          {
+            YOUTUBE_CHANNEL_NAME
+          }{' '}
+          sudah terhubung secara
+          terpisah di atas.
+        </p>
       </div>
 
       <div className="md:col-span-2">
@@ -640,9 +823,7 @@ function VideoFormFields({
             video?.deskripsi ??
             ''
           }
-          required={
-            false
-          }
+          required={false}
         />
       </div>
 
@@ -651,7 +832,7 @@ function VideoFormFields({
           id={`${idPrefix}-aktif`}
           name="aktif"
           label="Publikasikan Video"
-          description="Video tampil pada bagian Video Tutorial di halaman Lapak UMKM."
+          description="Jika aktif, video dapat tampil pada bagian Video Tutorial di halaman UMKM."
           checked={
             video?.aktif ??
             true
@@ -662,6 +843,10 @@ function VideoFormFields({
   );
 }
 
+/* =========================================================
+   INPUT
+========================================================= */
+
 function TextInput({
   idPrefix,
   name,
@@ -671,19 +856,26 @@ function TextInput({
   type = 'text',
   min,
 }: {
-  idPrefix: string;
+  idPrefix:
+    string;
 
-  name: string;
+  name:
+    string;
 
-  label: string;
+  label:
+    string;
 
-  value?: string;
+  value?:
+    string;
 
-  placeholder?: string;
+  placeholder?:
+    string;
 
-  type?: string;
+  type?:
+    string;
 
-  min?: number;
+  min?:
+    number;
 }) {
   const id =
     `${idPrefix}-${name}`;
@@ -691,7 +883,9 @@ function TextInput({
   return (
     <div>
       <label
-        htmlFor={id}
+        htmlFor={
+          id
+        }
         className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
       >
         {label}
@@ -702,10 +896,18 @@ function TextInput({
       </label>
 
       <input
-        id={id}
-        name={name}
-        type={type}
-        min={min}
+        id={
+          id
+        }
+        name={
+          name
+        }
+        type={
+          type
+        }
+        min={
+          min
+        }
         required
         defaultValue={
           value
@@ -719,6 +921,10 @@ function TextInput({
   );
 }
 
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
 function TextArea({
   idPrefix,
   name,
@@ -726,15 +932,20 @@ function TextArea({
   value = '',
   required = true,
 }: {
-  idPrefix: string;
+  idPrefix:
+    string;
 
-  name: string;
+  name:
+    string;
 
-  label: string;
+  label:
+    string;
 
-  value?: string;
+  value?:
+    string;
 
-  required?: boolean;
+  required?:
+    boolean;
 }) {
   const id =
     `${idPrefix}-${name}`;
@@ -742,7 +953,9 @@ function TextArea({
   return (
     <div>
       <label
-        htmlFor={id}
+        htmlFor={
+          id
+        }
         className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
       >
         {label}
@@ -755,8 +968,12 @@ function TextArea({
       </label>
 
       <textarea
-        id={id}
-        name={name}
+        id={
+          id
+        }
+        name={
+          name
+        }
         rows={4}
         required={
           required
@@ -770,6 +987,10 @@ function TextArea({
   );
 }
 
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
 function Checkbox({
   id,
   name,
@@ -777,24 +998,35 @@ function Checkbox({
   description,
   checked,
 }: {
-  id: string;
+  id:
+    string;
 
-  name: string;
+  name:
+    string;
 
-  label: string;
+  label:
+    string;
 
-  description: string;
+  description:
+    string;
 
-  checked: boolean;
+  checked:
+    boolean;
 }) {
   return (
     <label
-      htmlFor={id}
+      htmlFor={
+        id
+      }
       className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
     >
       <input
-        id={id}
-        name={name}
+        id={
+          id
+        }
+        name={
+          name
+        }
         type="checkbox"
         value="true"
         defaultChecked={
@@ -809,7 +1041,9 @@ function Checkbox({
         </span>
 
         <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">
-          {description}
+          {
+            description
+          }
         </span>
       </span>
     </label>

@@ -1,15 +1,20 @@
 // app/admin/desa-wisata/paket-wisata/page.tsx
 
+import Image from 'next/image';
+
 import Link from 'next/link';
 
 import {
   AlertCircle,
+  BookOpen,
+  Calculator,
   CheckCircle2,
+  Download,
   ExternalLink,
+  FileText,
   Link2,
   MapPinned,
   Save,
-  type LucideIcon,
 } from 'lucide-react';
 
 import {
@@ -25,6 +30,16 @@ export const dynamic =
 
 export const revalidate =
   0;
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const HPP_COVER_IMAGE =
+  '/desa-wisata/Cover%20HPP.png';
+
+const HPP_GUIDE_PDF =
+  '/desa-wisata/Buku%20Panduan%20Perhitungan%20Harga%20Pokok%20%28HPP%29%20Paket%20Wisata%20Desa%20Keji.pdf';
 
 /* =========================================================
    TYPES
@@ -78,7 +93,7 @@ const fallbackSettings:
     'Temukan pengalaman wisata, budaya, kuliner, dan aktivitas menarik di Desa Keji.',
 
   deskripsi:
-    'Seluruh informasi paket wisata Desa Keji tersedia melalui satu tautan yang mudah diakses.',
+    'Seluruh informasi Paket Wisata Desa Keji tersedia melalui satu tautan yang mudah diakses.',
 
   linktree_url:
     null,
@@ -102,7 +117,8 @@ function safeString(
     unknown
 ) {
   return String(
-    value ?? ''
+    value ??
+      ''
   ).trim();
 }
 
@@ -132,19 +148,22 @@ function normalizeSettings(
       safeString(
         row.judul
       ) ||
-      fallbackSettings.judul,
+      fallbackSettings
+        .judul,
 
     subjudul:
       safeString(
         row.subjudul
       ) ||
-      fallbackSettings.subjudul,
+      fallbackSettings
+        .subjudul,
 
     deskripsi:
       safeString(
         row.deskripsi
       ) ||
-      fallbackSettings.deskripsi,
+      fallbackSettings
+        .deskripsi,
 
     linktree_url:
       safeString(
@@ -162,7 +181,8 @@ function normalizeSettings(
     aktif:
       row.aktif ===
         undefined ||
-      row.aktif === null
+      row.aktif ===
+        null
         ? true
         : Boolean(
             row.aktif
@@ -177,9 +197,12 @@ function normalizeSettings(
 
 function isExternalUrl(
   value:
-    string | null
+    string |
+    null
 ) {
-  if (!value) {
+  if (
+    !value
+  ) {
     return false;
   }
 
@@ -204,7 +227,9 @@ function formatTanggal(
   value:
     string
 ) {
-  if (!value) {
+  if (
+    !value
+  ) {
     return 'Belum diperbarui';
   }
 
@@ -358,10 +383,11 @@ export default async function AdminPaketWisataPage({
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
                 Kelola informasi
-                utama dan tautan
-                Linktree yang digunakan
-                sebagai pusat informasi
-                Paket Wisata Desa Keji.
+                Paket Wisata Desa
+                Keji dan lihat
+                dokumen Buku Panduan
+                Perhitungan Harga
+                Pokok Paket Wisata.
               </p>
             </div>
           </div>
@@ -381,9 +407,7 @@ export default async function AdminPaketWisataPage({
         </div>
       </section>
 
-      {/* =====================================================
-          MESSAGE
-      ===================================================== */}
+      {/* MESSAGE */}
 
       {params.success && (
         <Message
@@ -406,12 +430,12 @@ export default async function AdminPaketWisataPage({
       {settingsResult.error && (
         <Message
           type="error"
-          text="Pengaturan Paket Wisata gagal dimuat. Pastikan tabel desa_wisata_paket_settings sudah dibuat."
+          text="Pengaturan Paket Wisata gagal dimuat."
         />
       )}
 
       {/* =====================================================
-          FORM
+          FORM SETTINGS
       ===================================================== */}
 
       <form
@@ -420,13 +444,11 @@ export default async function AdminPaketWisataPage({
         }
         className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm"
       >
-        {/* Header */}
-
         <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-5 sm:px-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-                Linktree Paket Wisata
+                Paket Wisata
               </p>
 
               <h2 className="mt-1 text-xl font-black text-slate-900">
@@ -458,9 +480,9 @@ export default async function AdminPaketWisataPage({
           </div>
         </div>
 
-        {/* Fields + preview */}
-
         <div className="grid gap-7 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* FIELDS */}
+
           <div className="grid gap-5">
             <TextInput
               name="judul"
@@ -491,14 +513,16 @@ export default async function AdminPaketWisataPage({
 
             <TextInput
               name="linktree_url"
-              label="URL Linktree"
+              label="URL Paket Wisata"
               type="url"
               value={
                 settings.linktree_url ??
                 ''
               }
-              placeholder="https://linktr.ee/..."
-              required={false}
+              placeholder="https://..."
+              required={
+                false
+              }
             />
 
             <TextInput
@@ -514,7 +538,7 @@ export default async function AdminPaketWisataPage({
               id="paket-wisata-aktif"
               name="aktif"
               label="Publikasikan Paket Wisata"
-              description="Jika aktif dan URL Linktree valid, tombol Paket Wisata akan tersedia pada halaman publik."
+              description="Jika aktif dan URL valid, tombol Paket Wisata akan tersedia pada halaman publik."
               checked={
                 settings.aktif
               }
@@ -534,9 +558,7 @@ export default async function AdminPaketWisataPage({
             </div>
           </div>
 
-          {/* ===============================================
-              PREVIEW
-          =============================================== */}
+          {/* PREVIEW */}
 
           <aside className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 text-white shadow-lg">
             <div className="p-6">
@@ -564,7 +586,7 @@ export default async function AdminPaketWisataPage({
 
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-4">
                 <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-200">
-                  URL Linktree
+                  URL Paket Wisata
                 </p>
 
                 <div className="mt-2 flex items-start gap-2">
@@ -615,6 +637,171 @@ export default async function AdminPaketWisataPage({
           </aside>
         </div>
       </form>
+
+      {/* =====================================================
+          HPP DOCUMENT
+      ===================================================== */}
+
+      <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+        {/* HEADER */}
+
+        <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-white px-6 py-5 sm:px-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+              <Calculator
+                size={23}
+              />
+            </div>
+
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                Dokumen Pendukung
+              </p>
+
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Buku Panduan HPP
+                Paket Wisata
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                Cover dan Buku
+                Panduan Perhitungan
+                Harga Pokok Paket
+                Wisata yang tampil
+                pada halaman publik.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTENT */}
+
+        <div className="grid gap-8 p-6 sm:p-7 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
+          {/* COVER */}
+
+          <div className="relative mx-auto w-full max-w-[250px]">
+            <div className="absolute -bottom-4 left-1/2 h-8 w-[75%] -translate-x-1/2 rounded-full bg-emerald-950/20 blur-xl" />
+
+            <a
+              href={
+                HPP_GUIDE_PDF
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative block overflow-hidden rounded-2xl bg-white p-2 shadow-xl transition duration-300 hover:-translate-y-1"
+            >
+              <div className="overflow-hidden rounded-xl">
+                <Image
+                  src={
+                    HPP_COVER_IMAGE
+                  }
+                  alt="Cover Buku Panduan HPP Paket Wisata Desa Keji"
+                  width={
+                    900
+                  }
+                  height={
+                    1270
+                  }
+                  className="h-auto w-full object-contain"
+                />
+              </div>
+            </a>
+          </div>
+
+          {/* INFORMATION */}
+
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+              <FileText
+                size={13}
+              />
+
+              PDF Aktif
+            </div>
+
+            <h3 className="mt-4 max-w-3xl text-2xl font-black leading-tight text-slate-900">
+              Buku Panduan
+              Perhitungan Harga Pokok
+              (HPP) Paket Wisata
+              Desa Keji
+            </h3>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-slate-500">
+              Buku panduan ini
+              ditampilkan langsung
+              pada halaman Paket
+              Wisata. Pengunjung
+              dapat membuka dokumen
+              melalui browser atau
+              mengunduh file PDF.
+            </p>
+
+            {/* FILE INFO */}
+
+            <div className="mt-6 grid gap-3 xl:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">
+                  Cover
+                </p>
+
+                <p className="mt-2 break-all font-mono text-[11px] font-semibold leading-5 text-slate-600">
+                  public/desa-wisata/Cover HPP.png
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">
+                  Dokumen
+                </p>
+
+                <p className="mt-2 break-all font-mono text-[11px] font-semibold leading-5 text-slate-600">
+                  Buku Panduan
+                  Perhitungan Harga
+                  Pokok (HPP) Paket
+                  Wisata Desa Keji.pdf
+                </p>
+              </div>
+            </div>
+
+            {/* ACTION */}
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href={
+                  HPP_GUIDE_PDF
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+              >
+                <BookOpen
+                  size={16}
+                />
+
+                Buka PDF
+
+                <ExternalLink
+                  size={13}
+                />
+              </a>
+
+              <a
+                href={
+                  HPP_GUIDE_PDF
+                }
+                download="Buku Panduan Perhitungan Harga Pokok (HPP) Paket Wisata Desa Keji.pdf"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-6 text-sm font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+              >
+                <Download
+                  size={16}
+                />
+
+                Unduh PDF
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -672,8 +859,10 @@ function TextInput({
   label,
   value = '',
   placeholder,
-  type = 'text',
-  required = true,
+  type =
+    'text',
+  required =
+    true,
 }: {
   name:
     string;
@@ -743,7 +932,8 @@ function TextArea({
   name,
   label,
   value = '',
-  rows = 4,
+  rows =
+    4,
 }: {
   name:
     string;

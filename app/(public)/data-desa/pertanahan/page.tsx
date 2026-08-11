@@ -12,11 +12,12 @@ import {
   Building2,
   ClipboardList,
   Database,
+  ExternalLink,
+  FolderOpen,
   Landmark,
   MapPin,
   Route,
   ShieldCheck,
-  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -30,23 +31,33 @@ export const metadata:
     'Data Pertanahan Desa Keji | SIJI',
 
   description:
-    'Informasi pertanahan, penggunaan lahan, status tanah, dan pemanfaatan wilayah Desa Keji.',
+    'Informasi pertanahan, penggunaan lahan, status tanah, administrasi pertanahan, dan dokumen pertanahan Desa Keji.',
 };
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const GOOGLE_DRIVE_URL =
+  'https://drive.google.com/drive/folders/1jmyHiMfPyiBCl7vOxenvI4AsZvPaWYbx?hl=ID';
 
 /* =========================================================
    TYPES
 ========================================================= */
 
 interface InformasiPertanahan {
-  title: string;
+  title:
+    string;
 
-  description: string;
+  description:
+    string;
 
-  icon: LucideIcon;
+  icon:
+    LucideIcon;
 }
 
 /* =========================================================
-   DATA INFORMASI
+   DATA
 ========================================================= */
 
 const informasiPertanahan:
@@ -56,7 +67,7 @@ const informasiPertanahan:
         'Penggunaan Lahan',
 
       description:
-        'Informasi pemanfaatan lahan untuk permukiman, pertanian, fasilitas umum, dan penggunaan lainnya.',
+        'Informasi pemanfaatan lahan untuk permukiman, pertanian, fasilitas umum, dan penggunaan lainnya di wilayah Desa Keji.',
 
       icon:
         BarChart3,
@@ -89,7 +100,7 @@ const informasiPertanahan:
         'Administrasi Pertanahan',
 
       description:
-        'Informasi administrasi dan pencatatan data pertanahan yang dikelola oleh pemerintah desa.',
+        'Informasi administrasi dan pencatatan data pertanahan yang dikelola oleh Pemerintah Desa Keji.',
 
       icon:
         ClipboardList,
@@ -121,7 +132,7 @@ export default function PertanahanPage() {
 
         {/* Overlay */}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#021b16] via-emerald-950/94 to-emerald-800/55" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#021b16] via-emerald-950/95 to-emerald-800/65" />
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#021b16] via-transparent to-black/20" />
 
@@ -139,7 +150,7 @@ export default function PertanahanPage() {
           }}
         />
 
-        {/* Decorations */}
+        {/* Decoration */}
 
         <div className="pointer-events-none absolute -right-36 -top-36 h-[500px] w-[500px] rounded-full border-[80px] border-white/[0.04]" />
 
@@ -194,6 +205,37 @@ export default function PertanahanPage() {
 
                   Ungaran Barat
                 </span>
+
+                <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-xs font-bold text-emerald-100 backdrop-blur">
+                  <FolderOpen
+                    size={16}
+                  />
+
+                  Dokumen Digital
+                </span>
+              </div>
+
+              {/* CTA */}
+
+              <div className="mt-8">
+                <a
+                  href={
+                    GOOGLE_DRIVE_URL
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-6 text-sm font-black text-emerald-950 shadow-xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-emerald-200"
+                >
+                  <FolderOpen
+                    size={18}
+                  />
+
+                  Buka Data Pertanahan
+
+                  <ExternalLink
+                    size={15}
+                  />
+                </a>
               </div>
             </div>
 
@@ -203,31 +245,30 @@ export default function PertanahanPage() {
               <div className="flex items-start justify-between gap-5">
                 <div>
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-300">
-                    Data Pertanahan
+                    Akses Sementara
                   </p>
 
                   <h2 className="mt-2 text-2xl font-black">
-                    Informasi Wilayah
+                    Dokumen Pertanahan
                     Desa
                   </h2>
                 </div>
 
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-emerald-200">
-                  <MapPin
+                  <FolderOpen
                     size={26}
                   />
                 </div>
               </div>
 
               <p className="mt-5 text-sm font-medium leading-7 text-emerald-50/75">
-                Halaman ini
-                dipersiapkan sebagai
-                pusat informasi data
-                pertanahan Desa Keji.
-                Data akan ditampilkan
-                setelah informasi
-                resmi tersedia dan
-                diverifikasi.
+                Untuk sementara,
+                dokumen pertanahan
+                Desa Keji dapat
+                diakses melalui
+                penyimpanan Google
+                Drive yang telah
+                disediakan.
               </p>
 
               <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-200/15 bg-emerald-300/10 p-4">
@@ -237,13 +278,33 @@ export default function PertanahanPage() {
                 />
 
                 <p className="text-xs font-semibold leading-5 text-emerald-50/75">
-                  Informasi yang
-                  ditampilkan nantinya
-                  berasal dari data
-                  resmi Pemerintah
-                  Desa Keji.
+                  Pengembangan
+                  berikutnya dapat
+                  mengintegrasikan
+                  data pertanahan
+                  secara langsung ke
+                  dalam SIJI.
                 </p>
               </div>
+
+              <a
+                href={
+                  GOOGLE_DRIVE_URL
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
+              >
+                <FolderOpen
+                  size={16}
+                />
+
+                Akses Google Drive
+
+                <ExternalLink
+                  size={14}
+                />
+              </a>
             </aside>
           </div>
         </div>
@@ -282,10 +343,10 @@ export default function PertanahanPage() {
             />
 
             <QuickStat
-              label="Status"
-              value="Disiapkan"
+              label="Akses"
+              value="Google Drive"
               icon={
-                ClipboardList
+                FolderOpen
               }
             />
           </div>
@@ -356,21 +417,114 @@ export default function PertanahanPage() {
               </p>
 
               <p className="mt-4 text-sm font-medium leading-8 text-slate-600">
-                Informasi rinci pada
-                halaman ini akan
-                ditampilkan secara
-                bertahap setelah data
-                resmi tersedia dan
-                selesai diverifikasi
-                oleh Pemerintah Desa
-                Keji.
+                Pada tahap awal,
+                dokumen pertanahan
+                masih disediakan
+                melalui Google Drive.
+                Selanjutnya data dapat
+                dikembangkan agar
+                tersaji secara lebih
+                terstruktur dan
+                terintegrasi langsung
+                pada website SIJI.
               </p>
             </div>
           </div>
         </section>
 
         {/* ===================================================
-            KATEGORI INFORMASI
+            AKSES DOKUMEN
+        =================================================== */}
+
+        <section className="relative mt-12 overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 text-white shadow-xl">
+          {/* Pattern */}
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.12]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px)',
+
+              backgroundSize:
+                '25px 25px',
+            }}
+          />
+
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full border-[42px] border-white/[0.04]" />
+
+          <div className="relative grid gap-8 p-7 md:p-9 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+            {/* ICON */}
+
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-lg">
+              <FolderOpen
+                size={31}
+              />
+            </div>
+
+            {/* TEXT */}
+
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
+                Arsip Digital
+              </p>
+
+              <h2 className="mt-2 text-2xl font-black md:text-3xl">
+                Data Pertanahan
+                Desa Keji
+              </h2>
+
+              <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
+                Dokumen data
+                pertanahan untuk
+                sementara tersedia
+                melalui folder Google
+                Drive. Gunakan tombol
+                di samping untuk
+                membuka seluruh
+                dokumen yang tersedia.
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-100">
+                  Data Digital
+                </span>
+
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-100">
+                  Google Drive
+                </span>
+
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-100">
+                  Desa Keji
+                </span>
+              </div>
+            </div>
+
+            {/* BUTTON */}
+
+            <a
+              href={
+                GOOGLE_DRIVE_URL
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-13 shrink-0 items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-6 text-sm font-black text-emerald-950 shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-200"
+            >
+              <FolderOpen
+                size={18}
+              />
+
+              Buka Dokumen
+
+              <ExternalLink
+                size={15}
+              />
+            </a>
+          </div>
+        </section>
+
+        {/* ===================================================
+            KATEGORI
         =================================================== */}
 
         <section className="mt-12">
@@ -385,9 +539,9 @@ export default function PertanahanPage() {
             </h2>
 
             <p className="mt-3 max-w-3xl text-sm font-medium leading-7 text-slate-500">
-              Data pertanahan dapat
-              mencakup beberapa aspek
-              informasi wilayah dan
+              Informasi pertanahan
+              dapat mencakup beberapa
+              aspek data wilayah dan
               administrasi tanah.
             </p>
           </div>
@@ -415,7 +569,7 @@ export default function PertanahanPage() {
         </section>
 
         {/* ===================================================
-            DATA PLACEHOLDER
+            STATISTIK
         =================================================== */}
 
         <section className="mt-12 overflow-hidden rounded-[2rem] border border-emerald-100 bg-white shadow-sm">
@@ -438,17 +592,19 @@ export default function PertanahanPage() {
                 </h2>
 
                 <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
-                  Bagian ini akan
-                  menampilkan statistik
-                  pertanahan setelah
-                  data resmi tersedia.
+                  Statistik akan
+                  ditampilkan secara
+                  langsung melalui
+                  SIJI pada
+                  pengembangan
+                  berikutnya.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="p-6 md:p-8">
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
+            <div className="rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/50 px-6 py-14 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
                 <Database
                   size={29}
@@ -456,25 +612,43 @@ export default function PertanahanPage() {
               </div>
 
               <h3 className="mt-5 text-lg font-black text-slate-800">
-                Data pertanahan
-                sedang disiapkan
+                Statistik sedang
+                dikembangkan
               </h3>
 
               <p className="mx-auto mt-3 max-w-xl text-sm font-medium leading-7 text-slate-500">
-                Statistik mengenai
-                luas, penggunaan,
-                status, dan
-                pemanfaatan lahan
-                akan ditampilkan
-                setelah data resmi
-                Desa Keji tersedia.
+                Untuk sementara,
+                informasi dan dokumen
+                pertanahan dapat
+                dilihat melalui
+                folder Google Drive
+                yang tersedia.
               </p>
+
+              <a
+                href={
+                  GOOGLE_DRIVE_URL
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+              >
+                <FolderOpen
+                  size={16}
+                />
+
+                Lihat Data
+
+                <ExternalLink
+                  size={13}
+                />
+              </a>
             </div>
           </div>
         </section>
 
         {/* ===================================================
-            PETA / PERSEBARAN
+            PETA
         =================================================== */}
 
         <section className="mt-12 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
@@ -502,12 +676,25 @@ export default function PertanahanPage() {
                 menampilkan peta
                 pertanahan atau
                 persebaran penggunaan
-                lahan Desa Keji.
+                lahan Desa Keji secara
+                lebih interaktif.
               </p>
             </div>
 
-            <div className="flex min-h-[310px] items-center justify-center bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-8 text-white">
-              <div className="text-center">
+            <div className="relative flex min-h-[310px] items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-8 text-white">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 opacity-[0.12]"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px)',
+
+                  backgroundSize:
+                    '24px 24px',
+                }}
+              />
+
+              <div className="relative text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
                   <MapPin
                     size={30}
@@ -519,11 +706,11 @@ export default function PertanahanPage() {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-7 text-emerald-50/75">
-                  Peta akan tersedia
-                  setelah data spasial
-                  dan batas informasi
-                  pertanahan selesai
-                  dipersiapkan.
+                  Visualisasi peta
+                  pertanahan akan
+                  dikembangkan setelah
+                  data spasial siap
+                  untuk ditampilkan.
                 </p>
               </div>
             </div>
@@ -531,7 +718,7 @@ export default function PertanahanPage() {
         </section>
 
         {/* ===================================================
-            CATATAN DATA
+            CATATAN
         =================================================== */}
 
         <section className="relative mt-12 overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-950 via-emerald-800 to-teal-700 p-7 text-white shadow-xl md:p-9">
@@ -556,36 +743,62 @@ export default function PertanahanPage() {
               </div>
 
               <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-200">
-                Validitas Informasi
+                Pengembangan SIJI
               </p>
 
               <h2 className="mt-2 text-2xl font-black md:text-3xl">
-                Data ditampilkan
-                setelah diverifikasi
+                Integrasi data
+                pertanahan secara
+                bertahap
               </h2>
 
               <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Untuk menjaga
-                keakuratan informasi,
-                data statistik dan
-                informasi pertanahan
-                tidak ditampilkan
-                sebelum tersedia
-                sumber data resmi yang
-                dapat diverifikasi.
+                Saat ini SIJI
+                menyediakan akses
+                menuju dokumen
+                pertanahan melalui
+                Google Drive.
+                Selanjutnya data
+                tersebut dapat
+                dikembangkan menjadi
+                informasi statistik
+                dan visualisasi yang
+                terintegrasi langsung
+                pada website.
               </p>
             </div>
 
-            <Link
-              href="/pemerintahan"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
-            >
-              Pemerintahan Desa
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <a
+                href={
+                  GOOGLE_DRIVE_URL
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-emerald-900 transition hover:bg-emerald-50"
+              >
+                <FolderOpen
+                  size={16}
+                />
 
-              <ArrowRight
-                size={16}
-              />
-            </Link>
+                Data Pertanahan
+
+                <ExternalLink
+                  size={13}
+                />
+              </a>
+
+              <Link
+                href="/pemerintahan"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 text-sm font-extrabold text-white transition hover:bg-white/15"
+              >
+                Pemerintahan Desa
+
+                <ArrowRight
+                  size={16}
+                />
+              </Link>
+            </div>
           </div>
         </section>
       </main>
@@ -600,13 +813,16 @@ export default function PertanahanPage() {
 function QuickStat({
   label,
   value,
-  icon: Icon,
+  icon:
+    Icon,
   primary =
     false,
 }: {
-  label: string;
+  label:
+    string;
 
-  value: string;
+  value:
+    string;
 
   icon:
     LucideIcon;

@@ -6,6 +6,7 @@ import {
   AlertCircle,
   BookOpen,
   CheckCircle2,
+  Download,
   ExternalLink,
   Eye,
   EyeOff,
@@ -35,6 +36,12 @@ export const revalidate = 0;
 
 const JENIS_DOKUMEN =
   'ebook-sejarah';
+
+const EBOOK_UTAMA_PDF =
+  '/BUKU%20SEJARAH%20DESA%20KEJI.pdf';
+
+const EBOOK_UTAMA_COVER =
+  '/cover%20sejarah.png';
 
 interface PageProps {
   searchParams: Promise<{
@@ -407,15 +414,15 @@ export default async function AdminEbookSejarahPage({
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total Ebook"
-          value={daftarEbook.length}
-          description="Seluruh ebook tersimpan"
+          value={daftarEbook.length + 1}
+          description="Termasuk ebook utama bawaan"
           icon={BookOpen}
         />
 
         <StatCard
           label="Ebook Aktif"
-          value={jumlahAktif}
-          description="Tampil pada halaman sejarah"
+          value={jumlahAktif + 1}
+          description="Termasuk ebook utama aktif"
           icon={Eye}
         />
 
@@ -429,9 +436,154 @@ export default async function AdminEbookSejarahPage({
         <StatCard
           label="Total Halaman"
           value={totalHalaman}
-          description="Akumulasi halaman ebook"
+          description="Halaman ebook tambahan terdata"
           icon={FileText}
         />
+      </section>
+
+      {/* Ebook utama bawaan */}
+
+      <section className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+        <SectionHeader
+          label="Ebook Utama"
+          title="Buku Sejarah Desa Keji"
+          description="Dokumen utama sejarah Desa Keji yang tersimpan langsung di folder public website."
+          icon={BookOpen}
+        />
+
+        <div className="grid gap-8 p-6 sm:p-7 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-center">
+          {/* COVER */}
+
+          <div className="relative mx-auto w-full max-w-[250px]">
+            <div className="absolute -bottom-4 left-1/2 h-8 w-[75%] -translate-x-1/2 rounded-full bg-emerald-950/20 blur-xl" />
+
+            <a
+              href={
+                EBOOK_UTAMA_PDF
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative block overflow-hidden rounded-2xl bg-white p-2 shadow-xl transition duration-300 hover:-translate-y-1"
+            >
+              <img
+                src={
+                  EBOOK_UTAMA_COVER
+                }
+                alt="Cover Buku Sejarah Desa Keji"
+                loading="lazy"
+                className="h-auto w-full rounded-xl object-contain"
+              />
+            </a>
+          </div>
+
+          {/* INFO */}
+
+          <div>
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.13em] text-emerald-700">
+                Aktif
+              </span>
+
+              <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.13em] text-slate-600">
+                Dokumen Bawaan
+              </span>
+            </div>
+
+            <h3 className="mt-5 text-2xl font-black leading-tight text-slate-900">
+              Sejarah Desa Keji
+              Kabupaten Semarang
+            </h3>
+
+            <p className="mt-2 text-sm font-extrabold text-emerald-700">
+              Mengungkap Jejak Sejarah,
+              Budaya, dan Perkembangan
+              Desa
+            </p>
+
+            <p className="mt-4 max-w-3xl text-sm font-medium leading-7 text-slate-500">
+              Ebook utama ini langsung
+              ditampilkan pada halaman
+              publik Sejarah Desa Keji.
+              Cover dan file PDF
+              tersimpan di folder
+              public, sehingga tidak
+              memerlukan upload ulang
+              ke Supabase.
+            </p>
+
+            <div className="mt-6 grid gap-3 xl:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">
+                  Cover
+                </p>
+
+                <p className="mt-2 break-all font-mono text-[11px] font-semibold leading-5 text-slate-600">
+                  public/cover sejarah.png
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700">
+                  PDF
+                </p>
+
+                <p className="mt-2 break-all font-mono text-[11px] font-semibold leading-5 text-slate-600">
+                  public/BUKU SEJARAH DESA KEJI.pdf
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href={
+                  EBOOK_UTAMA_PDF
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+              >
+                <BookOpen
+                  size={16}
+                />
+
+                Buka Ebook
+
+                <ExternalLink
+                  size={13}
+                />
+              </a>
+
+              <a
+                href={
+                  EBOOK_UTAMA_PDF
+                }
+                download="BUKU SEJARAH DESA KEJI.pdf"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-6 text-sm font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+              >
+                <Download
+                  size={16}
+                />
+
+                Unduh PDF
+              </a>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-xs font-semibold leading-6 text-amber-800">
+                Ebook utama bersifat
+                statis. Jika dokumen
+                atau cover diperbarui,
+                cukup ganti file pada
+                folder public dengan
+                nama file yang sama.
+                Form di bawah tetap
+                dapat digunakan untuk
+                menambahkan ebook
+                sejarah lainnya.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Tambah ebook */}

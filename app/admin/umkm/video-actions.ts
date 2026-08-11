@@ -24,7 +24,9 @@ const ADMIN_PATH =
 const VIDEO_TABLE =
   'umkm_video_tutorial';
 
-const MAX_VIDEO = 8;
+/* =========================================================
+   AUTH
+========================================================= */
 
 async function requireAdmin() {
   const supabase =
@@ -42,35 +44,53 @@ async function requireAdmin() {
     error ||
     !user
   ) {
-    redirect('/login');
+    redirect(
+      '/login'
+    );
   }
 }
 
+/* =========================================================
+   HELPERS
+========================================================= */
+
 function getString(
-  formData: FormData,
-  key: string
+  formData:
+    FormData,
+
+  key:
+    string
 ) {
   return String(
-    formData.get(key) ??
+    formData.get(
+      key
+    ) ??
       ''
   ).trim();
 }
 
 function getBoolean(
-  formData: FormData,
-  key: string
+  formData:
+    FormData,
+
+  key:
+    string
 ) {
   return (
     getString(
       formData,
       key
-    ) === 'true'
+    ) ===
+    'true'
   );
 }
 
 function getNumber(
-  formData: FormData,
-  key: string
+  formData:
+    FormData,
+
+  key:
+    string
 ) {
   return Number(
     getString(
@@ -84,14 +104,21 @@ function buildAdminUrl(
   type:
     | 'success'
     | 'error',
-  message: string
+
+  message:
+    string
 ) {
   const params =
     new URLSearchParams({
-      [type]: message,
+      [type]:
+        message,
     });
 
-  return `${ADMIN_PATH}?${params.toString()}#video-tutorial`;
+  return (
+    `${ADMIN_PATH}?` +
+    `${params.toString()}` +
+    '#video-tutorial'
+  );
 }
 
 function revalidateVideoUmkm() {
@@ -108,18 +135,28 @@ function revalidateVideoUmkm() {
   );
 }
 
+/* =========================================================
+   YOUTUBE
+========================================================= */
+
 function extractYoutubeId(
-  value: string
+  value:
+    string
 ) {
-  if (!value) {
+  if (
+    !value
+  ) {
     return null;
   }
 
-  let url: URL;
+  let url:
+    URL;
 
   try {
     url =
-      new URL(value);
+      new URL(
+        value
+      );
   } catch {
     return null;
   }
@@ -141,7 +178,12 @@ function extractYoutubeId(
         ''
       );
 
-  let videoId = '';
+  let videoId =
+    '';
+
+  /* =======================================================
+     youtu.be/VIDEO_ID
+  ======================================================= */
 
   if (
     hostname ===
@@ -150,12 +192,20 @@ function extractYoutubeId(
     const segments =
       url.pathname
         .split('/')
-        .filter(Boolean);
+        .filter(
+          Boolean
+        );
 
     videoId =
       segments[0] ??
       '';
-  } else if (
+  }
+
+  /* =======================================================
+     youtube.com
+  ======================================================= */
+
+  else if (
     hostname ===
       'youtube.com' ||
     hostname.endsWith(
@@ -167,6 +217,8 @@ function extractYoutubeId(
       '.youtube-nocookie.com'
     )
   ) {
+    /* watch?v= */
+
     if (
       url.pathname ===
       '/watch'
@@ -174,15 +226,24 @@ function extractYoutubeId(
       videoId =
         url.searchParams.get(
           'v'
-        ) ?? '';
+        ) ??
+        '';
     } else {
       const segments =
         url.pathname
           .split('/')
-          .filter(Boolean);
+          .filter(
+            Boolean
+          );
 
       const type =
         segments[0];
+
+      /*
+       * shorts/VIDEO_ID
+       * embed/VIDEO_ID
+       * live/VIDEO_ID
+       */
 
       if (
         type ===
@@ -214,27 +275,43 @@ function extractYoutubeId(
 }
 
 function canonicalYoutubeUrl(
-  videoId: string
+  videoId:
+    string
 ) {
-  return `https://www.youtube.com/watch?v=${videoId}`;
+  return (
+    'https://www.youtube.com/watch?v=' +
+    videoId
+  );
 }
 
+/* =========================================================
+   INPUT
+========================================================= */
+
 interface VideoInput {
-  judul: string;
+  judul:
+    string;
 
-  deskripsi: string;
+  deskripsi:
+    string;
 
-  youtubeUrl: string;
+  youtubeUrl:
+    string;
 
-  youtubeId: string | null;
+  youtubeId:
+    string |
+    null;
 
-  urutan: number;
+  urutan:
+    number;
 
-  aktif: boolean;
+  aktif:
+    boolean;
 }
 
 function parseVideoInput(
-  formData: FormData
+  formData:
+    FormData
 ): VideoInput {
   const youtubeUrl =
     getString(
@@ -276,8 +353,13 @@ function parseVideoInput(
   };
 }
 
+/* =========================================================
+   VALIDATION
+========================================================= */
+
 function validateVideo(
-  input: VideoInput
+  input:
+    VideoInput
 ) {
   if (
     input.judul.length <
@@ -303,20 +385,26 @@ function validateVideo(
   if (
     !input.youtubeUrl
   ) {
-    return 'URL YouTube wajib diisi.';
+    return 'URL video YouTube wajib diisi.';
   }
 
   if (
     !input.youtubeId
   ) {
-    return 'URL YouTube tidak valid. Gunakan URL video YouTube, YouTube Shorts, atau youtu.be.';
+    return (
+      'URL YouTube tidak valid. ' +
+      'Kolom ini khusus untuk link video individual, ' +
+      'bukan link channel. Gunakan URL video YouTube, ' +
+      'YouTube Shorts, Live, atau youtu.be.'
+    );
   }
 
   if (
     !Number.isInteger(
       input.urutan
     ) ||
-    input.urutan < 0
+    input.urutan <
+      0
   ) {
     return 'Nomor urutan harus berupa bilangan bulat minimal 0.';
   }
@@ -329,7 +417,8 @@ function validateVideo(
 ========================================================= */
 
 export async function tambahVideoTutorialUmkmAction(
-  formData: FormData
+  formData:
+    FormData
 ) {
   await requireAdmin();
 
@@ -354,52 +443,12 @@ export async function tambahVideoTutorialUmkmAction(
     );
   }
 
-  const {
-    count,
-    error:
-      countError,
-  } = await supabaseAdmin
-    .from(
-      VIDEO_TABLE
-    )
-    .select(
-      'id',
-      {
-        count: 'exact',
-        head: true,
-      }
-    );
-
-  if (countError) {
-    console.error(
-      'Gagal menghitung video tutorial UMKM:',
-      countError
-    );
-
-    redirect(
-      buildAdminUrl(
-        'error',
-        countError.message
-      )
-    );
-  }
-
-  if (
-    (count ?? 0) >=
-    MAX_VIDEO
-  ) {
-    redirect(
-      buildAdminUrl(
-        'error',
-        `Maksimal ${MAX_VIDEO} video tutorial dapat disimpan.`
-      )
-    );
-  }
-
   const youtubeId =
     input.youtubeId;
 
-  if (!youtubeId) {
+  if (
+    !youtubeId
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -408,40 +457,49 @@ export async function tambahVideoTutorialUmkmAction(
     );
   }
 
+  const now =
+    new Date()
+      .toISOString();
+
   const {
     error,
-  } = await supabaseAdmin
-    .from(
-      VIDEO_TABLE
-    )
-    .insert({
-      judul:
-        input.judul,
+  } =
+    await supabaseAdmin
+      .from(
+        VIDEO_TABLE
+      )
+      .insert({
+        judul:
+          input.judul,
 
-      deskripsi:
-        input.deskripsi ||
-        null,
+        deskripsi:
+          input.deskripsi ||
+          null,
 
-      youtube_url:
-        canonicalYoutubeUrl(
-          youtubeId
-        ),
+        youtube_url:
+          canonicalYoutubeUrl(
+            youtubeId
+          ),
 
-      youtube_id:
-        youtubeId,
+        youtube_id:
+          youtubeId,
 
-      urutan:
-        input.urutan,
+        urutan:
+          input.urutan,
 
-      aktif:
-        input.aktif,
+        aktif:
+          input.aktif,
 
-      updated_at:
-        new Date()
-          .toISOString(),
-    });
+        created_at:
+          now,
 
-  if (error) {
+        updated_at:
+          now,
+      });
+
+  if (
+    error
+  ) {
     console.error(
       'Gagal menambahkan video tutorial UMKM:',
       {
@@ -488,7 +546,8 @@ export async function tambahVideoTutorialUmkmAction(
 ========================================================= */
 
 export async function ubahVideoTutorialUmkmAction(
-  formData: FormData
+  formData:
+    FormData
 ) {
   await requireAdmin();
 
@@ -498,7 +557,9 @@ export async function ubahVideoTutorialUmkmAction(
       'id'
     );
 
-  if (!id) {
+  if (
+    !id
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -531,7 +592,9 @@ export async function ubahVideoTutorialUmkmAction(
   const youtubeId =
     input.youtubeId;
 
-  if (!youtubeId) {
+  if (
+    !youtubeId
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -542,41 +605,60 @@ export async function ubahVideoTutorialUmkmAction(
 
   const {
     error,
-  } = await supabaseAdmin
-    .from(
-      VIDEO_TABLE
-    )
-    .update({
-      judul:
-        input.judul,
+  } =
+    await supabaseAdmin
+      .from(
+        VIDEO_TABLE
+      )
+      .update({
+        judul:
+          input.judul,
 
-      deskripsi:
-        input.deskripsi ||
-        null,
+        deskripsi:
+          input.deskripsi ||
+          null,
 
-      youtube_url:
-        canonicalYoutubeUrl(
-          youtubeId
-        ),
+        youtube_url:
+          canonicalYoutubeUrl(
+            youtubeId
+          ),
 
-      youtube_id:
-        youtubeId,
+        youtube_id:
+          youtubeId,
 
-      urutan:
-        input.urutan,
+        urutan:
+          input.urutan,
 
-      aktif:
-        input.aktif,
-    })
-    .eq(
-      'id',
-      id
-    );
+        aktif:
+          input.aktif,
 
-  if (error) {
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        'id',
+        id
+      );
+
+  if (
+    error
+  ) {
     console.error(
       'Gagal memperbarui video tutorial UMKM:',
-      error
+      {
+        message:
+          error.message,
+
+        code:
+          error.code,
+
+        details:
+          error.details,
+
+        hint:
+          error.hint,
+      }
     );
 
     const message =
@@ -608,7 +690,8 @@ export async function ubahVideoTutorialUmkmAction(
 ========================================================= */
 
 export async function toggleVideoTutorialUmkmAction(
-  formData: FormData
+  formData:
+    FormData
 ) {
   await requireAdmin();
 
@@ -624,7 +707,9 @@ export async function toggleVideoTutorialUmkmAction(
       'aktif'
     );
 
-  if (!id) {
+  if (
+    !id
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -635,23 +720,31 @@ export async function toggleVideoTutorialUmkmAction(
 
   const {
     error,
-  } = await supabaseAdmin
-    .from(
-      VIDEO_TABLE
-    )
-    .update({
-      aktif,
+  } =
+    await supabaseAdmin
+      .from(
+        VIDEO_TABLE
+      )
+      .update({
+        aktif,
 
-      updated_at:
-        new Date()
-          .toISOString(),
-    })
-    .eq(
-      'id',
-      id
+        updated_at:
+          new Date()
+            .toISOString(),
+      })
+      .eq(
+        'id',
+        id
+      );
+
+  if (
+    error
+  ) {
+    console.error(
+      'Gagal mengubah status video tutorial UMKM:',
+      error
     );
 
-  if (error) {
     redirect(
       buildAdminUrl(
         'error',
@@ -677,7 +770,8 @@ export async function toggleVideoTutorialUmkmAction(
 ========================================================= */
 
 export async function hapusVideoTutorialUmkmAction(
-  formData: FormData
+  formData:
+    FormData
 ) {
   await requireAdmin();
 
@@ -687,7 +781,9 @@ export async function hapusVideoTutorialUmkmAction(
       'id'
     );
 
-  if (!id) {
+  if (
+    !id
+  ) {
     redirect(
       buildAdminUrl(
         'error',
@@ -698,17 +794,20 @@ export async function hapusVideoTutorialUmkmAction(
 
   const {
     error,
-  } = await supabaseAdmin
-    .from(
-      VIDEO_TABLE
-    )
-    .delete()
-    .eq(
-      'id',
-      id
-    );
+  } =
+    await supabaseAdmin
+      .from(
+        VIDEO_TABLE
+      )
+      .delete()
+      .eq(
+        'id',
+        id
+      );
 
-  if (error) {
+  if (
+    error
+  ) {
     console.error(
       'Gagal menghapus video tutorial UMKM:',
       error
