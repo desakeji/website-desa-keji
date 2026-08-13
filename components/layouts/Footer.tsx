@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import type {
+  ReactNode,
+} from 'react';
 
 import Link from 'next/link';
 
@@ -13,14 +15,17 @@ import {
 } from 'lucide-react';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const currentYear =
+    new Date().getFullYear();
 
   return (
     <footer className="relative overflow-hidden bg-[#052e25] text-white">
       {/* Garis aksen atas */}
+
       <div className="h-1 bg-gradient-to-r from-emerald-900 via-emerald-400 to-emerald-900" />
 
       {/* Motif batik tipis */}
+
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.055]"
@@ -51,18 +56,24 @@ export default function Footer() {
               transparent 13px
             )
           `,
-          backgroundSize: '52px 52px',
+
+          backgroundSize:
+            '52px 52px',
         }}
       />
 
       {/* Ornamen latar */}
+
       <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full border-[44px] border-white/[0.025]" />
 
       <div className="pointer-events-none absolute -bottom-32 -left-32 h-72 w-72 rounded-full border-[52px] border-emerald-300/[0.025]" />
 
       <div className="relative mx-auto max-w-7xl px-4 pb-6 pt-10 sm:px-6 lg:px-8">
         <div className="grid gap-9 md:grid-cols-2 lg:grid-cols-12">
-          {/* Identitas Desa */}
+          {/* =================================================
+              IDENTITAS DESA
+          ================================================= */}
+
           <div className="lg:col-span-5">
             <Link
               href="/"
@@ -116,13 +127,20 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Kontak */}
+          {/* =================================================
+              KONTAK
+          ================================================= */}
+
           <div className="lg:col-span-4">
-            <FooterTitle title="Hubungi Kami" />
+            <FooterTitle
+              title="Hubungi Kami"
+            />
 
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-1">
               <ContactItem
-                icon={MapPin}
+                icon={
+                  MapPin
+                }
                 label="Alamat Kantor"
               >
                 Kantor Kepala Desa Keji, Kecamatan Ungaran Barat,
@@ -130,7 +148,9 @@ export default function Footer() {
               </ContactItem>
 
               <ContactItem
-                icon={Phone}
+                icon={
+                  Phone
+                }
                 label="Telepon"
                 href="tel:+6281329442688"
               >
@@ -138,7 +158,9 @@ export default function Footer() {
               </ContactItem>
 
               <ContactItem
-                icon={Mail}
+                icon={
+                  Mail
+                }
                 label="Email"
                 href="mailto:desakeji01@gmail.com"
               >
@@ -146,7 +168,9 @@ export default function Footer() {
               </ContactItem>
 
               <ContactItem
-                icon={Globe2}
+                icon={
+                  Globe2
+                }
                 label="Website"
                 href="https://keji-ungaranbarat.semarangkab.go.id"
                 external
@@ -156,9 +180,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Jam Pelayanan */}
+          {/* =================================================
+              JAM PELAYANAN
+          ================================================= */}
+
           <div className="md:col-span-2 lg:col-span-3">
-            <FooterTitle title="Jam Pelayanan" />
+            <FooterTitle
+              title="Jam Pelayanan"
+            />
 
             <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.045] backdrop-blur-sm">
               <ServiceTime
@@ -184,7 +213,10 @@ export default function Footer() {
               className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em] text-emerald-300 transition hover:text-white"
             >
               Akses layanan desa
-              <ArrowUpRight size={14} />
+
+              <ArrowUpRight
+                size={14}
+              />
             </Link>
 
             <p className="mt-3 text-[10px] font-medium leading-relaxed text-emerald-100/35">
@@ -194,21 +226,72 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="mt-9 flex flex-col gap-3 border-t border-white/10 pt-5 text-[11px] font-medium text-emerald-100/40 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {currentYear} Pemerintah Desa Keji. Hak cipta
-            dilindungi.
-          </p>
+        {/* ===================================================
+            COPYRIGHT + PENGEMBANG
+        =================================================== */}
 
-          <p>
-            Dikembangkan oleh Tim KKN-T UNDIP 2026
-          </p>
+        <div className="mt-9 border-t border-white/10 pt-5">
+          <div className="flex flex-col gap-4 text-[11px] font-medium text-emerald-100/40 lg:flex-row lg:items-center lg:justify-between">
+            {/* COPYRIGHT */}
+
+            <p>
+              © {currentYear} Pemerintah Desa Keji. Hak cipta
+              dilindungi.
+            </p>
+
+            {/* PENGEMBANG */}
+
+            <div className="flex flex-col gap-1.5 lg:items-end">
+              <p>
+                Dikembangkan oleh{' '}
+                <span className="font-bold text-emerald-100/70">
+                  Tim KKN-T UNDIP 2026
+                </span>
+              </p>
+
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-emerald-100/40">
+                  Contact Person:
+                </span>
+
+                <span className="font-extrabold text-emerald-200">
+                  Izac Luthfi Pranowo
+                </span>
+
+                <span className="hidden text-emerald-100/25 sm:inline">
+                  ·
+                </span>
+
+                <a
+                  href="https://wa.me/6289620467214"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Hubungi Izac Luthfi Pranowo melalui WhatsApp"
+                  className="group inline-flex items-center gap-1.5 font-extrabold text-emerald-300 transition hover:text-white"
+                >
+                  <Phone
+                    size={12}
+                  />
+
+                  0896-2046-7214
+
+                  <ArrowUpRight
+                    size={11}
+                    className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
+
+/* =========================================================
+   FOOTER TITLE
+========================================================= */
 
 function FooterTitle({
   title,
@@ -226,25 +309,46 @@ function FooterTitle({
   );
 }
 
+/* =========================================================
+   CONTACT ITEM
+========================================================= */
+
 interface ContactItemProps {
-  icon: typeof MapPin;
-  label: string;
-  children: ReactNode;
-  href?: string;
-  external?: boolean;
+  icon:
+    typeof MapPin;
+
+  label:
+    string;
+
+  children:
+    ReactNode;
+
+  href?:
+    string;
+
+  external?:
+    boolean;
 }
 
 function ContactItem({
-  icon: Icon,
+  icon:
+    Icon,
+
   label,
+
   children,
+
   href,
-  external = false,
+
+  external =
+    false,
 }: ContactItemProps) {
   const content = (
     <div className="group flex items-start gap-3">
       <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-300/10 text-emerald-300">
-        <Icon size={15} />
+        <Icon
+          size={15}
+        />
       </div>
 
       <div className="min-w-0">
@@ -266,14 +370,22 @@ function ContactItem({
     </div>
   );
 
-  if (!href) {
-    return <li>{content}</li>;
+  if (
+    !href
+  ) {
+    return (
+      <li>
+        {content}
+      </li>
+    );
   }
 
   return (
     <li>
       <a
-        href={href}
+        href={
+          href
+        }
         target={
           external
             ? '_blank'
@@ -291,18 +403,34 @@ function ContactItem({
   );
 }
 
+/* =========================================================
+   SERVICE TIME
+========================================================= */
+
 interface ServiceTimeProps {
-  day: string;
-  time: string;
-  isClosed?: boolean;
-  last?: boolean;
+  day:
+    string;
+
+  time:
+    string;
+
+  isClosed?:
+    boolean;
+
+  last?:
+    boolean;
 }
 
 function ServiceTime({
   day,
+
   time,
-  isClosed = false,
-  last = false,
+
+  isClosed =
+    false,
+
+  last =
+    false,
 }: ServiceTimeProps) {
   return (
     <div
