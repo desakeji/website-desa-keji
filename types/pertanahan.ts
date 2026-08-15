@@ -1,59 +1,155 @@
 // types/pertanahan.ts
 
+/* =========================================================
+   SETTINGS
+========================================================= */
+
 export interface PertanahanSettings {
-  setting_key: string;
+  setting_key:
+    string;
 
-  judul: string;
+  judul:
+    string;
 
-  deskripsi: string;
+  deskripsi:
+    string;
 
   tahun_data:
-    | number
-    | null;
+    number | null;
 
   sumber_data:
-    | string
-    | null;
+    string | null;
 
   catatan:
-    | string
-    | null;
+    string | null;
 
   peta_url:
-    | string
-    | null;
+    string | null;
 
-  aktif: boolean;
+  aktif:
+    boolean;
 
-  created_at?: string;
+  created_at?:
+    string;
 
-  updated_at: string;
+  updated_at:
+    string;
 }
 
+/* =========================================================
+   DATA LAMA
+
+   Tetap dipertahankan supaya file lama yang mungkin masih
+   memakai interface ini tidak langsung error.
+========================================================= */
+
 export interface PertanahanData {
-  id: string;
+  id:
+    string;
 
-  nama: string;
+  nama:
+    string;
 
-  kategori: string;
+  kategori:
+    string;
 
-  luas_hektar: number;
+  luas_hektar:
+    number;
 
   jumlah_bidang:
-    | number
-    | null;
+    number | null;
 
   keterangan:
-    | string
-    | null;
+    string | null;
 
-  warna: string;
+  warna:
+    string;
 
-  aktif: boolean;
+  aktif:
+    boolean;
 
-  urutan: number;
+  urutan:
+    number;
 
-  created_at: string;
+  created_at:
+    string;
 
-  updated_at: string;
+  updated_at:
+    string;
+}
+
+/* =========================================================
+   ALBUM
+========================================================= */
+
+export interface PertanahanAlbum {
+  id:
+    string;
+
+  judul:
+    string;
+
+  slug:
+    string;
+
+  deskripsi:
+    string | null;
+
+  tahun:
+    number | null;
+
+  aktif:
+    boolean;
+
+  urutan:
+    number;
+
+  created_at:
+    string;
+
+  updated_at:
+    string;
+}
+
+/* =========================================================
+   FOTO
+========================================================= */
+
+export interface PertanahanFoto {
+  id:
+    string;
+
+  album_id:
+    string;
+
+  foto_url:
+    string;
+
+  foto_path:
+    string;
+
+  caption:
+    string | null;
+
+  urutan:
+    number;
+
+  aktif:
+    boolean;
+
+  created_at:
+    string;
+
+  updated_at:
+    string;
+}
+
+/* =========================================================
+   ALBUM + FOTO
+========================================================= */
+
+export interface PertanahanAlbumWithFotos
+  extends PertanahanAlbum {
+  fotos:
+    PertanahanFoto[];
 }

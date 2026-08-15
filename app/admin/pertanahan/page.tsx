@@ -7,8 +7,8 @@ import {
   CheckCircle2,
   Database,
   ExternalLink,
-  Map,
-  MapPin,
+  FolderOpen,
+  Image as ImageIcon,
   Pencil,
   Plus,
   Save,
@@ -16,10 +16,13 @@ import {
 } from 'lucide-react';
 
 import {
-  hapusPertanahanAction,
+  hapusAlbumPertanahanAction,
+  hapusFotoPertanahanAction,
   simpanPertanahanSettingsAction,
-  tambahPertanahanAction,
-  ubahPertanahanAction,
+  tambahAlbumPertanahanAction,
+  tambahFotoPertanahanAction,
+  ubahAlbumPertanahanAction,
+  ubahFotoPertanahanAction,
 } from '@/app/admin/pertanahan/actions';
 
 import {
@@ -27,7 +30,9 @@ import {
 } from '@/lib/supabase-admin';
 
 import type {
-  PertanahanData,
+  PertanahanAlbum,
+  PertanahanAlbumWithFotos,
+  PertanahanFoto,
   PertanahanSettings,
 } from '@/types/pertanahan';
 
@@ -37,12 +42,18 @@ export const dynamic =
 export const revalidate =
   0;
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface PageProps {
   searchParams:
     Promise<{
-      success?: string;
+      success?:
+        string;
 
-      error?: string;
+      error?:
+        string;
     }>;
 }
 
@@ -56,10 +67,10 @@ const fallbackSettings:
     'utama',
 
   judul:
-    'Data Pertanahan',
+    'Album Pertanahan Desa Keji',
 
   deskripsi:
-    'Informasi penggunaan lahan, administrasi pertanahan, dan pemanfaatan wilayah Desa Keji.',
+    'Dokumentasi pertanahan dan administrasi kewilayahan Desa Keji yang disajikan dalam bentuk album foto.',
 
   tahun_data:
     2026,
@@ -68,7 +79,7 @@ const fallbackSettings:
     'Pemerintah Desa Keji',
 
   catatan:
-    'Data ditampilkan dalam bentuk agregat dan tidak menampilkan identitas pribadi pemilik tanah.',
+    'Dokumentasi ditampilkan untuk kepentingan informasi publik dan tidak memuat data pribadi pemilik tanah.',
 
   peta_url:
     null,
@@ -92,7 +103,8 @@ export default async function AdminPertanahanPage({
 
   const [
     settingsResult,
-    dataResult,
+    albumResult,
+    fotoResult,
   ] =
     await Promise.all([
       supabaseAdmin
@@ -119,18 +131,46 @@ export default async function AdminPertanahanPage({
 
       supabaseAdmin
         .from(
-          'pertanahan_data'
+          'pertanahan_album'
         )
         .select(`
           id,
-          nama,
-          kategori,
-          luas_hektar,
-          jumlah_bidang,
-          keterangan,
-          warna,
+          judul,
+          slug,
+          deskripsi,
+          tahun,
           aktif,
           urutan,
+          created_at,
+          updated_at
+        `)
+        .order(
+          'urutan',
+          {
+            ascending:
+              true,
+          }
+        )
+        .order(
+          'created_at',
+          {
+            ascending:
+              false,
+          }
+        ),
+
+      supabaseAdmin
+        .from(
+          'pertanahan_foto'
+        )
+        .select(`
+          id,
+          album_id,
+          foto_url,
+          foto_path,
+          caption,
+          urutan,
+          aktif,
           created_at,
           updated_at
         `)
@@ -154,17 +194,26 @@ export default async function AdminPertanahanPage({
     settingsResult.error
   ) {
     console.error(
-      'Gagal mengambil settings pertanahan:',
+      'Gagal mengambil settings Pertanahan:',
       settingsResult.error
     );
   }
 
   if (
-    dataResult.error
+    albumResult.error
   ) {
     console.error(
-      'Gagal mengambil data pertanahan:',
-      dataResult.error
+      'Gagal mengambil album Pertanahan:',
+      albumResult.error
+    );
+  }
+
+  if (
+    fotoResult.error
+  ) {
+    console.error(
+      'Gagal mengambil foto Pertanahan:',
+      fotoResult.error
     );
   }
 
@@ -176,63 +225,47 @@ export default async function AdminPertanahanPage({
         {}),
     } as PertanahanSettings;
 
-  const data =
+  const foto =
     (
-      dataResult.data ??
+      fotoResult.data ??
+      []
+    ) as PertanahanFoto[];
+
+  const albums =
+    (
+      albumResult.data ??
       []
     ).map(
       (
-        item
+        album
       ) => ({
-        ...item,
+        ...album,
 
-        luas_hektar:
-          Number(
-            item.luas_hektar ??
-              0
+        fotos:
+          foto.filter(
+            (
+              item
+            ) =>
+              item.album_id ===
+              album.id
           ),
-
-        jumlah_bidang:
-          item.jumlah_bidang ===
-          null
-            ? null
-            : Number(
-                item.jumlah_bidang
-              ),
       })
-    ) as PertanahanData[];
+    ) as PertanahanAlbumWithFotos[];
 
-  const dataAktif =
-    data.filter(
+  const albumAktif =
+    albums.filter(
+      (
+        album
+      ) =>
+        album.aktif
+    );
+
+  const fotoAktif =
+    foto.filter(
       (
         item
       ) =>
         item.aktif
-    );
-
-  const totalLuas =
-    dataAktif.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.luas_hektar,
-      0
-    );
-
-  const totalBidang =
-    dataAktif.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        (
-          item.jumlah_bidang ??
-          0
-        ),
-      0
     );
 
   return (
@@ -257,7 +290,7 @@ export default async function AdminPertanahanPage({
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
-              <Map
+              <FolderOpen
                 size={27}
               />
             </div>
@@ -268,16 +301,15 @@ export default async function AdminPertanahanPage({
               </p>
 
               <h1 className="mt-2 text-2xl font-black sm:text-3xl">
-                Data Pertanahan
+                Album Pertanahan
               </h1>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-emerald-50/80">
-                Kelola informasi
-                penggunaan lahan,
-                luas wilayah, jumlah
-                bidang, sumber data,
-                dan informasi
-                pertanahan Desa Keji.
+                Buat album dan unggah
+                dokumentasi
+                pertanahan Desa Keji
+                langsung dari
+                perangkat.
               </p>
             </div>
           </div>
@@ -326,30 +358,30 @@ export default async function AdminPertanahanPage({
 
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Data Pertanahan"
+          label="Total Album"
           value={String(
-            data.length
+            albums.length
           )}
         />
 
         <StatCard
-          label="Data Aktif"
+          label="Album Aktif"
           value={String(
-            dataAktif.length
+            albumAktif.length
           )}
         />
 
         <StatCard
-          label="Total Luas"
-          value={`${formatNumber(
-            totalLuas
-          )} ha`}
+          label="Total Foto"
+          value={String(
+            foto.length
+          )}
         />
 
         <StatCard
-          label="Jumlah Bidang"
-          value={totalBidang.toLocaleString(
-            'id-ID'
+          label="Foto Aktif"
+          value={String(
+            fotoAktif.length
           )}
         />
       </section>
@@ -373,7 +405,7 @@ export default async function AdminPertanahanPage({
               </p>
 
               <h2 className="mt-1 text-xl font-black text-slate-900">
-                Pengaturan Data
+                Pengaturan Album
                 Pertanahan
               </h2>
             </div>
@@ -387,7 +419,7 @@ export default async function AdminPertanahanPage({
           className="grid gap-5 p-6 md:grid-cols-2"
         >
           <Input
-            label="Judul"
+            label="Judul Halaman"
             name="judul"
             value={
               settings.judul
@@ -432,19 +464,6 @@ export default async function AdminPertanahanPage({
             }
           />
 
-          <Input
-            label="URL Peta"
-            name="peta_url"
-            value={
-              settings.peta_url ??
-              ''
-            }
-            required={
-              false
-            }
-            placeholder="https://..."
-          />
-
           <div className="md:col-span-2">
             <Textarea
               label="Catatan"
@@ -464,6 +483,8 @@ export default async function AdminPertanahanPage({
               defaultChecked={
                 settings.aktif
               }
+              label="Aktifkan Halaman Pertanahan"
+              description="Jika aktif, album Pertanahan dapat ditampilkan pada halaman publik."
             />
           </div>
 
@@ -483,7 +504,7 @@ export default async function AdminPertanahanPage({
       </section>
 
       {/* ===================================================
-          TAMBAH
+          CREATE ALBUM
       =================================================== */}
 
       <section className="overflow-hidden rounded-3xl border border-emerald-200 bg-emerald-50 shadow-sm">
@@ -495,27 +516,27 @@ export default async function AdminPertanahanPage({
               />
             </div>
 
-            Tambah Data Pertanahan
+            Buat Album Pertanahan Baru
           </summary>
 
           <form
             action={
-              tambahPertanahanAction
+              tambahAlbumPertanahanAction
             }
             className="grid gap-5 border-t border-emerald-100 bg-white p-6 md:grid-cols-2"
           >
-            <PertanahanFields />
+            <AlbumFields />
 
             <div className="md:col-span-2 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
               >
                 <Plus
                   size={16}
                 />
 
-                Tambah Data
+                Buat Album
               </button>
             </div>
           </form>
@@ -523,169 +544,61 @@ export default async function AdminPertanahanPage({
       </section>
 
       {/* ===================================================
-          LIST
+          ALBUM LIST
       =================================================== */}
 
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 p-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-700">
-            Data Agregat
+            Dokumentasi
           </p>
 
           <h2 className="mt-1 text-xl font-black text-slate-900">
-            Daftar Data Pertanahan
+            Daftar Album Pertanahan
           </h2>
+
+          <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+            Foto pertama berdasarkan
+            nomor urutan akan
+            digunakan sebagai cover
+            album pada halaman
+            publik.
+          </p>
         </div>
 
-        {data.length ===
+        {albums.length ===
         0 ? (
           <div className="px-6 py-16 text-center">
-            <MapPin
-              size={42}
+            <FolderOpen
+              size={44}
               className="mx-auto text-slate-300"
             />
 
             <h3 className="mt-4 font-black text-slate-700">
-              Belum ada data
-              pertanahan
+              Belum ada album
+              Pertanahan
             </h3>
+
+            <p className="mx-auto mt-2 max-w-lg text-sm font-medium leading-6 text-slate-500">
+              Buat album terlebih
+              dahulu, kemudian unggah
+              foto dari perangkat.
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {data.map(
+            {albums.map(
               (
-                item
+                album
               ) => (
-                <article
+                <AlbumAdminCard
                   key={
-                    item.id
+                    album.id
                   }
-                  className="p-6"
-                >
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span
-                          className="h-4 w-4 rounded-full"
-                          style={{
-                            backgroundColor:
-                              item.warna,
-                          }}
-                        />
-
-                        <h3 className="text-lg font-black text-slate-900">
-                          {
-                            item.nama
-                          }
-                        </h3>
-
-                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-[9px] font-extrabold uppercase text-emerald-700">
-                          {
-                            item.kategori
-                          }
-                        </span>
-
-                        {!item.aktif && (
-                          <span className="rounded-full bg-slate-200 px-3 py-1 text-[9px] font-extrabold uppercase text-slate-500">
-                            Nonaktif
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <MiniStat
-                          label="Luas"
-                          value={`${formatNumber(
-                            item.luas_hektar
-                          )} ha`}
-                        />
-
-                        <MiniStat
-                          label="Jumlah Bidang"
-                          value={
-                            item.jumlah_bidang ===
-                            null
-                              ? '-'
-                              : item.jumlah_bidang.toLocaleString(
-                                  'id-ID'
-                                )
-                          }
-                        />
-                      </div>
-
-                      {item.keterangan && (
-                        <p className="mt-4 text-sm font-medium leading-7 text-slate-500">
-                          {
-                            item.keterangan
-                          }
-                        </p>
-                      )}
-
-                      <details className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                        <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-xs font-extrabold text-emerald-700">
-                          <Pencil
-                            size={15}
-                          />
-
-                          Edit Data
-                        </summary>
-
-                        <form
-                          action={ubahPertanahanAction.bind(
-                            null,
-                            item.id
-                          )}
-                          className="grid gap-5 border-t border-slate-200 bg-white p-5 md:grid-cols-2"
-                        >
-                          <PertanahanFields
-                            item={
-                              item
-                            }
-                          />
-
-                          <div className="md:col-span-2 flex justify-end">
-                            <button
-                              type="submit"
-                              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-xs font-extrabold text-white"
-                            >
-                              <Save
-                                size={15}
-                              />
-
-                              Simpan
-                              Perubahan
-                            </button>
-                          </div>
-                        </form>
-                      </details>
-                    </div>
-
-                    <form
-                      action={
-                        hapusPertanahanAction
-                      }
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        value={
-                          item.id
-                        }
-                      />
-
-                      <button
-                        type="submit"
-                        className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-extrabold text-red-700 transition hover:bg-red-100"
-                      >
-                        <Trash2
-                          size={15}
-                        />
-
-                        Hapus
-                      </button>
-                    </form>
-                  </div>
-                </article>
+                  album={
+                    album
+                  }
+                />
               )
             )}
           </div>
@@ -696,76 +609,455 @@ export default async function AdminPertanahanPage({
 }
 
 /* =========================================================
-   FIELDS
+   ALBUM CARD
 ========================================================= */
 
-function PertanahanFields({
-  item,
+function AlbumAdminCard({
+  album,
 }: {
-  item?:
-    PertanahanData;
+  album:
+    PertanahanAlbumWithFotos;
+}) {
+  const cover =
+    album.fotos.find(
+      (
+        foto
+      ) =>
+        foto.aktif
+    ) ??
+    album.fotos[0] ??
+    null;
+
+  return (
+    <article className="p-6">
+      <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)]">
+        {/* COVER */}
+
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+          {cover ? (
+            <img
+              src={
+                cover.foto_url
+              }
+              alt={
+                album.judul
+              }
+              className="aspect-[4/3] h-full min-h-[180px] w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[4/3] min-h-[180px] items-center justify-center">
+              <ImageIcon
+                size={38}
+                className="text-slate-300"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* INFO */}
+
+        <div className="min-w-0">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="flex flex-wrap gap-2">
+                {album.tahun && (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold text-emerald-700">
+                    {
+                      album.tahun
+                    }
+                  </span>
+                )}
+
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold text-slate-600">
+                  {album.fotos.length}{' '}
+                  Foto
+                </span>
+
+                {!album.aktif && (
+                  <span className="rounded-full bg-slate-200 px-3 py-1 text-[10px] font-extrabold text-slate-500">
+                    Nonaktif
+                  </span>
+                )}
+
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-extrabold text-slate-500">
+                  Urutan{' '}
+                  {
+                    album.urutan
+                  }
+                </span>
+              </div>
+
+              <h3 className="mt-3 text-xl font-black text-slate-900">
+                {
+                  album.judul
+                }
+              </h3>
+
+              {album.deskripsi && (
+                <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-500">
+                  {
+                    album.deskripsi
+                  }
+                </p>
+              )}
+            </div>
+
+            <form
+              action={
+                hapusAlbumPertanahanAction
+              }
+            >
+              <input
+                type="hidden"
+                name="id"
+                value={
+                  album.id
+                }
+              />
+
+              <button
+                type="submit"
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-extrabold text-red-700 transition hover:bg-red-100"
+              >
+                <Trash2
+                  size={15}
+                />
+
+                Hapus Album
+              </button>
+            </form>
+          </div>
+
+          {/* EDIT ALBUM */}
+
+          <details className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+            <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-xs font-extrabold text-emerald-700">
+              <Pencil
+                size={15}
+              />
+
+              Edit Album
+            </summary>
+
+            <form
+              action={ubahAlbumPertanahanAction.bind(
+                null,
+                album.id
+              )}
+              className="grid gap-5 border-t border-slate-200 bg-white p-5 md:grid-cols-2"
+            >
+              <AlbumFields
+                album={
+                  album
+                }
+              />
+
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-5 text-xs font-extrabold text-white"
+                >
+                  <Save
+                    size={15}
+                  />
+
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </details>
+
+          {/* UPLOAD FOTO */}
+
+          <details className="mt-4 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50">
+            <summary className="flex cursor-pointer list-none items-center gap-2 p-4 text-xs font-extrabold text-emerald-800">
+              <Plus
+                size={15}
+              />
+
+              Upload Foto ke Album
+            </summary>
+
+            <form
+              action={tambahFotoPertanahanAction.bind(
+                null,
+                album.id
+              )}
+              className="grid gap-5 border-t border-emerald-100 bg-white p-5 md:grid-cols-2"
+            >
+              <div className="md:col-span-2">
+                <label className="block">
+                  <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                    Pilih Foto dari
+                    Perangkat
+                  </span>
+
+                  <input
+                    type="file"
+                    name="foto"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    required
+                    className="block w-full rounded-xl border border-dashed border-emerald-300 bg-emerald-50 p-4 text-sm font-semibold text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-700 file:px-4 file:py-2 file:text-xs file:font-extrabold file:text-white"
+                  />
+
+                  <p className="mt-2 text-xs font-medium leading-5 text-slate-400">
+                    Bisa memilih
+                    beberapa foto.
+                    Maksimal 5 MB per
+                    foto dan total
+                    sekitar 9 MB per
+                    sekali upload.
+                  </p>
+                </label>
+              </div>
+
+              <Input
+                label="Urutan Awal"
+                name="urutan_awal"
+                type="number"
+                min="0"
+                value={String(
+                  album.fotos.length
+                )}
+              />
+
+              <Input
+                label="Caption Default"
+                name="caption"
+                value=""
+                required={
+                  false
+                }
+                placeholder="Opsional"
+              />
+
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  type="submit"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white transition hover:bg-emerald-800"
+                >
+                  <ImageIcon
+                    size={16}
+                  />
+
+                  Upload Foto
+                </button>
+              </div>
+            </form>
+          </details>
+
+          {/* FOTO LIST */}
+
+          {album.fotos.length >
+            0 && (
+            <div className="mt-6">
+              <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                Foto Dalam Album
+              </p>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {album.fotos.map(
+                  (
+                    foto
+                  ) => (
+                    <PhotoAdminCard
+                      key={
+                        foto.id
+                      }
+                      foto={
+                        foto
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* =========================================================
+   PHOTO CARD
+========================================================= */
+
+function PhotoAdminCard({
+  foto,
+}: {
+  foto:
+    PertanahanFoto;
+}) {
+  return (
+    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="relative">
+        <img
+          src={
+            foto.foto_url
+          }
+          alt={
+            foto.caption ??
+            'Dokumentasi Pertanahan'
+          }
+          className="aspect-[4/3] w-full object-cover"
+        />
+
+        {!foto.aktif && (
+          <span className="absolute left-3 top-3 rounded-full bg-slate-950/70 px-3 py-1 text-[9px] font-extrabold text-white backdrop-blur">
+            Nonaktif
+          </span>
+        )}
+      </div>
+
+      <div className="p-4">
+        <p className="text-xs font-bold text-slate-600">
+          {foto.caption ||
+            'Tanpa caption'}
+        </p>
+
+        <p className="mt-1 text-[10px] font-semibold text-slate-400">
+          Urutan{' '}
+          {
+            foto.urutan
+          }
+        </p>
+
+        <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50">
+          <summary className="cursor-pointer list-none p-3 text-xs font-extrabold text-emerald-700">
+            Edit Foto
+          </summary>
+
+          <form
+            action={ubahFotoPertanahanAction.bind(
+              null,
+              foto.id
+            )}
+            className="space-y-4 border-t border-slate-200 bg-white p-4"
+          >
+            <Input
+              label="Caption"
+              name="caption"
+              value={
+                foto.caption ??
+                ''
+              }
+              required={
+                false
+              }
+            />
+
+            <Input
+              label="Urutan"
+              name="urutan"
+              type="number"
+              min="0"
+              value={String(
+                foto.urutan
+              )}
+            />
+
+            <label className="block">
+              <span className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                Ganti Foto
+              </span>
+
+              <input
+                type="file"
+                name="foto_pengganti"
+                accept="image/jpeg,image/png,image/webp"
+                className="block w-full text-xs"
+              />
+            </label>
+
+            <ActiveField
+              defaultChecked={
+                foto.aktif
+              }
+              label="Tampilkan Foto"
+              description="Foto aktif akan tampil pada album publik."
+            />
+
+            <button
+              type="submit"
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-xs font-extrabold text-white"
+            >
+              <Save
+                size={14}
+              />
+
+              Simpan Foto
+            </button>
+          </form>
+        </details>
+
+        <form
+          action={
+            hapusFotoPertanahanAction
+          }
+          className="mt-2"
+        >
+          <input
+            type="hidden"
+            name="id"
+            value={
+              foto.id
+            }
+          />
+
+          <button
+            type="submit"
+            className="inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-extrabold text-red-700 transition hover:bg-red-100"
+          >
+            <Trash2
+              size={14}
+            />
+
+            Hapus Foto
+          </button>
+        </form>
+      </div>
+    </article>
+  );
+}
+
+/* =========================================================
+   ALBUM FIELDS
+========================================================= */
+
+function AlbumFields({
+  album,
+}: {
+  album?:
+    PertanahanAlbum;
 }) {
   return (
     <>
       <Input
-        label="Nama Data"
-        name="nama"
+        label="Judul Album"
+        name="judul"
         value={
-          item?.nama ??
+          album?.judul ??
           ''
         }
-        placeholder="Contoh: Sawah"
+        placeholder="Contoh: Dokumentasi Sertifikasi Tanah"
       />
 
       <Input
-        label="Kategori"
-        name="kategori"
-        value={
-          item?.kategori ??
-          ''
-        }
-        placeholder="Contoh: Pertanian"
-      />
-
-      <Input
-        label="Luas (Hektar)"
-        name="luas_hektar"
+        label="Tahun"
+        name="tahun"
         type="number"
-        step="0.0001"
-        min="0"
-        value={String(
-          item?.luas_hektar ??
-            0
-        )}
-      />
-
-      <Input
-        label="Jumlah Bidang"
-        name="jumlah_bidang"
-        type="number"
-        min="0"
+        min="1900"
         value={
-          item?.jumlah_bidang ===
-          null ||
-          item?.jumlah_bidang ===
-          undefined
-            ? ''
-            : String(
-                item.jumlah_bidang
+          album?.tahun
+            ? String(
+                album.tahun
               )
+            : ''
         }
         required={
           false
-        }
-      />
-
-      <Input
-        label="Warna"
-        name="warna"
-        type="color"
-        value={
-          item?.warna ??
-          '#047857'
         }
       />
 
@@ -775,17 +1067,17 @@ function PertanahanFields({
         type="number"
         min="0"
         value={String(
-          item?.urutan ??
+          album?.urutan ??
             0
         )}
       />
 
       <div className="md:col-span-2">
         <Textarea
-          label="Keterangan"
-          name="keterangan"
+          label="Deskripsi Album"
+          name="deskripsi"
           value={
-            item?.keterangan ??
+            album?.deskripsi ??
             ''
           }
           required={
@@ -797,10 +1089,12 @@ function PertanahanFields({
       <div className="md:col-span-2">
         <ActiveField
           defaultChecked={
-            item
-              ? item.aktif
+            album
+              ? album.aktif
               : true
           }
+          label="Publikasikan Album"
+          description="Album aktif akan tampil pada halaman Pertanahan."
         />
       </div>
     </>
@@ -821,23 +1115,27 @@ function Input({
     true,
   placeholder,
   min,
-  step,
 }: {
-  label: string;
+  label:
+    string;
 
-  name: string;
+  name:
+    string;
 
-  value: string;
+  value:
+    string;
 
-  type?: string;
+  type?:
+    string;
 
-  required?: boolean;
+  required?:
+    boolean;
 
-  placeholder?: string;
+  placeholder?:
+    string;
 
-  min?: string;
-
-  step?: string;
+  min?:
+    string;
 }) {
   return (
     <label className="block">
@@ -864,19 +1162,15 @@ function Input({
         min={
           min
         }
-        step={
-          step
-        }
-        className={
-          type ===
-          'color'
-            ? 'h-12 w-full cursor-pointer rounded-xl border border-slate-200 bg-slate-50 p-2'
-            : 'h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100'
-        }
+        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </label>
   );
 }
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
 
 function Textarea({
   label,
@@ -885,13 +1179,17 @@ function Textarea({
   required =
     true,
 }: {
-  label: string;
+  label:
+    string;
 
-  name: string;
+  name:
+    string;
 
-  value: string;
+  value:
+    string;
 
-  required?: boolean;
+  required?:
+    boolean;
 }) {
   return (
     <label className="block">
@@ -910,16 +1208,29 @@ function Textarea({
           value
         }
         rows={4}
-        className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-700 outline-none focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+        className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium leading-7 text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </label>
   );
 }
 
+/* =========================================================
+   ACTIVE
+========================================================= */
+
 function ActiveField({
   defaultChecked,
+  label,
+  description,
 }: {
-  defaultChecked: boolean;
+  defaultChecked:
+    boolean;
+
+  label:
+    string;
+
+  description:
+    string;
 }) {
   return (
     <label className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
@@ -935,12 +1246,11 @@ function ActiveField({
 
       <span>
         <span className="block text-sm font-extrabold text-emerald-900">
-          Tampilkan ke publik
+          {label}
         </span>
 
-        <span className="mt-1 block text-xs font-medium text-emerald-700">
-          Data aktif akan tampil pada
-          halaman Data Pertanahan.
+        <span className="mt-1 block text-xs font-medium leading-5 text-emerald-700">
+          {description}
         </span>
       </span>
     </label>
@@ -948,16 +1258,18 @@ function ActiveField({
 }
 
 /* =========================================================
-   CARDS
+   STAT CARD
 ========================================================= */
 
 function StatCard({
   label,
   value,
 }: {
-  label: string;
+  label:
+    string;
 
-  value: string;
+  value:
+    string;
 }) {
   return (
     <article className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
@@ -974,40 +1286,5 @@ function StatCard({
         {value}
       </p>
     </article>
-  );
-}
-
-function MiniStat({
-  label,
-  value,
-}: {
-  label: string;
-
-  value: string;
-}) {
-  return (
-    <div className="rounded-xl bg-slate-50 p-4">
-      <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
-        {label}
-      </p>
-
-      <p className="mt-2 font-black text-slate-800">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function formatNumber(
-  value: number
-) {
-  return new Intl.NumberFormat(
-    'id-ID',
-    {
-      maximumFractionDigits:
-        4,
-    }
-  ).format(
-    value
   );
 }
