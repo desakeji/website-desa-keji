@@ -36,10 +36,15 @@ export const revalidate = 0;
 
 interface PedomanAdministrasi {
   judul: string;
+
   deskripsi: string;
+
   coverUrl: string;
+
   pdfUrl: string;
+
   tahun: number;
+
   aktif: boolean;
 }
 
@@ -56,10 +61,10 @@ const fallbackPedoman:
     'Buku pedoman administrasi sebagai panduan pengelolaan administrasi dalam mendukung tata kelola Desa Wisata Keji yang tertib dan terstruktur.',
 
   coverUrl:
-    '/desa-wisata/cover-pedoman-administrasi.png',
+    '/desa-wisata/Cover Pokdarwis.png',
 
   pdfUrl:
-    '/desa-wisata/buku-pedoman-administrasi.pdf',
+    '/desa-wisata/Green White Modern Agriculture Company Profile Booklet.pdf',
 
   tahun:
     2026,
@@ -103,8 +108,10 @@ function normalizeResourceUrl(
       new URL(raw);
 
     if (
-      url.protocol === 'https:' ||
-      url.protocol === 'http:'
+      url.protocol ===
+        'https:' ||
+      url.protocol ===
+        'http:'
     ) {
       return url.toString();
     }
@@ -120,7 +127,8 @@ function normalizePedoman(
 ): PedomanAdministrasi {
   if (
     !value ||
-    typeof value !== 'object' ||
+    typeof value !==
+      'object' ||
     Array.isArray(value)
   ) {
     return fallbackPedoman;

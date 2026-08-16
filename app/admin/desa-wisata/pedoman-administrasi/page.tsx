@@ -23,22 +23,30 @@ import {
 export const dynamic =
   'force-dynamic';
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
 /* =========================================================
    TYPES
 ========================================================= */
 
 interface PageProps {
-  searchParams: Promise<{
-    success?: string;
-    error?: string;
-  }>;
+  searchParams:
+    Promise<{
+      success?:
+        string;
+
+      error?:
+        string;
+    }>;
 }
 
 interface PedomanSettings {
-  judul: string;
-  deskripsi: string;
+  judul:
+    string;
+
+  deskripsi:
+    string;
 
   cover_url:
     | string
@@ -48,11 +56,14 @@ interface PedomanSettings {
     | string
     | null;
 
-  tahun: number;
+  tahun:
+    number;
 
-  aktif: boolean;
+  aktif:
+    boolean;
 
-  updated_at: string;
+  updated_at:
+    string;
 }
 
 /* =========================================================
@@ -68,10 +79,10 @@ const fallbackSettings:
     'Buku pedoman administrasi sebagai panduan pengelolaan administrasi dalam mendukung tata kelola Desa Wisata Keji yang tertib dan terstruktur.',
 
   cover_url:
-    '/desa-wisata/cover-pedoman-administrasi.png',
+    '/desa-wisata/Cover Pokdarwis.png',
 
   pdf_url:
-    '/desa-wisata/buku-pedoman-administrasi.pdf',
+    '/desa-wisata/Green White Modern Agriculture Company Profile Booklet.pdf',
 
   tahun:
     2026,
@@ -168,14 +179,19 @@ function normalizeSettings(
 }
 
 function formatTanggal(
-  value: string
+  value:
+    string
 ) {
-  if (!value) {
+  if (
+    !value
+  ) {
     return 'Belum diperbarui';
   }
 
   const date =
-    new Date(value);
+    new Date(
+      value
+    );
 
   if (
     Number.isNaN(
@@ -188,16 +204,27 @@ function formatTanggal(
   return new Intl.DateTimeFormat(
     'id-ID',
     {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      day:
+        '2-digit',
+
+      month:
+        'long',
+
+      year:
+        'numeric',
+
+      hour:
+        '2-digit',
+
+      minute:
+        '2-digit',
 
       timeZone:
         'Asia/Jakarta',
     }
-  ).format(date);
+  ).format(
+    date
+  );
 }
 
 /* =========================================================
@@ -325,7 +352,9 @@ export default async function AdminPedomanAdministrasiPage({
         </div>
       </section>
 
-      {/* MESSAGE */}
+      {/* =====================================================
+          MESSAGE
+      ===================================================== */}
 
       {params.success && (
         <Message
@@ -401,10 +430,14 @@ export default async function AdminPedomanAdministrasiPage({
           </div>
         </div>
 
-        {/* Content */}
+        {/* =================================================
+            CONTENT
+        ================================================= */}
 
         <div className="grid gap-7 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_340px]">
-          {/* Fields */}
+          {/* =================================================
+              FIELDS
+          ================================================= */}
 
           <div className="grid gap-5">
             <TextInput
@@ -433,6 +466,24 @@ export default async function AdminPedomanAdministrasiPage({
               }
             />
 
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                Cover Saat Ini
+              </p>
+
+              <p className="mt-1 break-all text-xs font-semibold leading-5 text-emerald-900">
+                {
+                  settings.cover_url
+                }
+              </p>
+
+              <p className="mt-2 text-[10px] font-medium text-emerald-700/70">
+                File baru:{' '}
+                /desa-wisata/Cover
+                Pokdarwis.png
+              </p>
+            </div>
+
             <TextInput
               name="pdf_url"
               label="Path / URL PDF"
@@ -441,6 +492,26 @@ export default async function AdminPedomanAdministrasiPage({
                 ''
               }
             />
+
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                PDF Saat Ini
+              </p>
+
+              <p className="mt-1 break-all text-xs font-semibold leading-5 text-emerald-900">
+                {
+                  settings.pdf_url
+                }
+              </p>
+
+              <p className="mt-2 text-[10px] font-medium leading-5 text-emerald-700/70">
+                File baru:
+                /desa-wisata/Green
+                White Modern
+                Agriculture Company
+                Profile Booklet.pdf
+              </p>
+            </div>
 
             <TextInput
               name="tahun"
@@ -475,9 +546,11 @@ export default async function AdminPedomanAdministrasiPage({
             </div>
           </div>
 
-          {/* Preview */}
+          {/* =================================================
+              PREVIEW
+          ================================================= */}
 
-          <aside className="overflow-hidden rounded-3xl border border-emerald-100 bg-slate-50">
+          <aside className="h-fit overflow-hidden rounded-3xl border border-emerald-100 bg-slate-50">
             <div className="border-b border-emerald-100 bg-emerald-950 px-5 py-4 text-white">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
                 Pratinjau
@@ -536,10 +609,32 @@ export default async function AdminPedomanAdministrasiPage({
                   size={14}
                 />
 
-                PDF · {
+                PDF ·{' '}
+                {
                   settings.tahun
                 }
               </div>
+
+              {settings.pdf_url && (
+                <a
+                  href={
+                    settings.pdf_url
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-extrabold text-emerald-700 transition hover:bg-emerald-100"
+                >
+                  <BookOpen
+                    size={15}
+                  />
+
+                  Buka PDF
+
+                  <ExternalLink
+                    size={13}
+                  />
+                </a>
+              )}
 
               <p className="mt-4 text-[10px] font-semibold text-slate-400">
                 Diperbarui:{' '}
@@ -567,10 +662,12 @@ function Message({
     | 'success'
     | 'error';
 
-  text: string;
+  text:
+    string;
 }) {
   const success =
-    type === 'success';
+    type ===
+    'success';
 
   const Icon =
     success
@@ -605,28 +702,46 @@ function TextInput({
   name,
   label,
   value,
-  type = 'text',
+  type =
+    'text',
 }: {
-  name: string;
-  label: string;
-  value: string;
-  type?: string;
+  name:
+    string;
+
+  label:
+    string;
+
+  value:
+    string;
+
+  type?:
+    string;
 }) {
   return (
     <div>
       <label
-        htmlFor={name}
+        htmlFor={
+          name
+        }
         className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
       >
         {label}
       </label>
 
       <input
-        id={name}
-        name={name}
-        type={type}
+        id={
+          name
+        }
+        name={
+          name
+        }
+        type={
+          type
+        }
         required
-        defaultValue={value}
+        defaultValue={
+          value
+        }
         className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </div>
@@ -641,28 +756,46 @@ function TextArea({
   name,
   label,
   value,
-  rows = 4,
+  rows =
+    4,
 }: {
-  name: string;
-  label: string;
-  value: string;
-  rows?: number;
+  name:
+    string;
+
+  label:
+    string;
+
+  value:
+    string;
+
+  rows?:
+    number;
 }) {
   return (
     <div>
       <label
-        htmlFor={name}
+        htmlFor={
+          name
+        }
         className="mb-2 block text-xs font-extrabold uppercase tracking-wider text-slate-500"
       >
         {label}
       </label>
 
       <textarea
-        id={name}
-        name={name}
+        id={
+          name
+        }
+        name={
+          name
+        }
         required
-        rows={rows}
-        defaultValue={value}
+        rows={
+          rows
+        }
+        defaultValue={
+          value
+        }
         className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-7 text-slate-800 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
       />
     </div>
@@ -680,21 +813,36 @@ function Checkbox({
   description,
   checked,
 }: {
-  id: string;
-  name: string;
-  label: string;
-  description: string;
-  checked: boolean;
+  id:
+    string;
+
+  name:
+    string;
+
+  label:
+    string;
+
+  description:
+    string;
+
+  checked:
+    boolean;
 }) {
   return (
     <label
-      htmlFor={id}
+      htmlFor={
+        id
+      }
       className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
     >
       <input
-        id={id}
+        id={
+          id
+        }
         type="checkbox"
-        name={name}
+        name={
+          name
+        }
         value="true"
         defaultChecked={
           checked
@@ -708,7 +856,9 @@ function Checkbox({
         </span>
 
         <span className="mt-1 block text-xs font-medium leading-5 text-slate-500">
-          {description}
+          {
+            description
+          }
         </span>
       </span>
     </label>
